@@ -1,6 +1,18 @@
-<?php get_header(); ?>
-<main class="container" style="padding: 40px 0;">
-    <h2><?php the_title(); ?></h2>
-    <?php if (have_posts()) : while (have_posts()) : the_post(); the_content(); endwhile; endif; ?>
+<?php
+get_header();
+?>
+
+<main id="primary" class="site-main">
+    <div class="container">
+        <?php
+        if ( have_posts() ) :
+            while ( have_posts() ) : the_post();
+                the_content();
+            endwhile;
+        endif;
+        ?>
+    </div>
 </main>
-<?php get_footer(); ?>
+
+<?php
+get_footer();
