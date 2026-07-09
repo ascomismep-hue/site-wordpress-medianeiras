@@ -3,21 +3,15 @@
  * Tema Medianeiras da Paz - Funções estruturais
  */
 
-if ( ! function_exists( 'medianeiras_setup' ) ) :
-    function medianeiras_setup() {
-        // Adiciona suporte a títulos automáticos
-        add_theme_support( 'title-tag' );
-        
-        // Adiciona suporte a imagens destacadas
-        add_theme_support( 'post-thumbnails' );
-    }
-endif;
+function medianeiras_setup() {
+    add_theme_support( 'title-tag' );
+    add_theme_support( 'post-thumbnails' );
+}
 add_action( 'after_setup_theme', 'medianeiras_setup' );
 
-if ( ! function_exists( 'medianeiras_scripts' ) ) :
-    function medianeiras_scripts() {
-        // Carrega o arquivo CSS principal do tema
-        wp_enqueue_style( 'medianeiras-style', get_stylesheet_uri(), array(), '1.0.0' );
-    }
-endif;
-add_action( 'wp_enqueue_scripts', 'medianeiras_scripts' );
+function medianeiras_assets() {
+    // Carrega o arquivo style.css na hora exata exigida pelo WordPress
+    wp_enqueue_style( 'medianeiras-style', get_stylesheet_uri(), array(), '1.0.0' );
+}
+// É este gancho abaixo que impede o erro de "chamada incorretamente"
+add_action( 'wp_enqueue_scripts', 'medianeiras_assets' );
