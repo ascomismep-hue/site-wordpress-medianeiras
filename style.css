@@ -1,255 +1,1024 @@
 /*
-Theme Name: Congregação Religiosa Tema
-Author: Roniel Sousa
-Description: Tema dinâmico inspirado em grandes portais institucionais.
-Version: 1.2
+Theme Name: Medianeiras da Paz
+Theme URI: https://irimep.com.br
+Author: ASCOM ISMEP
+Description: Tema institucional customizado para as Irmãs Medianeiras da Paz.
+Version: 1.0
+Text Domain: medianeiras
 */
-:root {
-    --cor-primaria-azul: #0a84c1;
-    --cor-secundaria-vermelho: #d31d24;
-    --cor-detalhe-dourado: #cb8338;
-    --cor-texto-escuro: #2b2b2b;
-    --cor-texto-claro: #ffffff;
-    --cor-fundo-suave: #f4f6f9;
-    --cor-fundo-card: #ffffff;
-    --fonte-principal: Arial, sans-serif;
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: var(--fonte-principal); background-color: var(--cor-fundo-suave); color: var(--cor-texto-escuro); line-height: 1.6; }
-.container { width: 92%; max-width: 1200px; margin: 0 auto; }
 
-/* Cabeçalho Flexível */
-.site-header { background-color: #fff; border-bottom: 4px solid var(--cor-primaria-azul); padding: 15px 0; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-.header-flex { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-.main-navigation .nav-menu { display: flex; list-style: none; gap: 20px; }
-.main-navigation .nav-menu a { text-decoration: none; color: var(--cor-texto-escuro); font-weight: bold; transition: color 0.2s; }
-.main-navigation .nav-menu a:hover { color: var(--cor-primaria-azul); }
+/* ==========================================================================
+   1. CONFIGURAÇÕES GERAIS E APARÊNCIA MODERNA
+   ========================================================================== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    scroll-behavior: smooth;
+}
 
-/* Banner */
-.hero-section { background: linear-gradient(135deg, var(--cor-primaria-azul), #065b85); color: #fff; padding: 60px 0; text-align: center; margin-bottom: 40px; }
-
-/* Grid de Notícias Estilo Portal */
-.titulo-secao { font-size: 24px; margin-bottom: 20px; color: #1a1a1a; border-left: 5px solid var(--cor-detalhe-dourado); padding-left: 10px; }
-.grid-noticias { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 25px; }
-.card-noticia { background: #fff; border-radius: 6px; overflow: hidden; box-shadow: 0 3px 10px rgba(0,0,0,0.05); transition: transform 0.2s; display: flex; flex-direction: column; }
-.card-noticia:hover { transform: translateY(-3px); }
-.noticia-imagem img { width: 100%; height: 180px; object-fit: cover; }
-.noticia-corpo { padding: 20px; flex-grow: 1; display: flex; flex-direction: column; }
-.noticia-data { font-size: 12px; color: #777; margin-bottom: 8px; display: block; }
-.noticia-corpo h3 { font-size: 18px; margin-bottom: 10px; }
-.noticia-corpo h3 a { color: var(--cor-texto-escuro); text-decoration: none; }
-.noticia-corpo h3 a:hover { color: var(--cor-primaria-azul); }
-.noticia-corpo p { font-size: 14px; color: #555; }
-
-.site-footer { background: #1e242b; color: #fff; padding: 30px 0; margin-top: 50px; text-align: center; font-size: 14px; }
-
-/* ---- ESTILOS DA LINHA DO TEMPO (TIMELINE) ---- */
-.timeline {
-    position: relative;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px 0;
-}
-/* Linha vertical central */
-.timeline::after {
-    content: '';
-    position: absolute;
-    width: 4px;
-    background-color: var(--cor-primaria-azul);
-    top: 0;
-    bottom: 0;
-    left: 31px; /* Alinhado à esquerda em telas menores */
-    margin-left: -2px;
-}
-/* Itens da Linha do Tempo */
-.timeline-item {
-    position: relative;
-    padding-left: 70px;
-    margin-bottom: 40px;
-}
-/* As bolinhas marcadoras */
-.timeline-dot {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background-color: var(--cor-fundo-suave);
-    border: 4px solid var(--cor-detalhe-dourado);
-    border-radius: 50%;
-    left: 23px;
-    top: 5px;
-    z-index: 1;
-}
-/* Texto do ano/data */
-.timeline-date {
-    font-weight: bold;
-    color: var(--cor-secundaria-vermelho);
-    font-size: 18px;
-    margin-bottom: 5px;
-}
-/* Caixa de texto do marco histórico */
-.timeline-content {
-    background-color: #ffffff;
-    padding: 20px;
-    border-radius: 6px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-    border-left: 4px solid var(--cor-primaria-azul);
-}
-.timeline-content h3 {
-    font-size: 18px;
-    color: #1a1a1a;
-    margin-bottom: 8px;
-}
-.timeline-content p {
-    font-size: 14px;
-    color: #666;
+body {
+    background-color: #f8fafc;
+    color: #1e293b;
     line-height: 1.6;
+    overflow-x: hidden;
 }
 
-/* Responsividade para telas maiores (Efeito Zig-Zag opcional) */
-@media (min-width: 768px) {
-    .timeline::after {
-        left: 50%;
-    }
-    .timeline-item {
-        padding-left: 0;
-        width: 50%;
-        margin-bottom: 30px;
-    }
-    .timeline-item:nth-child(even) {
-        left: 50%;
-        padding-left: 40px;
-    }
-    .timeline-item:nth-child(odd) {
-        left: 0;
-        padding-right: 40px;
-        text-align: right;
-    }
-    .timeline-item:nth-child(odd) .timeline-content {
-        border-left: none;
-        border-right: 4px solid var(--cor-primaria-azul);
-    }
-    .timeline-dot {
-        left: auto;
-        right: -10px;
-    }
-    .timeline-item:nth-child(even) .timeline-dot {
-        left: -10px;
-    }
-    .timeline-item:nth-child(odd) .timeline-date {
-        text-align: right;
-    }
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
-
-/* ---- AJUSTE DA LOGOMARCA NO MENU ---- */
-.site-logo img {
-    max-height: 60px;    /* Limita a altura para não quebrar a barra */
-    width: auto;         /* Mantém a proporção correta da imagem */
-    display: block;
-    transition: transform 0.2s ease;
+/* ==========================================================================
+   2. CABEÇALHO / NAVEGAÇÃO FLUTUANTE
+   ========================================================================== */
+header {
+    background-color: rgba(255, 255, 255, 0.96);
+    padding: 12px 0;
+    box-shadow: 0 4px 20px rgba(0, 15, 160, 0.06);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(5px);
 }
 
-.site-logo img:hover {
-    transform: scale(1.03); /* Efeito sutil ao passar o mouse */
-}
-
-/* Garante que o menu e a logo fiquem perfeitamente alinhados no centro da barra */
 .header-flex {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 5px 0;
 }
 
-
-/* ---- PÁGINA: CONHEÇA NOSSAS IRMÃS ---- */
-.titulo-pagina-irmas {
-    font-size: 36px;
-    color: var(--cor-primaria-azul);
-    position: relative;
-    display: inline-block;
-    padding-bottom: 10px;
-}
-.titulo-pagina-irmas::after {
-    content: '';
-    position: absolute;
-    width: 60px;
-    height: 4px;
-    background-color: var(--cor-detalhe-dourado);
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
+.logo-img {
+    height: 60px;
+    display: block;
 }
 
-/* Grid Organizador */
-.grid-irmas {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-    gap: 30px;
-    margin-top: 20px;
-}
-
-/* Cartão Individual */
-.card-irma {
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-    border-top: 4px solid var(--cor-primaria-azul);
-    padding: 25px;
+.header-nav ul {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    list-style: none;
+    gap: 20px;
+}
+
+.header-nav ul li a {
+    text-decoration: none;
+    color: #000fa0;
+    font-weight: 700;
+    font-size: 0.95rem;
+    transition: color 0.3s;
+}
+
+.header-nav ul li a:hover { 
+    color: #ff0000; 
+}
+
+/* Linha vermelha indicador de aba ativa */
+.destaque-menu {
+    border-bottom: 2px solid #ff0000;
+    padding-bottom: 4px;
+}
+
+/* Faixa decorativa das páginas internas */
+.page-internal-hero {
+    position: relative;
+    background-color: #000fa0;
+    color: white;
+    padding: 50px 0;
     text-align: center;
 }
 
-/* Espaço da Foto */
-.irma-foto-wrapper {
-    width: 120px;
-    height: 120px;
-    margin-bottom: 20px;
+.relative-z { 
+    position: relative; 
+    z-index: 2; 
 }
-.irma-foto-placeholder {
+
+.page-blank-bg { 
+    background-color: #ffffff !important; 
+}
+
+/* ==========================================================================
+   3. CARROSSEL DE BANNERS (HOME)
+   ========================================================================== */
+.banner-section {
+    position: relative;
     width: 100%;
+    height: 440px;
+    overflow: hidden;
+    box-shadow: inset 0 -40px 60px rgba(0,0,0,0.15);
+}
+
+.banner-section input[type="radio"] { 
+    display: none; 
+}
+
+.carousel-wrapper {
+    display: flex;
+    width: 200%;
     height: 100%;
-    background-color: #f0f4f8;
-    border: 2px dashed #b0c4de;
+    transition: transform 0.8s cubic-bezier(0.77, 0, 0.175, 1);
+    animation: carrosselAutomatico 20s infinite ease-in-out;
+}
+
+.main-slide { 
+    width: 50%; 
+    height: 100%; 
+    background-size: cover; 
+    background-position: center; 
+}
+
+.slide-fachada { 
+    background-image: url('imagens/fachada.PNG'); 
+}
+
+.slide-maternidade { 
+    background-image: url('https://images.unsplash.com/photo-1516627145497-ae6968895b74?q=80&w=1200'); 
+}
+
+#slide-1:checked ~ .carousel-wrapper { transform: translateX(0); animation: none; }
+#slide-2:checked ~ .carousel-wrapper { transform: translateX(-50%); animation: none; }
+
+.carousel-nav-dots {
+    position: absolute;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 12px;
+    z-index: 10;
+    background: rgba(0, 15, 160, 0.3);
+    padding: 8px 16px;
+    border-radius: 30px;
+}
+
+.nav-dot { 
+    width: 12px; 
+    height: 12px; 
+    background-color: rgba(255, 255, 255, 0.6); 
+    border-radius: 50%; 
+    cursor: pointer; 
+}
+
+#slide-1:checked ~ .carousel-nav-dots label[for="slide-1"],
+#slide-2:checked ~ .carousel-nav-dots label[for="slide-2"] { 
+    background-color: #ff0000; 
+    transform: scale(1.3); 
+}
+
+@keyframes carrosselAutomatico {
+    0%, 45% { transform: translateX(0); }
+    50%, 95% { transform: translateX(-50%); }
+    100% { transform: translateX(0); }
+}
+
+/* ==========================================================================
+   4. SEÇÃO INSTITUCIONAL (SUBMENU EM TABS)
+   ========================================================================== */
+.institucional-secao {
+    padding: 80px 0;
+    background-color: #ffffff;
+}
+
+.secao-titulo-centro { 
+    text-align: center; 
+    margin-bottom: 40px; 
+}
+
+.secao-titulo-centro h2 { 
+    color: #000fa0; 
+    font-size: 2.2rem; 
+    font-weight: 800; 
+}
+
+.secao-titulo-centro h2 i { 
+    color: #ff0000; 
+}
+
+.sub-frase { 
+    color: #64748b; 
+    font-size: 1.1rem; 
+    margin-top: 5px; 
+}
+
+.institucional-secao input[type="radio"] {
+    display: none;
+}
+
+.submenu-bar {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    background-color: #f1f5f9;
+    padding: 8px;
+    border-radius: 12px;
+    margin-bottom: 40px;
+    border: 1px solid #e2e8f0;
+}
+
+.sub-nav-item {
+    padding: 12px 20px;
+    color: #475569;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sub-nav-item i { 
+    font-size: 1.05rem; 
+}
+
+.sub-nav-item:hover { 
+    color: #000fa0; 
+    background-color: rgba(0, 15, 160, 0.04); 
+}
+
+#tab-historia:checked ~ .submenu-bar label[for="tab-historia"],
+#tab-diretores:checked ~ .submenu-bar label[for="tab-diretores"],
+#tab-clinicos:checked ~ .submenu-bar label[for="tab-clinicos"],
+#tab-valores:checked ~ .submenu-bar label[for="tab-valores"],
+#tab-ismep:checked ~ .submenu-bar label[for="tab-ismep"] {
+    background-color: #000fa0;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 15, 160, 0.2);
+}
+
+.submenu-contents-wrapper {
+    position: relative;
+    min-height: 250px;
+}
+
+.sub-content {
+    display: none;
+    width: 100%;
+    animation: fadeReveal 0.5s ease forwards;
+}
+
+#tab-historia:checked ~ .submenu-contents-wrapper .content-historia,
+#tab-diretores:checked ~ .submenu-contents-wrapper .content-diretores,
+#tab-clinicos:checked ~ .submenu-contents-wrapper .content-clinicos,
+#tab-valores:checked ~ .submenu-contents-wrapper .content-valores,
+#tab-ismep:checked ~ .submenu-contents-wrapper .content-ismep {
+    display: block;
+}
+
+@keyframes fadeReveal {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.historia-texto { 
+    max-width: 850px; 
+    margin: 0 auto; 
+    text-align: center; 
+    font-size: 1.1rem; 
+    color: #475569; 
+    line-height: 1.8; 
+}
+
+.grid-2-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 30px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.gap-20 { 
+    gap: 20px; 
+}
+
+.card-diretoria {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 30px;
+    border-radius: 12px;
+    text-align: center;
+    border-top: 4px solid #000fa0;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.01);
+}
+
+.card-diretoria h3 { color: #000fa0; font-size: 1.25rem; margin-bottom: 5px; }
+.card-diretoria .cargo { font-weight: 700; color: #ff0000; font-size: 0.9rem; margin-bottom: 15px; text-transform: uppercase; }
+.card-diretoria .desc-dir { font-size: 0.95rem; color: #64748b; }
+
+.icon-dir { font-size: 2.2rem; color: #000fa0; margin-bottom: 10px; }
+.icon-dir-med { font-size: 2.2rem; color: #ff0000; margin-bottom: 10px; }
+
+.card-valor-box {
+    background: #f8fafc;
+    padding: 30px 25px;
+    border-radius: 12px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+}
+
+.card-valor-box h3 { color: #000fa0; margin-bottom: 10px; font-size: 1.3rem; }
+.card-valor-box p { font-size: 0.95rem; color: #475569; }
+
+.v-icon-circle {
+    width: 55px;
+    height: 55px;
+    background-color: rgba(0, 15, 160, 0.05);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 40px;
-}
-/* Se você adicionar uma tag <img> no futuro, ela ficará assim: */
-.irma-foto-wrapper img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 3px solid #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    margin: 0 auto 15px auto;
+    font-size: 1.4rem;
+    color: #000fa0;
 }
 
-/* Dados e Tabela */
-.irma-dados {
-    width: 100%;
+/* Bloco Mantenedora ISMEP / OSS */
+.ismep-container-layout {
+    background: linear-gradient(to right, #f8fafc, #f1f5f9);
+    padding: 40px;
+    border-radius: 16px;
+    border-left: 6px solid #ff0000;
+    max-width: 1000px;
+    margin: 0 auto;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.02);
 }
-.irma-dados h3 {
-    font-size: 20px;
-    color: #1a1a1a;
-    margin-bottom: 15px;
+
+.ismep-header-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 20px;
 }
-.tabela-dados-irma {
-    width: 100%;
-    border-collapse: collapse;
+
+.ismep-header-info h3 { color: #000fa0; font-size: 1.5rem; font-weight: 800; }
+.oss-tag { background-color: #ff0000; color: white; padding: 4px 14px; border-radius: 30px; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; }
+.ismep-p { font-size: 1.1rem; color: #334155; margin-bottom: 30px; line-height: 1.8; }
+
+.ismep-mini-card {
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.ismep-mini-card h4 { color: #000fa0; font-size: 1.1rem; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+.ismep-mini-card h4 i { color: #ff0000; }
+.ismep-mini-card p { font-size: 0.95rem; color: #64748b; }
+
+.unidades-administradas-box {
+    margin-top: 35px;
+    background-color: white;
+    padding: 30px;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+}
+
+.unidades-administradas-box h4 {
+    color: #000fa0;
+    font-size: 1.25rem;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.unidades-administradas-box h4 i { color: #ff0000; }
+.unidades-intro { font-size: 0.95rem; color: #64748b; margin-bottom: 20px; }
+
+.unidades-list-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 15px;
+}
+
+.unidade-item-card {
+    background-color: #f8fafc;
+    padding: 15px 20px;
+    border-radius: 8px;
+    border-left: 4px solid #000fa0;
+    transition: all 0.3s ease;
+}
+
+.unidade-item-card h5 { color: #1e293b; font-size: 0.95rem; font-weight: 700; margin-bottom: 2px; }
+.unidade-item-card span { font-size: 0.8rem; color: #ff0000; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.unidade-item-card:hover { transform: translateX(5px); background-color: #e6e8f7; border-left-color: #ff0000; }
+
+/* ==========================================================================
+   5. NÚMEROS ASSISTENCIAIS (HOME)
+   ========================================================================== */
+.estatisticas-corpo { 
+    padding: 80px 0; 
+    background-color: #f1f5f9; 
+    border-bottom: 1px solid #e2e8f0; 
+}
+
+.secao-titulo-animado { 
+    text-align: center; 
+    margin-bottom: 50px; 
+}
+
+.secao-titulo-animado h2 { 
+    color: #000fa0; 
+    font-size: 2.2rem; 
+    font-weight: 800; 
+}
+
+.secao-titulo-animado .icon-titulo { 
+    color: #ff0000; 
+}
+
+.secao-titulo-animado p { 
+    color: #64748b; 
+    font-size: 1.1rem; 
+}
+
+.grid-4-stats { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); 
+    gap: 30px; 
+}
+
+.card-stat-corpo { 
+    background: white; 
+    padding: 35px 25px; 
+    border-radius: 16px; 
+    text-align: center; 
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02); 
+    border: 1px solid #e2e8f0; 
+    transition: all 0.4s ease; 
+}
+
+.stat-icon-bg { 
+    width: 60px; 
+    height: 60px; 
+    border-radius: 12px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    margin: 0 auto 20px auto; 
+    font-size: 1.6rem; 
+}
+
+.blue-bg { background-color: rgba(0, 15, 160, 0.08); color: #000fa0; }
+.red-bg { background-color: rgba(255, 0, 0, 0.08); color: #ff0000; }
+
+.stat-numero-grande { 
+    font-size: 2.4rem; 
+    font-weight: 900; 
+    color: #000fa0; 
+    display: block; 
+    margin-bottom: 5px; 
+}
+
+.stat-legenda { 
+    color: #475569; 
+    font-weight: 600; 
+    font-size: 1rem; 
+    margin-bottom: 15px; 
+}
+
+.stat-bar-load { 
+    height: 4px; 
+    width: 40%; 
+    background-color: #000fa0; 
+    margin: 0 auto; 
+    border-radius: 2px; 
+}
+
+.stat-bar-load.red-bar { 
+    background-color: #ff0000; 
+}
+
+.card-stat-corpo:hover { 
+    transform: translateY(-10px); 
+    box-shadow: 0 15px 35px rgba(0, 15, 160, 0.08); 
+}
+
+.card-stat-corpo:hover .stat-bar-load { 
+    width: 80%; 
+}
+
+/* ==========================================================================
+   6. CARDS INFORMATIVOS E TAGS DE ESPECIALIDADES
+   ========================================================================== */
+.grid-3 { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+    gap: 35px; 
+}
+
+.sobre { 
+    padding: 80px 0; 
+    background: #ffffff; 
+}
+
+.card-info { 
+    background: #f8fafc; 
+    padding: 40px 30px; 
+    border-radius: 16px; 
+    text-align: center; 
+    border: 1px solid #e2e8f0; 
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+}
+
+.icon-circle { 
+    width: 70px; 
+    height: 70px; 
+    background-color: rgba(255, 0, 0, 0.06); 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    margin: 0 auto 20px auto; 
+}
+
+.icon-hospital { 
+    font-size: 2.2rem; 
+    color: #ff0000; 
+}
+
+.card-info h3 { color: #000fa0; font-size: 1.3rem; margin-bottom: 12px; }
+.card-info p { color: #64748b; font-size: 0.95rem; }
+.anim-hover:hover { transform: translateY(-12px); box-shadow: 0 20px 40px rgba(0, 15, 160, 0.08); }
+
+.especialidades { 
+    padding: 80px 0; 
+    text-align: center; 
+    background-color: #f1f5f9; 
+}
+
+.especialidades h2 { 
+    color: #000fa0; 
+    margin-bottom: 40px; 
+    font-size: 2.2rem; 
+    font-weight: 800; 
+}
+
+.lista-especialidades { 
+    display: flex; 
+    flex-wrap: wrap; 
+    justify-content: center; 
+    gap: 16px; 
+}
+
+.tag { 
+    background-color: white; 
+    color: #000fa0; 
+    padding: 12px 24px; 
+    border-radius: 50px; 
+    font-weight: 600; 
+    font-size: 0.95rem; 
+    border: 1px solid #e2e8f0; 
+}
+
+/* ==========================================================================
+   6B. LINHA DO TEMPO - HISTÓRIA COMPLETA (MEDIANEIRAS DA PAZ)
+   ========================================================================== */
+.section-linha-tempo-container {
+    padding: 60px 0;
+    background-color: #ffffff;
+}
+
+.linha-do-tempo {
+    position: relative;
+    padding: 20px 0;
+    list-style: none;
+    max-width: 950px;
+    margin: 0 auto;
+}
+
+.linha-do-tempo::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 4px;
+    background-color: #000fa0;
+    transform: translateX(-50%);
+}
+
+.timeline-item {
+    position: relative;
+    width: 50%;
+    padding: 20px 40px;
+}
+
+.timeline-item.esquerda {
+    left: 0;
+    text-align: right;
+}
+
+.timeline-item.direita {
+    left: 50%;
     text-align: left;
-    font-size: 14px;
 }
-.tabela-dados-irma td {
-    padding: 6px 4px;
-    border-bottom: 1px solid #f0f0f0;
-    color: #444;
+
+.timeline-item::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    right: -10px;
+    top: 25px;
+    background-color: #ffffff;
+    border: 4px solid #000fa0;
+    border-radius: 50%;
+    z-index: 1;
 }
-.tabela-dados-irma td:first-child {
-    color: #777;
-    width: 45%;
+
+.timeline-item.direita::after {
+    left: -10px;
+}
+
+.timeline-conteudo {
+    padding: 25px;
+    background-color: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+}
+
+.timeline-data {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #ff0000;
+    margin-bottom: 8px;
+    display: block;
+}
+
+.timeline-conteudo h3 {
+    font-size: 1.25rem;
+    margin-bottom: 12px;
+    color: #000fa0;
+    font-weight: 700;
+}
+
+.timeline-conteudo p {
+    font-size: 0.98rem;
+    line-height: 1.6;
+    color: #475569;
+    margin: 0;
+}
+
+.timeline-img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    display: block;
+}
+
+.lema-institucional {
+    display: block;
+    font-style: italic;
+    font-weight: 700;
+    color: #000fa0;
+    margin-top: 15px;
+    padding-left: 15px;
+    border-left: 3px solid #ff0000;
+}
+
+/* ==========================================================================
+   6C. GALERIA DE CARTÕES (COMPATÍVEL C/ PAINEL DO WORDPRESS)
+   ========================================================================== */
+.grelha-irmas-wp {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 30px;
+    padding: 40px 0;
+}
+
+.grelha-irmas-wp > .wp-block-column {
+    background-color: #ffffff !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.04) !important;
+    border: 1px solid #e2e8f0 !important;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 280px !important;
+    flex-basis: 280px !important;
+}
+
+.grelha-irmas-wp > .wp-block-column:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 15, 160, 0.1);
+}
+
+.grelha-irmas-wp .wp-block-image {
+    margin: 0 !important;
+}
+
+.grelha-irmas-wp .wp-block-image img {
+    width: 100% !important;
+    height: 250px !important;
+    object-fit: cover !important;
+    border-radius: 0 !important;
+}
+
+.grelha-irmas-wp h3 {
+    font-size: 1.25rem !important;
+    color: #000fa0 !important;
+    margin: 15px 20px 5px 20px !important;
+    font-weight: 700 !important;
+}
+
+.grelha-irmas-wp p {
+    font-size: 0.92rem !important;
+    color: #475569 !important;
+    line-height: 1.6 !important;
+    margin: 0 20px 20px 20px !important;
+}
+
+.grelha-irmas-wp p strong {
+    color: #ff0000 !important;
+}
+
+/* ==========================================================================
+   7. RODAPÉ HARMONIZADO (LOGO FILTRADA E FONTES ALINHADAS)
+   ========================================================================== */
+.main-footer { 
+    background: linear-gradient(135deg, #000fa0 0%, #000754 100%); 
+    color: white; 
+    padding-top: 60px; 
+    border-top: 6px solid #ff0000; 
+}
+
+.footer-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+    gap: 50px; 
+    padding-bottom: 50px; 
+}
+
+.footer-col h3 { 
+    font-size: 1.2rem; 
+    text-transform: uppercase; 
+    letter-spacing: 1px; 
+    margin-bottom: 25px; 
+    color: #ffca00; 
+    font-weight: 700; 
+}
+
+.font-harmonizada, .font-harmonizada a, .font-harmonizada span { 
+    font-size: 0.95rem !important; 
+    color: rgba(255, 255, 255, 0.85); 
+    line-height: 1.8; 
+    text-decoration: none; 
+}
+
+.text-gap p { 
+    margin-bottom: 10px; 
+}
+
+.logo-white-filter { 
+    filter: brightness(0) invert(1); 
+    opacity: 0.95; 
+}
+
+.footer-logo-img { 
+    height: 55px; 
+    display: block; 
+    margin-bottom: 15px; 
+}
+
+.footer-col .sub-badge { 
+    display: inline-block; 
+    background-color: #ff0000; 
+    color: white; 
+    font-size: 0.75rem !important; 
+    padding: 4px 12px; 
+    border-radius: 12px; 
+    font-weight: bold; 
+    margin-top: 10px; 
+}
+
+.address-link { 
+    display: block; 
+    transition: color 0.3s; 
+}
+
+.address-link:hover, .footer-phone-link:hover { 
+    color: #ffca00 !important; 
+}
+
+.click-hint { 
+    display: block; 
+    font-size: 0.8rem !important; 
+    color: #ffca00 !important; 
+    text-transform: uppercase; 
+    font-weight: bold; 
+    margin-top: 10px; 
+}
+
+.footer-phone-link { 
+    font-weight: bold; 
+    color: white !important; 
+}
+
+.footer-bottom { 
+    background-color: rgba(0, 0, 0, 0.2); 
+    text-align: center; 
+    padding: 20px 0; 
+    font-size: 0.85rem; 
+    color: rgba(255, 255, 255, 0.5); 
+    border-top: 1px solid rgba(255, 255, 255, 0.05); 
+}
+
+/* ==========================================================================
+   8. SISTEMA DO PAINEL ADMINISTRATIVO E LOGIN (CMS SUPABASE C/ CORREÇÃO)
+   ========================================================================== */
+.admin-panel-bg { 
+    background-color: #f8fafc; 
+}
+
+.admin-header { 
+    background-color: #000fa0; 
+    color: white; 
+    padding: 15px 0; 
+}
+
+.admin-main { 
+    padding: 40px 0; 
+}
+
+.admin-card-section { 
+    background: white; 
+    border: 1px solid #e2e8f0; 
+    padding: 30px; 
+    border-radius: 12px; 
+    margin-top: 25px; 
+    box-shadow: 0 4px 6px rgba(0,0,0,0.01); 
+}
+
+.admin-card-section h3 { 
+    color: #000fa0; 
+    margin-bottom: 20px; 
+    border-bottom: 2px solid #f1f5f9; 
+    padding-bottom: 10px; 
+}
+
+/* Área exclusiva de fundo para a tela de login */
+.page-blank-bg { 
+    background-color: #f1f5f9 !important; 
+    display: flex !important; 
+    align-items: center !important; 
+    justify-content: center !important; 
+    min-height: 100vh !important; 
+    width: 100vw !important;
+    padding: 20px; 
+}
+
+.login-container-box { 
+    background: #ffffff !important; 
+    padding: 40px !important; 
+    border-radius: 16px !important; 
+    box-shadow: 0 10px 25px rgba(0,15,160,0.1) !important; 
+    max-width: 420px !important; 
+    width: 100% !important; 
+    text-align: center !important; 
+    border: 1px solid #e2e8f0 !important; 
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.login-logo { 
+    height: 60px; 
+    margin-bottom: 20px; 
+    display: inline-block;
+}
+
+.login-container-box h2 { 
+    color: #000fa0; 
+    margin-bottom: 5px; 
+    font-size: 1.6rem;
+}
+
+.login-container-box p { 
+    color: #64748b; 
+    font-size: 0.9rem; 
+}
+
+.input-group { 
+    text-align: left; 
+    margin-bottom: 20px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 6px; 
+}
+
+.input-group label { 
+    font-weight: 700; 
+    font-size: 0.85rem; 
+    color: #334155; 
+    text-transform: uppercase; 
+}
+
+.input-group input, .input-group textarea { 
+    padding: 12px; 
+    border: 1px solid #cbd5e1; 
+    border-radius: 8px; 
+    font-size: 0.95rem; 
+    background-color: #f8fafc; 
+    transition: border-color 0.3s; 
+    width: 100%; 
+}
+
+/* FORÇANDO EXIBIÇÃO TOTAL DOS BOTÕES */
+.btn-login, .btn-salvar { 
+    background-color: #000fa0 !important; 
+    color: #ffffff !important; 
+    border: none !important; 
+    padding: 14px !important; 
+    width: 100% !important; 
+    font-weight: bold !important; 
+    border-radius: 8px !important; 
+    cursor: pointer !important; 
+    font-size: 1rem !important; 
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    clear: both !important;
+    margin-top: 15px !important;
+}
+
+.btn-login:hover { 
+    background-color: #000754 !important; 
+}
+
+.btn-salvar { 
+    width: auto !important; 
+    padding: 12px 30px !important; 
+    background-color: #ff0000 !important; 
+}
+
+.btn-sair { 
+    background-color: transparent; 
+    border: 2px solid white; 
+    color: white; 
+    padding: 6px 16px; 
+    border-radius: 6px; 
+    font-weight: bold; 
+    cursor: pointer; 
+}
+
+.login-error { 
+    color: #ff0000; 
+    font-size: 0.85rem; 
+    margin-top: 15px; 
+    font-weight: bold; 
+}
+
+/* ==========================================================================
+   9. MEDIA QUERIES (RESPONSIVIDADE COMPLETA MÓVEL)
+   ========================================================================== */
+@media (max-width: 768px) {
+    .header-flex { 
+        flex-direction: column; 
+        gap: 15px; 
+        text-align: center; 
+    }
+    .submenu-bar { 
+        flex-direction: column; 
+        width: 100%; 
+        padding: 5px; 
+    }
+    .sub-nav-item { 
+        justify-content: center; 
+        width: 100%; 
+    }
+    .ismep-header-info { 
+        flex-direction: column; 
+        text-align: center; 
+    }
+    .page-blank-bg {
+        padding: 15px;
+    }
+    
+    /* Linha do tempo móvel */
+    .linha-do-tempo::before { 
+        left: 31px; 
+    }
+    .timeline-item {
+        width: 100%;
+        padding-left: 55px;
+        padding-right: 15px;
+        text-align: left !important;
+    }
+    .timeline-item.esquerda, .timeline-item.direita { 
+        left: 0; 
+    }
+    .timeline-item::after, .timeline-item.direita::after {
+        left: 21px;
+        right: auto;
+    }
 }
