@@ -3,96 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IRIMEP - Instituto das Irmãs Medianeiras da Paz</title>
+    <title>IRIMEP - Instituto Religioso das Irmãs Medianeiras da Paz</title>
     <style>
         :root {
             --azul: #0056a8;
             --vermelho: #e62134;
             --dourado: #c49a54;
-            --vidro: rgba(255, 255, 255, 0.15);
         }
 
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, var(--azul), #002d5a);
-            color: white;
-            margin: 0;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; color: #333; }
 
-        /* Efeito de Vidro */
-        .glass-card {
-            background: var(--vidro);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-            margin: 20px;
-            text-align: center;
-        }
-
-        header { width: 100%; padding: 20px; display: flex; justify-content: center; }
+        /* Cabeçalho como o dos Salesianos */
+        header { background: white; padding: 1rem 5%; border-bottom: 4px solid var(--azul); display: flex; align-items: center; justify-content: space-between; }
         
-        .logo { width: 120px; height: auto; }
-
-        .hero { max-width: 800px; }
-
-        .dynamic-text { 
-            font-size: 1.8rem; 
-            color: var(--dourado); 
-            font-weight: bold; 
-            margin: 20px 0;
-            min-height: 1.5em;
+        /* Grid de Cards */
+        .container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; padding: 40px 5%; }
+        
+        .card { 
+            background: rgba(255, 255, 255, 0.9); 
+            backdrop-filter: blur(10px);
+            border-radius: 15px; 
+            padding: 20px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
         }
-
-        .btn {
-            background: var(--vermelho);
-            color: white;
-            padding: 12px 25px;
-            border-radius: 50px;
-            text-decoration: none;
-            display: inline-block;
-            transition: 0.3s;
-        }
-
-        .btn:hover { background: var(--dourado); transform: scale(1.05); }
-
+        
+        .card:hover { transform: translateY(-10px); }
+        
+        .card h3 { color: var(--azul); border-bottom: 2px solid var(--dourado); padding-bottom: 10px; }
+        
+        .btn-acao { background: var(--vermelho); color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block; margin-top: 15px; }
     </style>
 </head>
 <body>
 
     <header>
-        <img src="LINK_DA_SUA_LOGO" alt="Logo IRIMEP" class="logo">
+        <img src="URL_DA_LOGO" style="height: 50px;">
+        <nav>Menu | Sobre | Projetos | Notícias | Contato</nav>
     </header>
 
-    <main class="glass-card hero">
-        <h1>IRIMEP</h1>
-        <p>Instituto Religioso das Irmãs Medianeiras da Paz</p>
-        <div id="dinamico" class="dynamic-text"></div>
-        <a href="#" class="btn">Saiba mais sobre nossa missão</a>
-    </main>
+    <div class="container">
+        <!-- Card de Destaque -->
+        <div class="card">
+            <h3>Nossa Missão</h3>
+            <p>Servir como Medianeiras da Paz, levando o amor e a reconciliação a todos, seguindo o exemplo de Maria.</p>
+        </div>
 
-    <script>
-        const frases = ["Paz e Reconciliação.", "Servindo ao próximo com amor.", "Acolhimento e Esperança.", "Medianeiras da Paz em missão."];
-        let i = 0, j = 0, apagando = false;
-        
-        function efeito() {
-            const el = document.getElementById('dinamico');
-            el.textContent = frases[i].substring(0, j);
-            
-            if (!apagando && j < frases[i].length) j++;
-            else if (apagando && j > 0) j--;
-            else {
-                apagando = !apagando;
-                if (!apagando) i = (i + 1) % frases.length;
-            }
-            setTimeout(efeito, apagando ? 50 : 100);
-        }
-        efeito();
-    </script>
+        <!-- Card de Notícias/Projetos -->
+        <div class="card">
+            <h3>Projetos Atuais</h3>
+            <p>Conheça nossas ações sociais e o impacto do trabalho das irmãs em nossas comunidades.</p>
+            <a href="#" class="btn-acao">Ver Projetos</a>
+        </div>
+
+        <!-- Card de Espiritualidade -->
+        <div class="card">
+            <h3>Espiritualidade</h3>
+            <p>Reflexões e momentos de oração preparados pelo instituto para nutrir a fé.</p>
+        </div>
+    </div>
+
 </body>
 </html>
