@@ -1,6 +1,47 @@
 <!DOCTYPE html>
-<html>
-  <body>
-    <h1>Meu primeiro site no GitHub Pages!</h1>
-  </body>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bem-vindo ao meu site!</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            background-color: #f4f4f4;
+        }
+        header {
+            background-color: #333;
+            color: white;
+            padding: 2rem 0;
+        }
+        main {
+            padding: 50px 20px;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Olá, este é o meu novo site!</h1>
+        <p>Desenvolvido com GitHub Pages</p>
+    </header>
+
+    <main>
+        <h2>Bem-vindo à minha página inicial</h2>
+        <p>Estou aprendendo a configurar tudo e este é o meu primeiro passo.</p>
+        <br>
+        <a href="#" class="btn">Saiba mais</a>
+    </main>
+
+</body>
 </html>
