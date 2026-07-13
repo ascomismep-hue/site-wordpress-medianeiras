@@ -3,222 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ISMÉP - Missão e Evangelismo</title>
+    <title>IRIMEP - Instituto das Irmãs Medianeiras da Paz</title>
     <style>
-        /* --- Variáveis de Cores baseadas na Logo --- */
         :root {
-            --cor-principal-azul: #0056a8; /* Azul da base */
-            --cor-secundaria-vermelho: #e62134; /* Vermelho da pomba */
-            --cor-terciaria-dourado: #c49a54; /* Dourado da cruz */
-            --cor-fundo: #f4f4f9;
-            --cor-texto: #333;
+            --azul: #0056a8;
+            --vermelho: #e62134;
+            --dourado: #c49a54;
+            --vidro: rgba(255, 255, 255, 0.15);
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, var(--azul), #002d5a);
+            color: white;
             margin: 0;
-            padding: 0;
-            background-color: var(--cor-fundo);
-            color: var(--cor-texto);
-            line-height: 1.6;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* --- Cabeçalho --- */
-        header {
-            background-color: white;
-            padding: 20px 50px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
         }
 
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .logo-img {
-            height: 60px; /* Ajuste o tamanho da logo */
-            width: auto;
-        }
-
-        .site-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--cor-principal-azul);
-        }
-
-        nav ul {
-            margin: 0;
-            padding: 0;
-            list-style: none;
-            display: flex;
-            gap: 20px;
-        }
-
-        nav a {
-            text-decoration: none;
-            color: var(--cor-texto);
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        nav a:hover {
-            color: var(--cor-secundaria-vermelho);
-        }
-
-        /* --- Área Principal (Dinâmica) --- */
-        main {
-            flex: 1;
-            padding: 50px 20px;
-            max-width: 1000px;
-            margin: 0 auto;
+        /* Efeito de Vidro */
+        .glass-card {
+            background: var(--vidro);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            margin: 20px;
             text-align: center;
         }
 
-        .hero-section h1 {
-            font-size: 3rem;
-            color: var(--cor-principal-azul);
-            margin-bottom: 10px;
-        }
+        header { width: 100%; padding: 20px; display: flex; justify-content: center; }
+        
+        .logo { width: 120px; height: auto; }
 
-        .hero-section h2 {
-            font-size: 1.5rem;
-            color: var(--cor-terciaria-dourado);
-            margin-bottom: 30px;
-        }
+        .hero { max-width: 800px; }
 
-        .dynamic-text {
-            font-size: 1.2rem;
-            color: var(--cor-secundaria-vermelho);
-            min-height: 1.5em; /* Previne que a tela pule */
-            font-weight: bold;
-            margin-bottom: 40px;
+        .dynamic-text { 
+            font-size: 1.8rem; 
+            color: var(--dourado); 
+            font-weight: bold; 
+            margin: 20px 0;
+            min-height: 1.5em;
         }
 
         .btn {
-            background-color: var(--cor-principal-azul);
+            background: var(--vermelho);
             color: white;
-            padding: 15px 30px;
+            padding: 12px 25px;
+            border-radius: 50px;
             text-decoration: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: background-color 0.3s, transform 0.2s;
             display: inline-block;
+            transition: 0.3s;
         }
 
-        .btn:hover {
-            background-color: var(--cor-terciaria-dourado);
-            transform: translateY(-2px);
-        }
+        .btn:hover { background: var(--dourado); transform: scale(1.05); }
 
-        /* --- Rodapé --- */
-        footer {
-            background-color: var(--cor-principal-azul);
-            color: white;
-            text-align: center;
-            padding: 20px;
-            margin-top: auto;
-        }
-
-        /* --- Responsividade (Mobile) --- */
-        @media (max-width: 768px) {
-            header {
-                padding: 15px 20px;
-                flex-direction: column;
-                gap: 10px;
-            }
-            nav ul {
-                justify-content: center;
-            }
-            .hero-section h1 {
-                font-size: 2rem;
-            }
-        }
     </style>
 </head>
 <body>
 
     <header>
-        <div class="logo-container">
-            <img src="https://raw.githubusercontent.com/ascomismep-hue/ascomismep-hue.github.io/main/sua-logo.png" alt="Logo ISMÉP" class="logo-img">
-            <div class="site-title">ISMÉP</div>
-        </div>
-        <nav>
-            <ul>
-                <li><a href="#home">Início</a></li>
-                <li><a href="#sobre">Sobre</a></li>
-                <li><a href="#projetos">Projetos</a></li>
-                <li><a href="#contato">Contato</a></li>
-            </ul>
-        </nav>
+        <img src="LINK_DA_SUA_LOGO" alt="Logo IRIMEP" class="logo">
     </header>
 
-    <main>
-        <section class="hero-section">
-            <h1>Missão e Evangelismo</h1>
-            <h2>Conectando Vidas ao Propósito Divino</h2>
-            
-            <div id="dinamico" class="dynamic-text"></div>
-
-            <a href="#projetos" class="btn">Conheça Nossos Projetos</a>
-        </section>
+    <main class="glass-card hero">
+        <h1>IRIMEP</h1>
+        <p>Instituto Religioso das Irmãs Medianeiras da Paz</p>
+        <div id="dinamico" class="dynamic-text"></div>
+        <a href="#" class="btn">Saiba mais sobre nossa missão</a>
     </main>
 
-    <footer>
-        <p>&copy; 2024 ISMÉP - Todos os direitos reservados</p>
-    </footer>
-
     <script>
-        // Lista de frases que vão alternar
-        const frases = [
-            "Alcançando nações com a Palavra.",
-            "Capacitando líderes para a colheita.",
-            "Amor em ação, vidas transformadas.",
-            "Juntos na missão."
-        ];
-
-        let fraseAtual = 0;
-        let caractereAtual = 0;
-        const elementoDinamico = document.getElementById('dinamico');
-        let estaApagando = false;
-
-        function digitarEfeito() {
-            const textoCompleto = frases[fraseAtual];
-
-            if (!estaApagando && caractereAtual < textoCompleto.length) {
-                // Digita
-                elementoDinamico.textContent += textoCompleto.substring(caractereAtual, caractereAtual + 1);
-                caractereAtual++;
-                setTimeout(digitarEfeito, 100); // Velocidade de digitação
-            } 
-            else if (estaApagando && caractereAtual > 0) {
-                // Apaga
-                elementoDinamico.textContent = textoCompleto.substring(0, caractereAtual - 1);
-                caractereAtual--;
-                setTimeout(digitarEfeito, 50); // Velocidade de apagar
-            }
+        const frases = ["Paz e Reconciliação.", "Servindo ao próximo com amor.", "Acolhimento e Esperança.", "Medianeiras da Paz em missão."];
+        let i = 0, j = 0, apagando = false;
+        
+        function efeito() {
+            const el = document.getElementById('dinamico');
+            el.textContent = frases[i].substring(0, j);
+            
+            if (!apagando && j < frases[i].length) j++;
+            else if (apagando && j > 0) j--;
             else {
-                // Troca de frase
-                estaApagando = !estaApagando;
-                if (!estaApagando) {
-                    fraseAtual = (fraseAtual + 1) % frases.length;
-                }
-                setTimeout(digitarEfeito, 1500); // Pausa antes de começar a digitar/apagar novamente
+                apagando = !apagando;
+                if (!apagando) i = (i + 1) % frases.length;
             }
+            setTimeout(efeito, apagando ? 50 : 100);
         }
-
-        // Inicia o efeito
-        digitarEfeito();
+        efeito();
     </script>
-
 </body>
 </html>
