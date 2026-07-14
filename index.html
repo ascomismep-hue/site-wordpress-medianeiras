@@ -4,71 +4,74 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IRIMEP - Instituto das Irmãs Medianeiras da Paz</title>
+    <link rel="shortcut icon" href="imagens/icone.png" type="image/png">
     <style>
         :root {
             --azul: #0056a8;
             --vermelho: #e62134;
             --dourado: #c49a54;
+            --fundo: #f8f9fa;
         }
 
-        body { font-family: 'Segoe UI', sans-serif; background: #fdfdfd; margin: 0; color: #333; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--fundo); margin: 0; color: #333; }
 
-        /* Estilo de Vidro (Glass) e Flutuação */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            transition: all 0.4s ease;
-        }
+        /* Cabeçalho refinado */
+        header { padding: 15px 10%; display: flex; justify-content: space-between; align-items: center; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .logo { height: 60px; }
+        nav a { margin-left: 20px; text-decoration: none; color: var(--azul); font-weight: 600; }
 
-        .glass-card:hover {
-            transform: translateY(-15px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-        }
+        /* Banner Hero com Overlay */
+        .hero { height: 350px; background: linear-gradient(rgba(0,86,168,0.8), rgba(0,86,168,0.8)), url('https://images.unsplash.com/photo-1542816417-0983c9c9ad53?auto=format&fit=crop&w=1600&q=80'); background-size: cover; color: white; display: flex; align-items: center; justify-content: center; text-align: center; }
 
-        /* Layout */
-        header { padding: 20px 10%; display: flex; justify-content: space-between; align-items: center; background: white; }
-        .hero { width: 100%; height: 400px; background: var(--azul); color: white; display: flex; align-items: center; justify-content: center; text-align: center; }
-        .container { padding: 50px 10%; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        /* Cards de Vidro Modernos */
+        .container { padding: 50px 10%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+        .glass-card { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); border-radius: 15px; padding: 30px; text-align: center; border: 1px solid rgba(0,0,0,0.05); transition: 0.4s; }
+        .glass-card:hover { transform: translateY(-10px); border-color: var(--dourado); }
 
-        /* Mapa e Busca */
-        .mapa-section { display: flex; align-items: center; gap: 50px; padding: 50px 10%; background: #f0f2f5; }
-        .mapa-img { width: 400px; }
+        /* Seção Mapa Ajustada */
+        .mapa-section { display: flex; align-items: center; justify-content: space-between; padding: 50px 10%; gap: 40px; }
+        .mapa-img { width: 350px; flex-shrink: 0; } /* Mapa menor */
+        .mapa-box { flex-grow: 1; padding: 40px; }
         
-        .btn-acao { background: var(--vermelho); color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; display: inline-block; }
+        input { padding: 12px; width: 60%; border: 1px solid #ddd; border-radius: 8px; }
+        button { padding: 12px 25px; background: var(--azul); color: white; border: none; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
 
     <header>
-        <img src="LOGO_IRIMEP" style="height: 50px;">
-        <nav>Home | Institucional | Atuação | Unidades | Blog</nav>
+        <img src="imagens/logo.png" alt="Logo IRIMEP" class="logo">
+        <nav>
+            <a href="#">Início</a>
+            <a href="#">Institucional</a>
+            <a href="#">Atuação</a>
+            <a href="#">Unidades</a>
+        </nav>
     </header>
 
     <div class="hero">
-        <h1>IRIMEP - Medianeiras da Paz</h1>
+        <div>
+            <h1>Medianeiras da Paz</h1>
+            <p>Servindo com amor, fé e esperança.</p>
+        </div>
     </div>
 
-    <!-- Atalhos Rápidos (Glassmorphism) -->
     <div class="container">
         <div class="glass-card"><h3>Quem Somos</h3></div>
         <div class="glass-card"><h3>Transparência</h3></div>
         <div class="glass-card"><h3>Atuação</h3></div>
-        <div class="glass-card"><h3>Notícias</h3></div>
+        <div class="glass-card"><h3>Blog</h3></div>
     </div>
 
-    <!-- Mapa e Busca -->
     <section class="mapa-section">
         <div class="mapa-img">
             <img src="https://upload.wikimedia.org/wikipedia/commons/e/e5/Mapa_da_Regi%C3%A3o_Nordeste_do_Brasil_%28Divis%C3%A3o_pol%C3%ADtica_em_cores%29_2.svg" alt="Mapa Nordeste">
         </div>
-        <div class="glass-card">
+        <div class="glass-card mapa-box">
             <h3>Unidades - Onde estamos</h3>
-            <input type="text" placeholder="Digite a unidade...">
-            <button>Buscar</button>
+            <p>Selecione uma unidade no Nordeste para saber mais.</p>
+            <input type="text" placeholder="Buscar unidade...">
+            <button>Localizar</button>
         </div>
     </section>
 
