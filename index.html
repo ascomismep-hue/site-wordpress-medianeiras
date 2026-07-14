@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IRIMEP - Irmãs Medianeiras da Paz</title>
+    <style>
+        :root {
+            --cor-vermelho: #e31e24;
+            --cor-azul: #008cc9;
+            --cor-ouro: #d48f43;
+            --fonte-padrao: 'Segoe UI', sans-serif;
+        }
+
+        body, html { margin: 0; padding: 0; font-family: var(--fonte-padrao); }
+
+        /* Banner */
+        .banner {
+            width: 100%;
+            height: 100vh;
+            background: #ccc; /* Substituir pela imagem oficial */
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        /* Menu de Atuação */
+        .menu-atuacao {
+            display: flex;
+            gap: 20px;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            transform: translateY(50%);
+        }
+
+        .item-menu {
+            padding: 15px 30px;
+            background: var(--cor-azul);
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .item-menu:hover {
+            transform: translateY(-10px);
+            background: var(--cor-vermelho);
+        }
+
+        /* Mapa Interativo Simples */
+        #secao-mapa { padding: 100px 20px; text-align: center; }
+        .estado-box {
+            display: inline-block;
+            padding: 20px;
+            margin: 10px;
+            background: var(--cor-ouro);
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .estado-box:hover { transform: translateY(-10px); }
+    </style>
+</head>
+<body>
+
+    <header class="banner">
+        <div class="menu-atuacao">
+            <div class="item-menu">Educação</div>
+            <div class="item-menu">Saúde</div>
+            <div class="item-menu">Social</div>
+            <div class="item-menu">Religioso</div>
+        </div>
+    </header>
+
+    <section id="secao-mapa">
+        <h2>Onde estamos?</h2>
+        <div class="estado-box" onclick="alert('Mostrando cidades em MG')">Minas Gerais</div>
+        <div class="estado-box" onclick="alert('Mostrando cidades em SP')">São Paulo</div>
+    </section>
+
+    <script>
+        // Lógica futura para abrir o mapa detalhado
+        console.log("Sistema de mapa carregado.");
+    </script>
+</body>
+</html>
