@@ -4,93 +4,58 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IRIMEP - Irmãs Medianeiras da Paz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
             --cor-vermelho: #e31e24;
             --cor-azul: #008cc9;
             --cor-ouro: #d48f43;
             --cor-preto: #333;
-            --fonte-padrao: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --fonte-padrao: 'Segoe UI', Tahoma, sans-serif;
         }
 
         body, html { margin: 0; padding: 0; font-family: var(--fonte-padrao); color: var(--cor-preto); }
 
-        /* Header com Logo e Menu */
         header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 5%;
-            background: white;
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 20px 5%; background: white; position: sticky; top: 0; z-index: 1000;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        .logo-img { height: 60px; transition: transform 0.3s ease; }
-        .logo-img:hover { transform: scale(1.05); }
+        .logo-img { height: 60px; }
+        nav a { margin-left: 20px; text-decoration: none; color: var(--cor-preto); font-weight: bold; }
 
-        nav a { margin-left: 20px; text-decoration: none; color: var(--cor-preto); font-weight: bold; transition: color 0.3s ease; }
-        nav a:hover { color: var(--cor-vermelho); }
-
-        /* Banner */
         .banner {
-            width: 100%;
-            height: 80vh;
-            background: url('https://static.cdn.pleno.news/2025/09/Papa-Leao-XIV-1024x683.jpg') center/cover no-repeat;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            position: relative;
+            width: 100%; height: 80vh;
+            background: url('https://via.placeholder.com/1920x1080?text=Banner+IRIMEP') center/cover no-repeat;
+            display: flex; align-items: flex-end; justify-content: center; position: relative;
         }
 
-        /* Menu de Atuação Sobreposto */
         .menu-atuacao {
-            display: flex;
-            gap: 20px;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            display: flex; gap: 20px; background: white; padding: 25px;
+            border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
             transform: translateY(50%);
         }
 
         .item-menu {
-            padding: 15px 30px;
-            background: var(--cor-azul);
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: transform 0.3s ease, background 0.3s ease;
+            display: flex; flex-direction: column; align-items: center;
+            width: 120px; padding: 15px; background: var(--cor-azul);
+            color: white; border-radius: 5px; cursor: pointer;
+            transition: all 0.3s ease;
         }
 
+        .item-menu i { font-size: 24px; margin-bottom: 10px; }
         .item-menu:hover { transform: translateY(-10px); background: var(--cor-vermelho); }
 
-        /* Seção Mapa */
-        #secao-mapa { padding: 150px 20px 100px; text-align: center; }
-        .estado-box {
-            display: inline-block;
-            padding: 20px;
-            margin: 15px;
-            background: var(--cor-ouro);
-            color: white;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-            font-weight: bold;
-        }
-        .estado-box:hover { transform: translateY(-10px); }
+        #secao-mapa { padding: 150px 5% 100px; text-align: center; }
+        
+        /* Container para o SVG */
+        .mapa-container { width: 100%; max-width: 800px; margin: 0 auto; }
+        svg { width: 100%; height: auto; fill: var(--cor-ouro); cursor: pointer; }
+        svg path:hover { fill: var(--cor-vermelho); transition: 0.3s; }
 
-        /* Rodapé */
-        footer {
-            background: #f4f4f4;
-            padding: 50px 5%;
-            text-align: center;
-            border-top: 5px solid var(--cor-vermelho);
-        }
+        footer { background: #f4f4f4; padding: 50px 5%; text-align: center; border-top: 5px solid var(--cor-vermelho); }
         .footer-logo { height: 80px; margin-bottom: 20px; }
-        .contato { margin-top: 20px; line-height: 1.6; }
     </style>
 </head>
 <body>
@@ -107,28 +72,26 @@
 
     <div class="banner">
         <div class="menu-atuacao">
-            <div class="item-menu">Educação</div>
-            <div class="item-menu">Saúde</div>
-            <div class="item-menu">Social</div>
-            <div class="item-menu">Religioso</div>
+            <div class="item-menu"><i class="fas fa-graduation-cap"></i> Educação</div>
+            <div class="item-menu"><i class="fas fa-heartbeat"></i> Saúde</div>
+            <div class="item-menu"><i class="fas fa-users"></i> Social</div>
+            <div class="item-menu"><i class="fas fa-church"></i> Religioso</div>
         </div>
     </div>
 
     <section id="secao-mapa">
-        <h2>Onde estamos</h2>
-        <p>Clique em um estado para ver nossas casas de atuação:</p>
-        <div class="estado-box">Bahia</div>
-        <div class="estado-box">Ceará</div>
-        <div class="estado-box">Pernambuco</div>
-        <div class="estado-box">Sergipe</div>
+        <h2>Onde estamos em Pernambuco</h2>
+        <div class="mapa-container">
+            <svg viewBox="0 0 100 100">
+                <path d="M10 10 H 90 V 90 H 10 Z" /> </svg>
+            <p><small>Clique nas regiões para detalhes</small></p>
+        </div>
     </section>
 
     <footer>
         <img src="imagens/logo.png" alt="Logo IRIMEP" class="footer-logo">
         <div class="contato">
-            <p><strong>Endereço:</strong> [Endereço da Sede, Cidade/UF]</p>
-            <p><strong>Telefone:</strong> (XX) XXXX-XXXX | <strong>Email:</strong> contato@irimep.org.br</p>
-            <p>&copy; 2026 IRIMEP - Instituto Religioso das Irmãs Medianeiras da Paz</p>
+            <p><strong>Contato:</strong> (XX) XXXX-XXXX | email@irimep.org.br</p>
         </div>
     </footer>
 
