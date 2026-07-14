@@ -22,3 +22,54 @@ title: Início
         </div>
     </div>
 </div>
+
+<section class="dashboard-numeros">
+    <div class="stat-card">
+        <i class="fas fa-cross"></i>
+        <div class="stat-numero">50+</div>
+        <div class="stat-legenda">Irmãs Medianeiras da Paz</div>
+    </div>
+    <div class="stat-card destaque">
+        <i class="fas fa-map-marked-alt"></i>
+        <div class="stat-numero">4</div>
+        <div class="stat-legenda">Estados: Bahia, Ceará, Pernambuco e Sergipe</div>
+    </div>
+    <div class="stat-card ouro">
+        <i class="fas fa-home"></i>
+        <div class="stat-numero">15+</div>
+        <div class="stat-legenda">Casas de Missão</div>
+    </div>
+</section>
+
+<section class="secao-noticias">
+    <div class="secao-titulo">
+        <h2>Últimas Notícias</h2>
+        <p>Acompanhe as novidades das nossas frentes de missão</p>
+    </div>
+
+    {% assign noticias = site.posts | limit: 3 %}
+    {% if noticias.size > 0 %}
+    <div class="grid-noticias">
+        {% for post in noticias %}
+        <article class="card-noticia">
+            {% if post.imagem %}
+            <img src="{{ post.imagem | relative_url }}" alt="{{ post.title }}" class="noticia-imagem">
+            {% else %}
+            <div class="noticia-imagem"></div>
+            {% endif %}
+            <div class="noticia-corpo">
+                <span class="noticia-data">{{ post.date | date: "%d de %B de %Y" }}</span>
+                <h3>{{ post.title }}</h3>
+                <p>{{ post.excerpt | strip_html | truncatewords: 20 }}</p>
+                <a href="{{ post.url | relative_url }}" class="noticia-link">Leia mais <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    <div class="ver-todas-container">
+        <a href="{{ '/noticias/' | relative_url }}" class="btn-ver-todas">Ver todas as notícias</a>
+    </div>
+    {% else %}
+    <p class="aviso-sem-noticias">Nenhuma notícia publicada ainda.</p>
+    {% endif %}
+</section>
