@@ -44,6 +44,13 @@
         input { padding: 12px; width: 60%; border: 1px solid #ddd; border-radius: 8px; margin-right: 10px; }
         button { padding: 12px 25px; background: var(--azul); color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; }
         button:hover { background: var(--dourado); }
+
+      .mapa-img {
+    overflow: hidden; /* Corta o que sair da caixa ao dar zoom */
+    cursor: grab;
+    transition: transform 0.2s;
+}
+      
     </style>
 </head>
 <body>
@@ -13543,6 +13550,7 @@
             <button>Localizar</button>
         </div>
     </section>
+  
 <script>
     // Seleciona todos os estados dentro do SVG
     const estados = document.querySelectorAll('svg path');
@@ -13578,6 +13586,6 @@
         mapa.style.transform = `scale(${escala})`;
     });
 </script>
-    
+  
 </body>
 </html>
