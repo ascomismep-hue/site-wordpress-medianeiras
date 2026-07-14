@@ -2,64 +2,11 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>IRIMEP - Irmãs Medianeiras da Paz</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --cor-vermelho: #e31e24;
-            --cor-azul: #008cc9;
-            --cor-ouro: #d48f43;
-            --cor-preto: #333;
-            --fonte-padrao: 'Segoe UI', Tahoma, sans-serif;
-        }
-
-        body, html { margin: 0; padding: 0; font-family: var(--fonte-padrao); color: var(--cor-preto); }
-
-        header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 20px 5%; background: white; position: sticky; top: 0; z-index: 1000;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .logo-img { height: 60px; }
-        nav a { margin-left: 20px; text-decoration: none; color: var(--cor-preto); font-weight: bold; }
-
-        .banner {
-            width: 100%; height: 80vh;
-            background: url('https://via.placeholder.com/1920x1080?text=Banner+IRIMEP') center/cover no-repeat;
-            display: flex; align-items: flex-end; justify-content: center; position: relative;
-        }
-
-        .menu-atuacao {
-            display: flex; gap: 20px; background: white; padding: 25px;
-            border-radius: 10px; box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-            transform: translateY(50%);
-        }
-
-        .item-menu {
-            display: flex; flex-direction: column; align-items: center;
-            width: 120px; padding: 15px; background: var(--cor-azul);
-            color: white; border-radius: 5px; cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .item-menu i { font-size: 24px; margin-bottom: 10px; }
-        .item-menu:hover { transform: translateY(-10px); background: var(--cor-vermelho); }
-
-        #secao-mapa { padding: 150px 5% 100px; text-align: center; }
-        
-        /* Container para o SVG */
-        .mapa-container { width: 100%; max-width: 800px; margin: 0 auto; }
-        svg { width: 100%; height: auto; fill: var(--cor-ouro); cursor: pointer; }
-        svg path:hover { fill: var(--cor-vermelho); transition: 0.3s; }
-
-        footer { background: #f4f4f4; padding: 50px 5%; text-align: center; border-top: 5px solid var(--cor-vermelho); }
-        .footer-logo { height: 80px; margin-bottom: 20px; }
-    </style>
+    <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
     <header>
         <img src="imagens/logo.png" alt="Logo IRIMEP" class="logo-img">
         <nav>
@@ -81,11 +28,8 @@
 
     <section id="secao-mapa">
         <h2>Onde estamos em Pernambuco</h2>
-        <div class="mapa-container">
-            <svg viewBox="0 0 100 100">
-                <path d="M10 10 H 90 V 90 H 10 Z" /> </svg>
-            <p><small>Clique nas regiões para detalhes</small></p>
-        </div>
+        <div id="container-svg" class="mapa-container">
+            </div>
     </section>
 
     <footer>
@@ -95,5 +39,6 @@
         </div>
     </footer>
 
+    <script src="js/mapa.js"></script>
 </body>
 </html>
