@@ -1,0 +1,31 @@
+---
+layout: default
+title: Notícias
+---
+<section class="secao-noticias" style="padding-top: 60px;">
+    <div class="secao-titulo">
+        <h2>Todas as Notícias</h2>
+    </div>
+
+    {% if site.posts.size > 0 %}
+    <div class="grid-noticias">
+        {% for post in site.posts %}
+        <article class="card-noticia">
+            {% if post.imagem %}
+            <img src="{{ post.imagem | relative_url }}" alt="{{ post.title }}" class="noticia-imagem">
+            {% else %}
+            <div class="noticia-imagem"></div>
+            {% endif %}
+            <div class="noticia-corpo">
+                <span class="noticia-data">{{ post.date | date: "%d de %B de %Y" }}</span>
+                <h3>{{ post.title }}</h3>
+                <p>{{ post.excerpt | strip_html | truncatewords: 20 }}</p>
+                <a href="{{ post.url | relative_url }}" class="noticia-link">Leia mais <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </article>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="aviso-sem-noticias">Nenhuma notícia publicada ainda.</p>
+    {% endif %}
+</section>
