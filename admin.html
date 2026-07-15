@@ -94,16 +94,39 @@ permalink: /admin/
             `<tr><td>${new Date(g.created_at).toLocaleDateString()}</td><td>${g.nome}</td><td>${g.cidade}</td><td>${g.relato}</td></tr>`).join('');
     }
 
-    async function responderMensagem(protocolo) {
-        const respostaAdmin = prompt("Digite sua resposta para o protocolo " + protocolo + ":");
-        if (respostaAdmin) {
-            const { error } = await cliente.from('respostas').insert([{ 
-                protocolo: protocolo, 
-                mensagem_resposta: respostaAdmin, 
-                enviado_por: "Administrador" 
-            }]);
-            if (error) alert("Erro: " + error.message);
-            else alert("Resposta enviada com sucesso!");
+    let protocoloAtual = "";
+
+// Abre a modal em vez do prompt
+function responderMensagem(protocolo) {
+    protocoloAtual = protocolo;
+    document.getElementById('modal-titulo').innerText = "Responder: " + protocolo;
+    document.getElementById('modal-resposta').style.display = "flex";
+}
+
+function fecharModal() {
+    document.getElementById('modal-resposta').style.display = "none";
+    document.getElementById('texto-resposta').value = "";
+}
+
+// Envia a resposta de forma assíncrona
+async function enviarRespostaModal() {
+    const resposta = document.getElementById('texto-resposta').value;
+    if (!resposta) return alert("Escreva uma resposta!");
+
+    const { error } = await cliente.from('respostas').insert([{ 
+        protocolo: protocoloAtual, 
+        mensagem_resposta: resposta, 
+        enviado_por: "Administrador" 
+    }]);
+
+    if (error) {
+        alert("Erro: " + error.message);
+    } else {
+        alert("Enviado com sucesso!");
+        fecharModal();
+        carregarDados(); // Atualiza a tabela automaticamente
+    }
+}
         }
     }
 
