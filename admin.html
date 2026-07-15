@@ -3,7 +3,6 @@ layout: default
 title: Painel Administrativo
 permalink: /admin/
 ---
-
 <style>
     :root { --cor-azul: #008cc9; --cor-vermelho: #e31e24; --cor-preto: #1a1a1a; }
     .login-wrapper { display: flex; justify-content: center; padding: 80px 20px; background: #f4f7f6; min-height: 80vh; }
@@ -19,7 +18,7 @@ permalink: /admin/
     .modulo-admin.ativa { display: block; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { padding: 15px; border-bottom: 1px solid #edf2f7; text-align: left; }
-    .btn-admin-geral { background: var(--cor-azul); color: #fff; border: none; padding: 12px 25px; border-radius: 6px; cursor: pointer; }
+    .btn-admin-geral { background: var(--cor-azul); color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 13px; }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -29,7 +28,7 @@ permalink: /admin/
         <h3>Acesso Administrativo</h3>
         <input type="email" id="email-admin" placeholder="E-mail">
         <input type="password" id="senha-admin" placeholder="Senha">
-        <button onclick="realizarLogin()" class="btn-admin-geral">Entrar</button>
+        <button onclick="realizarLogin()" class="btn-admin-geral" style="width:100%">Entrar</button>
         <p id="erro-login" style="color:red; margin-top:10px;"></p>
     </div>
 </div>
@@ -45,7 +44,7 @@ permalink: /admin/
         <div id="aba-contatos" class="modulo-admin ativa">
             <h2>Mensagens de Contato</h2>
             <table>
-                <thead><tr><th>Data</th><th>Nome</th><th>E-mail</th><th>Mensagem</th></tr></thead>
+                <thead><tr><th>Data</th><th>Protocolo</th><th>Nome</th><th>Mensagem</th><th>Ação</th></tr></thead>
                 <tbody id="tabela-contatos-body"></tbody>
             </table>
         </div>
@@ -61,15 +60,14 @@ permalink: /admin/
 </div>
 
 <script>
-    const SUPABASE_URL = "https://epiofzncgvmjhpgwrqga.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwaW9mem5jZ3ZtamhwZ3dycWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwOTA2NDAsImV4cCI6MjA5OTY2NjY0MH0.PL_xurBbpf_x34URIH9AT9gewgxZDcow-ptGsxzrhxM";
+    const SUPABASE_URL = "https://wocbbywzbygajphunfxe.supabase.co";
+    const SUPABASE_KEY = "SUA_CHAVE_AQUI"; // Certifique-se de usar sua chave anon
     const cliente = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function realizarLogin() {
         const email = document.getElementById("email-admin").value;
         const senha = document.getElementById("senha-admin").value;
         const { error } = await cliente.auth.signInWithPassword({ email, password: senha });
-        
         if (error) { document.getElementById("erro-login").innerText = error.message; return; }
         
         document.getElementById("login-admin-container").style.display = "none";
@@ -83,15 +81,30 @@ permalink: /admin/
         
         document.getElementById("count-contatos").innerText = contatos?.length || 0;
         document.getElementById("tabela-contatos-body").innerHTML = contatos?.map(c => 
-            `<tr><td>${new Date(c.created_at).toLocaleDateString()}</td><td>${c.nome}</td><td>${c.email}</td><td>${c.mensagem}</td></tr>`).join('');
+            `<tr>
+                <td>${new Date(c.created_at).toLocaleDateString()}</td>
+                <td>${c.protocolo || 'N/A'}</td>
+                <td>${c.nome}</td>
+                <td>${c.mensagem}</td>
+                <td><button onclick="responderMensagem('${c.protocolo}')" class="btn-admin-geral">Responder</button></td>
+            </tr>`).join('');
             
         document.getElementById("count-gracas").innerText = gracas?.length || 0;
         document.getElementById("tabela-gracas-body").innerHTML = gracas?.map(g => 
             `<tr><td>${new Date(g.created_at).toLocaleDateString()}</td><td>${g.nome}</td><td>${g.cidade}</td><td>${g.relato}</td></tr>`).join('');
+    }
 
-        `<td>
-            <button onclick="responderMensagem('${c.protocolo}')" class="btn-admin-geral">Responder</button>
-        </td>`
+    async function responderMensagem(protocolo) {
+        const respostaAdmin = prompt("Digite sua resposta para o protocolo " + protocolo + ":");
+        if (respostaAdmin) {
+            const { error } = await cliente.from('respostas').insert([{ 
+                protocolo: protocolo, 
+                mensagem_resposta: respostaAdmin, 
+                enviado_por: "Administrador" 
+            }]);
+            if (error) alert("Erro: " + error.message);
+            else alert("Resposta enviada com sucesso!");
+        }
     }
 
     function alternarPainel(evt, id) {
@@ -100,23 +113,4 @@ permalink: /admin/
         document.getElementById(id).classList.add('ativa');
         evt.currentTarget.classList.add('ativa');
     }
-
-async function responderMensagem(protocolo) {
-    const respostaAdmin = prompt("Digite sua resposta para o protocolo " + protocolo + ":");
-    
-    if (respostaAdmin) {
-        const { error } = await clienteSupabase
-            .from('respostas')
-            .insert([{ 
-                protocolo: protocolo, 
-                mensagem_resposta: respostaAdmin, 
-                enviado_por: "Administrador" 
-            }]);
-            
-        if (error) {
-            alert("Erro ao enviar resposta: " + error.message);
-        } else {
-            alert("Resposta enviada com sucesso!");
-    }
-}
 </script>
