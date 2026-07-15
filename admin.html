@@ -173,59 +173,41 @@ permalink: /admin/
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
+    // 1. Configuração Global (variável declarada no topo)
     const SUPABASE_URL = "https://epiofzncgvmjhpgwrqga.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwaW9mem5jZ3ZtamhwZ3dycWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwOTA2NDAsImV4cCI6MjA5OTY2NjY0MH0.PL_xurBbpf_x34URIH9AT9gewgxZDcow-ptGsxzrhxM"; // Cole a chave ANON/PUBLIC
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwaW9mem5jZ3ZtamhwZ3dycWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwOTA2NDAsImV4cCI6MjA5OTY2NjY0MH0.PL_xurBbpf_x34URIH9AT9gewgxZDcow-ptGsxzrhxM";
+    
+    // Inicialização do cliente (global)
+    const clienteSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Função de Login Real
+    // 2. Função de Login Real
     async function realizarLogin() {
         const email = document.getElementById("email-admin").value;
         const senha = document.getElementById("senha-admin").value;
         const erro = document.getElementById("erro-login");
 
         try {
-            const { data, error } = await db.auth.signInWithPassword({
+            // Usa a variável global 'clienteSupabase' definida acima
+            const { data, error } = await clienteSupabase.auth.signInWithPassword({
                 email: email,
                 password: senha
             });
 
             if (error) throw error;
 
-            // Sucesso!
+            // Sucesso
             document.getElementById("login-admin-container").style.display = "none";
             document.getElementById("painel-admin-principal").style.display = "flex";
             carregarDadosSupabase();
         } catch (e) {
-            erro.textContent = "Erro: " + e.message;
+            erro.textContent = "Erro no acesso: " + e.message;
             erro.style.display = "block";
         }
     }
 
-   // Função chamada ao clicar no botão "Entrar"
-async function realizarLogin() {
-    const email = document.getElementById("email-admin").value;
-    const senha = document.getElementById("senha-admin").value;
-    const erro = document.getElementById("erro-login");
-
-    try {
-        // Autenticação direta com o Supabase
-        const { data, error } = await clienteSupabase.auth.signInWithPassword({
-            email: email,
-            password: senha
-        });
-
-        if (error) throw error;
-
-        // Se logou com sucesso, esconde a tela de login e carrega o painel
-        document.getElementById("login-admin-container").style.display = "none";
-        document.getElementById("painel-admin-principal").style.display = "flex";
-        
-        // Carrega os dados das tabelas
-        carregarDadosSupabase();
-    } catch (e) {
-        erro.textContent = "Erro no acesso: " + e.message;
-        erro.style.display = "block";
+    // 3. Função para carregar os dados
+    async function carregarDadosSupabase() {
+        // ... (seu código de carregamento de tabelas aqui)
+        console.log("Conectado e carregando dados...");
     }
-}
-    
 </script>
