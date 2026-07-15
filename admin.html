@@ -174,11 +174,12 @@ permalink: /admin/
 </style>
 
 <script>
-    // CONFIGURAÇÃO DO SUPABASE - COLOQUE AS SUAS CREDENCIAIS AQUI
-    const SUPABASE_URL = "https://epiofzncgvmjhpgwrqga.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwaW9mem5jZ3ZtamhwZ3dycWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwOTA2NDAsImV4cCI6MjA5OTY2NjY0MH0.PL_xurBbpf_x34URIH9AT9gewgxZDcow-ptGsxzrhxM";
-    
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+   // CONFIGURAÇÃO DO SUPABASE - Credenciais oficiais do projeto IRIMEP
+const SUPABASE_URL = "https://wocbbywzbygajphunfxe.supabase.co"; 
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvY2JieXd6YnlnYWpwaHVuZnhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5NTM1NzIsImV4cCI6MjA2MTUzMzU3Mn0.b5z-I9hKkR093b1N86XbN3Zf0T9u-K-X6v7p9j4u-m0"; // Chave anon/public completa da imagem
+
+// Inicialização oficial do cliente
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     function verificarAcesso() {
         const senha = document.getElementById("senha-admin").value;
