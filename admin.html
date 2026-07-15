@@ -96,4 +96,23 @@ permalink: /admin/
         document.getElementById(id).classList.add('ativa');
         evt.currentTarget.classList.add('ativa');
     }
+
+async function responderMensagem(protocolo) {
+    const respostaAdmin = prompt("Digite sua resposta para o protocolo " + protocolo + ":");
+    
+    if (respostaAdmin) {
+        const { error } = await clienteSupabase
+            .from('respostas')
+            .insert([{ 
+                protocolo: protocolo, 
+                mensagem_resposta: respostaAdmin, 
+                enviado_por: "Administrador" 
+            }]);
+            
+        if (error) {
+            alert("Erro ao enviar resposta: " + error.message);
+        } else {
+            alert("Resposta enviada com sucesso!");
+    }
+}
 </script>
