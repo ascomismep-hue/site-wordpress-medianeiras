@@ -1,0 +1,266 @@
+---
+layout: default
+title: Contato
+permalink: /contato/
+---
+
+<section class="secao-contato" style="padding: 40px 5% 100px 5%;">
+    <div class="titulo-contato">
+        <h2>Fale Conosco</h2>
+        <p>Entre em contato com o Instituto ou envie uma mensagem diretamente para a nossa Sede Geral.</p>
+    </div>
+
+    <div class="contato-wrapper">
+        
+        <!-- Coluna da Esquerda: Formulário de Mensagem -->
+        <div class="contato-coluna">
+            <div class="card-contato">
+                <h3>Envie uma Mensagem</h3>
+                <form id="form-contato" class="form-institucional" onsubmit="enviarContato(event)">
+                    <div class="form-grupo">
+                        <label for="nome">Nome Completo</label>
+                        <input type="text" id="nome" name="nome" placeholder="Digite seu nome" required>
+                    </div>
+
+                    <div class="form-grupo">
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email" name="email" placeholder="seu-email@dominio.com" required>
+                    </div>
+
+                    <div class="form-grupo">
+                        <label for="assunto">Assunto</label>
+                        <input type="text" id="assunto" name="assunto" placeholder="Ex: Informações sobre missões" required>
+                    </div>
+
+                    <div class="form-grupo">
+                        <label for="mensagem">Mensagem</label>
+                        <textarea id="mensagem" name="mensagem" rows="5" placeholder="Escreva sua mensagem aqui..." required></textarea>
+                    </div>
+
+                    <button type="submit" class="btn-enviar-contato">
+                        <i class="fas fa-paper-plane"></i> Enviar Mensagem
+                    </button>
+                    <div id="msg-contato-sucesso" class="mensagem-sucesso">Sua mensagem foi enviada com sucesso! Em breve entraremos em contato.</div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Coluna da Direita: Endereço e Google Maps -->
+        <div class="contato-coluna">
+            <div class="card-contato">
+                <h3>Nossa Localização</h3>
+                
+                <div class="bloco-endereco">
+                    <div class="item-endereco">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <p><strong>Endereço:</strong> Rua Edgar Chastinet, Nº 01, Bairro Santa Monica<br>Salvador - BA | CEP: 40.342-100</p>
+                    </div>
+                    <div class="item-endereco">
+                        <i class="fas fa-phone-alt"></i>
+                        <p><strong>Telefone:</strong> (71) 99901-2784</p>
+                    </div>
+                    <div class="item-endereco">
+                        <i class="fas fa-envelope"></i>
+                        <p><strong>E-mail:</strong> impaz.sedegeral@gmail.com</p>
+                    </div>
+                </div>
+
+                <!-- Google Maps Incorporado de Forma Responsiva -->
+                <div class="mapa-google-container">
+                    <iframe 
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3888.1347071727786!2d-38.473551824147775!3d-12.963248687351084!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x71610444dae286bb%3A0x6b7bd16a8d6e3557!2sR.%20Edgar%20Chastinet%20-%20Santa%20Mônica%2C%20Salvador%20-%20BA%2C%2040342-100!5e0!3m2!1spt-BR!2sbr!4v1715000000000!5m2!1spt-BR!2sbr" 
+                        width="100%" 
+                        height="300" 
+                        style="border:0;" 
+                        allowfullscreen="" 
+                        loading="lazy" 
+                        referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<style>
+    /* Estilização da Página de Contato */
+    .titulo-contato {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .titulo-contato h2 {
+        font-size: 32px;
+        color: var(--cor-preto);
+        margin: 0 0 10px 0;
+    }
+    .titulo-contato h2::after {
+        content: '';
+        display: block;
+        width: 60px;
+        height: 4px;
+        background-color: var(--cor-ouro);
+        margin: 10px auto 0 auto;
+        border-radius: 2px;
+    }
+    .titulo-contato p {
+        font-size: 16px;
+        color: #666;
+        margin: 0;
+    }
+
+    /* Layout Lado a Lado */
+    .contato-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+        display: flex;
+        gap: 30px;
+        align-items: flex-start;
+    }
+
+    .contato-coluna {
+        flex: 1;
+        width: 50%;
+    }
+
+    .card-contato {
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        border: 1px solid #eee;
+    }
+
+    .card-contato h3 {
+        margin-top: 0;
+        color: var(--cor-azul);
+        font-size: 22px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+
+    /* Formulário estruturado */
+    .form-institucional {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        text-align: left;
+    }
+    .form-grupo {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .form-grupo label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #4a5568;
+    }
+    .form-grupo input, .form-grupo textarea {
+        padding: 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        font-size: 15px;
+        transition: all 0.3s ease;
+        font-family: inherit;
+    }
+    .form-grupo input:focus, .form-grupo textarea:focus {
+        outline: none;
+        border-color: var(--cor-azul);
+        box-shadow: 0 0 0 3px rgba(0, 140, 201, 0.15);
+    }
+
+    .btn-enviar-contato {
+        align-self: flex-start;
+        background-color: var(--cor-azul);
+        color: #ffffff;
+        border: none;
+        padding: 12px 28px;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 6px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+    }
+    .btn-enviar-contato:hover {
+        background-color: var(--cor-vermelho);
+        transform: translateY(-2px); /* Efeito flutuante */
+        box-shadow: 0 6px 15px rgba(227, 30, 36, 0.2);
+    }
+
+    .mensagem-sucesso {
+        display: none;
+        background-color: #def7ec;
+        color: #03543f;
+        padding: 12px;
+        border-radius: 6px;
+        border-left: 4px solid #31c48d;
+        font-size: 14px;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+
+    /* Bloco de Endereço */
+    .bloco-endereco {
+        text-align: left;
+        margin-bottom: 25px;
+    }
+    .item-endereco {
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    .item-endereco i {
+        font-size: 18px;
+        color: var(--cor-azul);
+        margin-top: 3px;
+    }
+    .item-endereco p {
+        margin: 0;
+        font-size: 15px;
+        line-height: 1.5;
+        color: #555;
+    }
+
+    /* Container do Mapa */
+    .mapa-google-container {
+        width: 100%;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        border: 1px solid #ddd;
+    }
+
+    /* Responsividade */
+    @media (max-width: 768px) {
+        .contato-wrapper {
+            flex-direction: column;
+        }
+        .contato-coluna {
+            width: 100%;
+        }
+        .btn-enviar-contato {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+
+<script>
+    // Lógica local para simular envio e feedback
+    function enviarContato(event) {
+        event.preventDefault();
+        
+        const msgSucesso = document.getElementById("msg-contato-sucesso");
+        msgSucesso.style.display = "block";
+        
+        document.getElementById("form-contato").reset();
+        
+        msgSucesso.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+</script>
