@@ -1,97 +1,107 @@
 <footer class="rodape-compacto">
-    <div class="rodape-container">
-        
-        <!-- Coluna 1: Logo e Identidade -->
-        <div class="rodape-coluna logo-coluna">
-            <img src="imagens/logo.png" alt="Logo IRIMEP" class="footer-logo">
+    <div class="footer-container">
+        <div class="footer-grid">
+            
+            <!-- Coluna 1: Logo centralizada na lateral -->
+            <div class="footer-secao logo-coluna">
+                <img src="{{ '/imagens/logo.png' | relative_url }}" alt="Logo IRIMEP" class="footer-logo">
+            </div>
+
+            <!-- Coluna 2: Sede Geral -->
+            <div class="footer-secao">
+                <h5>Sede Geral das Irmãs Medianeiras</h5>
+                <div class="info-block">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Rua Edgar Chastinet, Nº 01, <br>Bairro Santa Monica - Salvador / BA<br>CEP: 40.342-100</span>
+                </div>
+                <div class="info-block">
+                    <i class="fas fa-phone-alt"></i>
+                    <span>(71) 99901-2784</span>
+                </div>
+                <div class="info-block">
+                    <i class="fas fa-envelope"></i>
+                    <span>impaz.sedegeral@gmail.com</span>
+                </div>
+            </div>
+
+            <!-- Coluna 3: Institucional -->
+            <div class="footer-secao">
+                <h5>Institucional</h5>
+                <div class="info-block">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Instituto Religioso das Irmãs Medianeiras da Paz -<br>“Tudo farei pelos eleitos”.</span>
+                </div>
+            </div>
+
         </div>
 
-        <!-- Coluna 2: Sede Geral -->
-        <div class="rodape-coluna">
-            <h5>Sede Geral das Irmãs Medianeiras</h5>
-            <div class="info-block">
-                <i class="fas fa-map-marker-alt"></i>
-                <span>Rua Edgar Chastinet, Nº 01,<br>Bairro Santa Monica - Salvador / BA<br>CEP: 40.342-100</span>
-            </div>
-            <div class="info-block">
-                <i class="fas fa-phone-alt"></i>
-                <span>(71) 99901-2784</span>
-            </div>
-            <div class="info-block">
-                <i class="fas fa-envelope"></i>
-                <span>impaz.sedegeral@gmail.com</span>
-            </div>
+        <!-- Linha Copyright Slim -->
+        <div class="copyright">
+            &copy; 2026 IRIMEP - Instituto Religioso das Irmãs Medianeiras da Paz. Todos os direitos reservados.
         </div>
-
-        <!-- Coluna 3: Institucional -->
-        <div class="rodape-coluna">
-            <h5>Institucional</h5>
-            <div class="info-block">
-                <i class="fas fa-info-circle"></i>
-                <span>Instituto Religioso das Irmãs Medianeiras da Paz - <br><em>"Tudo farei pelos eleitos"</em>.</span>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Linha de Copyright -->
-    <div class="copyright-container">
-        <p>&copy; 2026 IRIMEP - Instituto Religioso das Irmãs Medianeiras da Paz. Todos os direitos reservados.</p>
     </div>
 </footer>
 
 <style>
-    /* Estilização Refatorada do Rodapé */
+    /* Estilização Nova e Compacta do Rodapé */
     .rodape-compacto {
         background-color: var(--cor-fundo-footer, #f4f4f4);
-        padding: 35px 5% 20px 5%; /* Reduzido de 60px para 35px para torná-lo compacto */
+        padding: 35px 5% 20px 5%; /* Padding reduzido para ficar bem slim e elegante */
         border-top: 5px solid var(--cor-vermelho, #e31e24);
         width: 100%;
     }
 
-    .rodape-container {
+    .footer-container {
         max-width: 1200px;
         margin: 0 auto;
         display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .footer-grid {
+        display: flex;
+        flex-wrap: wrap;
         justify-content: space-between;
         align-items: flex-start;
         gap: 30px;
+        width: 100%;
     }
 
-    .rodape-coluna {
+    .footer-secao {
         flex: 1;
         min-width: 250px;
-        display: flex;
-        flex-direction: column;
         text-align: left;
     }
 
-    /* Ajuste específico para harmonizar a logo na lateral esquerda */
+    /* Alinhamento inteligente da coluna da logo */
     .logo-coluna {
+        display: flex;
         align-items: center;
         justify-content: center;
-        max-width: 250px;
+        max-width: 220px;
     }
 
     .footer-logo {
-        height: 75px; /* Tamanho proporcional calibrado */
+        height: 75px; /* Altura calibrada para harmonizar com os textos */
         width: auto;
         transition: transform 0.3s ease;
     }
 
+    /* Efeito de flutuação discreto ao passar o mouse */
     .footer-logo:hover {
-        transform: translateY(-3px) scale(1.03); /* Sutil efeito de flutuação */
+        transform: translateY(-3px) scale(1.03);
     }
 
-    .rodape-coluna h5 {
+    .footer-secao h5 {
         color: var(--cor-azul, #008cc9);
         font-size: 16px;
         font-weight: 700;
-        margin: 0 0 15px 0;
+        margin: 0 0 12px 0;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         border-bottom: 2px solid #e0e0e0;
-        padding-bottom: 6px;
+        padding-bottom: 5px;
     }
 
     .info-block {
@@ -101,7 +111,7 @@
         font-size: 14px;
         color: #555555;
         margin-bottom: 10px;
-        line-height: 1.5;
+        line-height: 1.4;
     }
 
     .info-block i {
@@ -111,44 +121,39 @@
         transition: transform 0.3s ease, color 0.3s ease;
     }
 
-    /* Feedback visual ao passar o mouse sobre os blocos de texto */
+    /* Efeito hover dinâmico com rotação sutil nos ícones de contacto */
     .info-block:hover i {
-        transform: scale(1.25) rotate(8deg);
+        transform: scale(1.2) rotate(8deg);
         color: var(--cor-vermelho, #e31e24);
     }
 
-    /* Faixa Inferior Slim de Direitos Autorais */
-    .copyright-container {
-        max-width: 1200px;
-        margin: 25px auto 0 auto;
+    .copyright {
+        font-size: 13px;
+        color: #888888;
         border-top: 1px solid #e0e0e0;
         padding-top: 15px;
         text-align: center;
+        margin: 10px 0 0 0;
+        width: 100%;
     }
 
-    .copyright-container p {
-        margin: 0;
-        font-size: 13px;
-        color: #888888;
-    }
-
-    /* Adaptação fluida para dispositivos móveis */
+    /* Responsividade para ecrãs pequenos (Tablets e Telemóveis) */
     @media(max-width: 768px) {
-        .rodape-container {
+        .footer-grid {
             flex-direction: column;
             align-items: center;
             gap: 25px;
         }
-        .rodape-coluna {
+        .footer-secao {
             text-align: center;
-            width: 100%;
             max-width: 100%;
         }
         .info-block {
             justify-content: center;
         }
         .logo-coluna {
-            margin-bottom: 10px;
+            max-width: 100%;
+            margin-bottom: 5px;
         }
     }
 </style>
