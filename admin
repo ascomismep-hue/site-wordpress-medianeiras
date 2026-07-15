@@ -1,0 +1,292 @@
+---
+layout: default
+title: Painel Administrativo
+permalink: /admin/
+---
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<div id="login-admin-container" class="login-wrapper">
+    <div class="card-login">
+        <i class="fas fa-user-lock"></i>
+        <h3>Acesso Restrito - IRIMEP</h3>
+        <p>Insira as credenciais para aceder aos dados armazenados no Supabase.</p>
+        <div class="form-grupo-admin">
+            <input type="password" id="senha-admin" placeholder="Digite a senha de acesso">
+        </div>
+        <button onclick="verificarAcesso()" class="btn-admin-geral">Entrar no Painel</button>
+        <div id="erro-login" class="erro-mensagem">Senha incorreta. Tente novamente.</div>
+    </div>
+</div>
+
+<div id="painel-admin-principal" class="admin-dashboard" style="display: none;">
+    
+    <aside class="sidebar-admin">
+        <div class="perfil-admin">
+            <i class="fas fa-user-circle"></i>
+            <span>Administração</span>
+        </div>
+        <button class="nav-admin-btn ativa" onclick="alternarPainel(event, 'aba-nova-noticia')">
+            <i class="fas fa-newspaper"></i> Publicar Notícia
+        </button>
+        <button class="nav-admin-btn" onclick="alternarPainel(event, 'aba-mensagens-contato')">
+            <i class="fas fa-envelope-open-text"></i> Contactos (<span id="count-contatos">0</span>)
+        </button>
+        <button class="nav-admin-btn" onclick="alternarPainel(event, 'aba-gracas-recebidas')">
+            <i class="fas fa-dove"></i> Graças (<span id="count-gracas">0</span>)
+        </button>
+    </aside>
+
+    <main class="conteudo-admin">
+        
+        <div id="aba-nova-noticia" class="modulo-admin ativa">
+            <h2>Publicar Nova Notícia</h2>
+            <p>Preencha os campos abaixo para gerar a estrutura de uma nova postagem para o Jekyll.</p>
+            
+            <form class="form-admin-estrutura" onsubmit="gerarMarkdownNoticia(event)">
+                <div class="form-linha-admin">
+                    <div class="form-grupo-admin">
+                        <label>Título da Notícia</label>
+                        <input type="text" id="noticia-titulo" placeholder="Ex: Celebração da Festa da Padroeira" required>
+                    </div>
+                    <div class="form-grupo-admin">
+                        <label>Data de Publicação</label>
+                        <input type="date" id="noticia-data" required>
+                    </div>
+                </div>
+                <div class="form-grupo-admin">
+                    <label>URL da Imagem de Destaque</label>
+                    <input type="text" id="noticia-imagem" placeholder="Ex: /imagens/noticias/foto1.jpg">
+                </div>
+                <div class="form-grupo-admin">
+                    <label>Conteúdo da Matéria (Texto da Notícia)</label>
+                    <textarea id="noticia-corpo" rows="8" placeholder="Escreva o texto completo da notícia aqui..." required></textarea>
+                </div>
+                <button type="submit" class="btn-admin-geral"><i class="fas fa-file-code"></i> Gerar Postagem Jekyll</button>
+            </form>
+            
+            <div id="resultado-markdown-box" class="resultado-box" style="display: none;">
+                <h4>Criação Concluída!</h4>
+                <p>Copie o texto abaixo, crie um arquivo dentro da pasta <code>_posts/</code> com o nome <strong id="sugestao-nome-arquivo">ano-mes-dia-titulo.md</strong> e cole este conteúdo dentro:</p>
+                <textarea id="codigo-markdown-gerado" rows="8" readonly></textarea>
+            </div>
+        </div>
+
+        <div id="aba-mensagens-contato" class="modulo-admin">
+            <h2>Mensagens Recebidas (Fale Conosco)</h2>
+            <p>Estas são as mensagens vindas em tempo real da base de dados do Supabase.</p>
+            
+            <div class="tabela-responsiva">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Nome</th>
+                            <th>E-mail</th>
+                            <th>Assunto</th>
+                            <th>Mensagem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-contatos-body">
+                        <tr>
+                            <td colspan="5" style="text-align: center;">A carregar dados do Supabase...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="aba-gracas-recebidas" class="modulo-admin">
+            <h2>Testemunhos de Graças Alcançadas</h2>
+            <p>Relatos reais guardados no Supabase sobre bênçãos recebidas por intercessão de Dom Antônio Campelo de Aragão.</p>
+            
+            <div class="tabela-responsiva">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data Env.</th>
+                            <th>Devoto(a)</th>
+                            <th>Cidade / UF</th>
+                            <th>Data da Graça</th>
+                            <th>Testemunho Relatado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-gracas-body">
+                        <tr>
+                            <td colspan="5" style="text-align: center;">A carregar dados do Supabase...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<style>
+    /* Estilos Visuais do Painel Administrativo */
+    .login-wrapper { display: flex; justify-content: center; padding: 80px 0; background-color: #f8fafc; }
+    .card-login { background: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center; max-width: 400px; width: 100%; border-top: 5px solid var(--cor-azul); }
+    .card-login i { font-size: 48px; color: var(--cor-azul); margin-bottom: 15px; }
+    .card-login h3 { margin: 0 0 10px 0; color: var(--cor-preto); }
+    .card-login p { font-size: 14px; color: #666; margin-bottom: 20px; }
+    .erro-mensagem { color: var(--cor-vermelho); font-weight: bold; font-size: 14px; margin-top: 15px; display: none; }
+
+    .admin-dashboard { display: flex; max-width: 1300px; margin: 30px auto; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.05); overflow: hidden; min-height: 600px; border: 1px solid #e2e8f0; }
+    
+    .sidebar-admin { width: 260px; background-color: #1e293b; padding: 25px 0; display: flex; flex-direction: column; gap: 8px; }
+    .perfil-admin { display: flex; align-items: center; gap: 12px; padding: 0 20px 20px 20px; color: #cbd5e1; border-bottom: 1px solid #334155; margin-bottom: 15px; font-weight: bold; }
+    .perfil-admin i { font-size: 28px; color: var(--cor-azul); }
+    .nav-admin-btn { background: none; border: none; outline: none; padding: 14px 20px; color: #94a3b8; text-align: left; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 12px; width: 100%; transition: all 0.2s ease; }
+    .nav-admin-btn i { font-size: 18px; width: 20px; }
+    .nav-admin-btn:hover { color: #ffffff; background-color: #334155; }
+    .nav-admin-btn.ativa { color: #ffffff; background-color: var(--cor-azul); }
+
+    .conteudo-admin { flex: 1; padding: 40px; text-align: left; background-color: #ffffff; }
+    .modulo-admin { display: none; }
+    .modulo-admin.ativa { display: block; animation: abrirPainel 0.3s ease forwards; }
+    .modulo-admin h2 { margin-top: 0; font-size: 24px; color: var(--cor-preto); }
+    .modulo-admin p { color: #64748b; font-size: 15px; margin-bottom: 30px; }
+
+    .form-admin-estrutura { display: flex; flex-direction: column; gap: 20px; }
+    .form-linha-admin { display: flex; gap: 20px; }
+    .form-grupo-admin { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .form-grupo-admin label { font-size: 14px; font-weight: 600; color: #475569; }
+    .form-grupo-admin input, .form-grupo-admin textarea { padding: 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; font-family: inherit; }
+    
+    .btn-admin-geral { background-color: var(--cor-azul); color: #ffffff; border: none; padding: 12px 24px; font-size: 15px; font-weight: 600; border-radius: 6px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease; }
+    .btn-admin-geral:hover { background-color: var(--cor-vermelho); transform: translateY(-1px); }
+
+    .resultado-box { margin-top: 30px; padding: 20px; background-color: #f8fafc; border-radius: 6px; border: 1px solid #e2e8f0; border-left: 4px solid #10b981; }
+    .resultado-box textarea { width: 100%; margin-top: 10px; background-color: #ffffff; font-family: monospace; font-size: 13px; padding: 10px; color: #334155; border: 1px solid #cbd5e1; border-radius: 4px; }
+
+    .tabela-responsiva { width: 100%; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 6px; }
+    table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    th, td { padding: 14px 16px; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 14px; }
+    th { background-color: #f8fafc; font-weight: 600; color: #334155; }
+
+    @keyframes abrirPainel { from { opacity: 0; transform: scale(0.99); } to { opacity: 1; transform: scale(1); } }
+    @media(max-width: 768px) {
+        .admin-dashboard { flex-direction: column; }
+        .sidebar-admin { width: 100%; padding: 15px 0; }
+        .form-linha-admin { flex-direction: column; gap: 20px; }
+    }
+</style>
+
+<script>
+    // CONFIGURAÇÃO DO SUPABASE - COLOQUE AS SUAS CREDENCIAIS AQUI
+    const SUPABASE_URL = "SUA_URL_DO_SUPABASE_AQUI";
+    const SUPABASE_ANON_KEY = "SUA_CHAVE_ANON_DO_SUPABASE_AQUI";
+    
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    function verificarAcesso() {
+        const senha = document.getElementById("senha-admin").value;
+        const erro = document.getElementById("erro-login");
+        
+        if (senha === "medianeiras123") {
+            document.getElementById("login-admin-container").style.display = "none";
+            document.getElementById("painel-admin-principal").style.display = "flex";
+            // Carrega os dados do banco assim que logar
+            carregarDadosSupabase();
+        } else {
+            erro.style.display = "block";
+        }
+    }
+
+    async function carregarDadosSupabase() {
+        try {
+            // 1. Buscar Contactos
+            const { data: contactos, error: errContactos } = await supabase
+                .from('contactos')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (errContactos) throw errContactos;
+            
+            document.getElementById("count-contatos").textContent = contactos.length;
+            const tabelaContatos = document.getElementById("tabela-contatos-body");
+            tabelaContatos.innerHTML = contactos.length ? "" : '<tr><td colspan="5" style="text-align:center;">Nenhum contacto recebido.</td></tr>';
+            
+            contactos.forEach(c => {
+                const data = new Date(c.created_at).toLocaleString('pt-BR');
+                tabelaContatos.innerHTML += `
+                    <tr>
+                        <td>${data}</td>
+                        <td><strong>${c.nome}</strong></td>
+                        <td>${c.email}</td>
+                        <td>${c.assunto}</td>
+                        <td>${c.mensagem}</td>
+                    </tr>
+                `;
+            });
+
+            // 2. Buscar Graças
+            const { data: gracas, error: errGracas } = await supabase
+                .from('gracas')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (errGracas) throw errGracas;
+
+            document.getElementById("count-gracas").textContent = gracas.length;
+            const tabelaGracas = document.getElementById("tabela-gracas-body");
+            tabelaGracas.innerHTML = gracas.length ? "" : '<tr><td colspan="5" style="text-align:center;">Nenhum testemunho recebido.</td></tr>';
+
+            gracas.forEach(g => {
+                const dataEnvio = new Date(g.created_at).toLocaleDateString('pt-BR');
+                const dataOcorrido = g.data_graca ? g.data_graca.split('-').reverse().join('/') : '-';
+                tabelaGracas.innerHTML += `
+                    <tr>
+                        <td>${dataEnvio}</td>
+                        <td><strong>${g.nome}</strong></td>
+                        <td>${g.cidade}</td>
+                        <td>${dataOcorrido}</td>
+                        <td>${g.relato}</td>
+                    </tr>
+                `;
+            });
+
+        } catch (error) {
+            console.error("Erro ao conectar com o Supabase:", error.message);
+        }
+    }
+
+    function alternarPainel(evento, idModulo) {
+        const modulos = document.getElementsByClassName("modulo-admin");
+        for (let i = 0; i < modulos.length; i++) {
+            modulos[i].classList.remove("ativa");
+        }
+        const botoes = document.getElementsByClassName("nav-admin-btn");
+        for (let i = 0; i < botoes.length; i++) {
+            botoes[i].classList.remove("ativa");
+        }
+        document.getElementById(idModulo).classList.add("ativa");
+        evento.currentTarget.classList.add("ativa");
+    }
+
+    function gerarMarkdownNoticia(event) {
+        event.preventDefault();
+        const titulo = document.getElementById("noticia-titulo").value;
+        const data = document.getElementById("noticia-data").value;
+        const imagem = document.getElementById("noticia-imagem").value;
+        const corpo = document.getElementById("noticia-corpo").value;
+        
+        const dataFormatada = data ? data : new Date().toISOString().split('T')[0];
+        const tituloSluguificado = titulo.toLowerCase().replace(/[^\w\s-]/g, '').replace(/[\s_]+/g, '-').trim();
+            
+        document.getElementById("sugestao-nome-arquivo").textContent = `${dataFormatada}-${tituloSluguificado}.md`;
+        
+        const markdownGerado = `---
+layout: post
+title: "${titulo}"
+date: ${dataFormatada} 12:00:00 -0300
+imagem: "${imagem ? imagem : '/imagens/noticias/padrao.jpg'}"
+---
+
+${corpo}`;
+
+        document.getElementById("codigo-markdown-gerado").value = markdownGerado;
+        document.getElementById("resultado-markdown-box").style.display = "block";
+    }
+</script>
