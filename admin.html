@@ -3,6 +3,33 @@ layout: default
 title: Painel Administrativo
 permalink: /admin/
 ---
+<style>
+    /* Estilos do Tema do Painel */
+    :root {
+        --cor-azul: #008cc9;
+        --cor-vermelho: #e31e24;
+        --cor-ouro: #d48f43;
+        --cor-preto: #1a1a1a;
+    }
+    .login-wrapper { display: flex; justify-content: center; padding: 80px 0; background-color: #f8fafc; }
+    .card-login { background: #ffffff; padding: 40px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); text-align: center; max-width: 400px; width: 100%; border-top: 5px solid var(--cor-azul); }
+    
+    .admin-dashboard { display: flex; max-width: 1300px; margin: 30px auto; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 25px rgba(0,0,0,0.05); overflow: hidden; min-height: 600px; border: 1px solid #e2e8f0; }
+    .sidebar-admin { width: 260px; background-color: #1e293b; padding: 25px 0; display: flex; flex-direction: column; }
+    .nav-admin-btn { background: none; border: none; padding: 14px 20px; color: #94a3b8; text-align: left; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 12px; }
+    .nav-admin-btn.ativa { color: #ffffff; background-color: var(--cor-azul); }
+    
+    .conteudo-admin { flex: 1; padding: 40px; }
+    .modulo-admin { display: none; }
+    .modulo-admin.ativa { display: block; }
+    
+    .tabela-responsiva { width: 100%; overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 6px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background-color: #f8fafc; padding: 14px; text-align: left; }
+    td { padding: 12px; border-bottom: 1px solid #eee; }
+    
+    .btn-admin-geral { background-color: var(--cor-azul); color: #fff; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; }
+</style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
