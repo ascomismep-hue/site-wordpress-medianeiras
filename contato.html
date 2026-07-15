@@ -24,7 +24,7 @@ permalink: /contato/
                         <div class="form-grupo"><label>Assunto</label><input type="text" id="assunto" required></div>
                         <div class="form-grupo"><label>Mensagem</label><textarea id="mensagem" rows="4" required></textarea></div>
                         <button type="submit" class="btn-enviar-contato">Enviar</button>
-                        <div id="msg-contato-sucesso" class="mensagem-sucesso"></div>
+                        <div id="msg-contato-sucesso" class="mensagem-sucesso" style="margin-top:10px;"></div>
                     </form>
                 </div>
 
@@ -32,13 +32,12 @@ permalink: /contato/
                     <h3>Consultar Status</h3>
                     <div class="form-grupo">
                         <input type="text" id="input-protocolo-consulta" placeholder="Ex: ISMEP123456#">
-                        <button onclick="executarConsulta()" class="btn-enviar-contato">Verificar Status</button>
+                        <button onclick="executarConsulta()" class="btn-enviar-contato" style="margin-top:10px;">Verificar Status</button>
                     </div>
                     <div id="resultado-consulta" style="margin-top:20px;"></div>
                 </div>
             </div>
         </div>
-        
         <div class="contato-coluna">...</div>
     </div>
 </section>
@@ -64,21 +63,6 @@ permalink: /contato/
         document.getElementById('aba-consultar').style.display = (aba === 'consultar') ? 'block' : 'none';
     }
 
-    async function executarConsulta() {
-        const protocolo = document.getElementById('input-protocolo-consulta').value;
-        const res = document.getElementById('resultado-consulta');
-        res.innerHTML = "Buscando...";
-        
-        const { data: msg } = await cliente.from('contactos').select('*').eq('protocolo', protocolo).single();
-        const { data: chat } = await cliente.from('respostas').select('*').eq('protocolo', protocolo);
-
-        if (!msg) { res.innerHTML = "Protocolo não encontrado."; return; }
-        
-        res.innerHTML = `<div style="display:flex; flex-direction:column;">
-            <div class="chat-bubble bubble-user"><strong>Você:</strong> ${msg.mensagem}</div>
-            ${chat ? chat.map(c => `<div class="chat-bubble bubble-admin"><strong>Sede:</strong> ${c.mensagem_resposta}</div>`).join('') : ""}
-        </div>`;
-
     async function enviarContato(event) {
         event.preventDefault();
         const protocolo = `ISMEP${Date.now().toString().slice(-6)}#`;
@@ -97,16 +81,24 @@ permalink: /contato/
             document.getElementById("form-contato").reset();
         } catch (e) { alert("Erro: " + e.message); }
     }
-// Monta o chat interativo
-    res.innerHTML = `
-        <div style="display:flex; flex-direction:column; gap:10px;">
-            <div class="chat-bubble bubble-user"><strong>Você:</strong> ${msg.mensagem}</div>
-            ${chat && chat.length > 0 
-                ? chat.map(c => `<div class="chat-bubble bubble-admin"><strong>Sede:</strong> ${c.mensagem_resposta}</div>`).join('') 
-                : "<div style='font-size:12px; color:#666;'>Aguardando resposta da sede...</div>"
-            }
-        </div>
-    `;
-}
-    
+
+    async function executarConsulta() {
+        const protocolo = document.getElementById('input-protocolo-consulta').value;
+        const res = document.getElementById('resultado-consulta');
+        res.innerHTML = "Buscando...";
+        
+        const { data: msg } = await cliente.from('contactos').select('*').eq('protocolo', protocolo).single();
+        const { data: chat } = await cliente.from('respostas').select('*').eq('protocolo', protocolo);
+
+        if (!msg) { res.innerHTML = "Protocolo não encontrado."; return; }
+        
+        res.innerHTML = `
+            <div style="display:flex; flex-direction:column; gap:10px;">
+                <div class="chat-bubble bubble-user"><strong>Você:</strong> ${msg.mensagem}</div>
+                ${chat && chat.length > 0 
+                    ? chat.map(c => `<div class="chat-bubble bubble-admin"><strong>Sede:</strong> ${c.mensagem_resposta}</div>`).join('') 
+                    : "<div style='font-size:12px; color:#666;'>Aguardando resposta da sede...</div>"
+                }
+            </div>`;
+    }
 </script>
