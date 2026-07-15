@@ -1,0 +1,14 @@
+---
+layout: default
+---
+<section style="max-width: 800px; margin: 0 auto; padding: 60px 5%;">
+    <p style="color: var(--cor-vermelho); font-weight:600; text-transform:uppercase; font-size:14px; letter-spacing:0.5px;">{{ page.date | date: "%d de %B de %Y" }}</p>
+    <h1 style="font-size:32px; margin: 10px 0 25px 0; color: var(--cor-preto);">{{ page.title }}</h1>
+    {% if page.imagem %}
+    <img src="{{ page.imagem | relative_url }}" alt="{{ page.title }}" style="width:100%; border-radius:10px; margin-bottom:30px;">
+    {% endif %}
+    <div style="font-size:17px; line-height:1.7; color:#444444;">
+        {{ content }}
+    </div>
+    <p style="margin-top:40px;"><a href="{{ '/noticias/' | relative_url }}" style="color: var(--cor-azul); font-weight:600; text-decoration:none;">&larr; Voltar para notícias</a></p>
+</section>
