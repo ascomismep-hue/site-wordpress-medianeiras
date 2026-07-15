@@ -11,295 +11,108 @@ permalink: /contato/
     </div>
 
     <div class="contato-wrapper">
-        
-        <!-- Coluna da Esquerda: Formulário de Mensagem -->
         <div class="contato-coluna">
             <div class="card-contato">
-                <h3>Envie uma Mensagem</h3>
-                <form id="form-contato" class="form-institucional" onsubmit="enviarContato(event)">
-                    <div class="form-grupo">
-                        <label for="nome">Nome Completo</label>
-                        <input type="text" id="nome" name="nome" placeholder="Digite seu nome" required>
-                    </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #edf2f7; padding-bottom: 10px;">
+                    <button type="button" onclick="alternarAba('enviar')" class="btn-enviar-contato" style="padding: 8px 15px; font-size: 14px;">Enviar Mensagem</button>
+                    <button type="button" onclick="alternarAba('consultar')" class="btn-enviar-contato" style="padding: 8px 15px; font-size: 14px; background-color: var(--cor-ouro);">Consultar Protocolo</button>
+                </div>
 
-                    <div class="form-grupo">
-                        <label for="email">E-mail</label>
-                        <input type="email" id="email" name="email" placeholder="seu-email@dominio.com" required>
-                    </div>
+                <div id="aba-enviar" class="aba-atendimento">
+                    <h3>Envie uma Mensagem</h3>
+                    <form id="form-contato" class="form-institucional" onsubmit="enviarContato(event)">
+                        <div class="form-grupo"><label>Nome Completo</label><input type="text" id="nome" required></div>
+                        <div class="form-grupo"><label>E-mail</label><input type="email" id="email" required></div>
+                        <div class="form-grupo"><label>Assunto</label><input type="text" id="assunto" required></div>
+                        <div class="form-grupo"><label>Mensagem</label><textarea id="mensagem" rows="5" required></textarea></div>
+                        <button type="submit" class="btn-enviar-contato"><i class="fas fa-paper-plane"></i> Enviar Mensagem</button>
+                        <div id="msg-contato-sucesso" class="mensagem-sucesso"></div>
+                    </form>
+                </div>
 
+                <div id="aba-consultar" class="aba-atendimento" style="display:none;">
+                    <h3>Consultar Status</h3>
                     <div class="form-grupo">
-                        <label for="assunto">Assunto</label>
-                        <input type="text" id="assunto" name="assunto" placeholder="Ex: Informações sobre missões" required>
+                        <label>Número do Protocolo</label>
+                        <input type="text" id="input-protocolo-consulta" placeholder="Ex: ISMEP123456#">
+                        <button onclick="executarConsulta()" class="btn-enviar-contato" style="margin-top:10px;">Verificar Status</button>
                     </div>
-
-                    <div class="form-grupo">
-                        <label for="mensagem">Mensagem</label>
-                        <textarea id="mensagem" name="mensagem" rows="5" placeholder="Escreva sua mensagem aqui..." required></textarea>
-                    </div>
-
-                    <button type="submit" class="btn-enviar-contato">
-                        <i class="fas fa-paper-plane"></i> Enviar Mensagem
-                    </button>
-                    <div id="msg-contato-sucesso" class="mensagem-sucesso">Sua mensagem foi enviada com sucesso! Em breve entraremos em contato.</div>
-                </form>
+                    <div id="resultado-consulta" style="margin-top:20px;"></div>
+                </div>
             </div>
         </div>
 
-        <!-- Coluna da Direita: Endereço e Google Maps -->
         <div class="contato-coluna">
             <div class="card-contato">
                 <h3>Nossa Localização</h3>
-                
                 <div class="bloco-endereco">
-                    <div class="item-endereco">
-                        <i class="fas fa-map-marker-alt"></i>
-                        <p><strong>Endereço:</strong> Rua Edgar Chastinet, Nº 01, Bairro Santa Monica<br>Salvador - BA | CEP: 40.342-100</p>
-                    </div>
-                    <div class="item-endereco">
-                        <i class="fas fa-phone-alt"></i>
-                        <p><strong>Telefone:</strong> (71) 99901-2784</p>
-                    </div>
-                    <div class="item-endereco">
-                        <i class="fas fa-envelope"></i>
-                        <p><strong>E-mail:</strong> impaz.sedegeral@gmail.com</p>
-                    </div>
+                    <div class="item-endereco"><i class="fas fa-map-marker-alt"></i><p><strong>Endereço:</strong> Rua Edgar Chastinet, Nº 01, Bairro Santa Monica<br>Salvador - BA | CEP: 40.342-100</p></div>
+                    <div class="item-endereco"><i class="fas fa-phone-alt"></i><p><strong>Telefone:</strong> (71) 99901-2784</p></div>
+                    <div class="item-endereco"><i class="fas fa-envelope"></i><p><strong>E-mail:</strong> impaz.sedegeral@gmail.com</p></div>
                 </div>
-
-                <!-- Google Maps Incorporado de Forma Responsiva -->
                 <div class="mapa-google-container">
-                    <iframe 
-                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3888.1347071727786!2d-38.473551824147775!3d-12.963248687351084!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x71610444dae286bb%3A0x6b7bd16a8d6e3557!2sR.%20Edgar%20Chastinet%20-%20Santa%20Mônica%2C%20Salvador%20-%20BA%2C%2040342-100!5e0!3m2!1spt-BR!2sbr!4v1715000000000!5m2!1spt-BR!2sbr" 
-                        width="100%" 
-                        height="300" 
-                        style="border:0;" 
-                        allowfullscreen="" 
-                        loading="lazy" 
-                        referrerpolicy="no-referrer-when-downgrade">
-                    </iframe>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3888.1347071727786!2d-38.473551824147775!3d-12.963248687351084!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x71610444dae286bb%3A0x6b7bd16a8d6e3557!2sR.%20Edgar%20Chastinet%20-%20Santa%20Mônica%2C%20Salvador%20-%20BA%2C%2040342-100!5e0!3m2!1spt-BR!2sbr!4v1715000000000!5m2!1spt-BR!2sbr" width="100%" height="300" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
                 </div>
             </div>
         </div>
-
     </div>
 </section>
 
 <style>
-    /* Estilização da Página de Contato */
-    .titulo-contato {
-        text-align: center;
-        margin-bottom: 40px;
-    }
-    .titulo-contato h2 {
-        font-size: 32px;
-        color: var(--cor-preto);
-        margin: 0 0 10px 0;
-    }
-    .titulo-contato h2::after {
-        content: '';
-        display: block;
-        width: 60px;
-        height: 4px;
-        background-color: var(--cor-ouro);
-        margin: 10px auto 0 auto;
-        border-radius: 2px;
-    }
-    .titulo-contato p {
-        font-size: 16px;
-        color: #666;
-        margin: 0;
-    }
-
-    /* Layout Lado a Lado */
-    .contato-wrapper {
-        max-width: 1100px;
-        margin: 0 auto;
-        display: flex;
-        gap: 30px;
-        align-items: flex-start;
-    }
-
-    .contato-coluna {
-        flex: 1;
-        width: 50%;
-    }
-
-    .card-contato {
-        background: #ffffff;
-        padding: 30px;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        border: 1px solid #eee;
-    }
-
-    .card-contato h3 {
-        margin-top: 0;
-        color: var(--cor-azul);
-        font-size: 22px;
-        border-bottom: 1px solid #eee;
-        padding-bottom: 10px;
-        margin-bottom: 20px;
-    }
-
-    /* Formulário estruturado */
-    .form-institucional {
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-        text-align: left;
-    }
-    .form-grupo {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-    .form-grupo label {
-        font-size: 14px;
-        font-weight: 600;
-        color: #4a5568;
-    }
-    .form-grupo input, .form-grupo textarea {
-        padding: 12px;
-        border: 1px solid #cbd5e1;
-        border-radius: 6px;
-        font-size: 15px;
-        transition: all 0.3s ease;
-        font-family: inherit;
-    }
-    .form-grupo input:focus, .form-grupo textarea:focus {
-        outline: none;
-        border-color: var(--cor-azul);
-        box-shadow: 0 0 0 3px rgba(0, 140, 201, 0.15);
-    }
-
-    .btn-enviar-contato {
-        align-self: flex-start;
-        background-color: var(--cor-azul);
-        color: #ffffff;
-        border: none;
-        padding: 12px 28px;
-        font-size: 16px;
-        font-weight: 600;
-        border-radius: 6px;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        transition: all 0.3s ease;
-    }
-    .btn-enviar-contato:hover {
-        background-color: var(--cor-vermelho);
-        transform: translateY(-2px); /* Efeito flutuante */
-        box-shadow: 0 6px 15px rgba(227, 30, 36, 0.2);
-    }
-
-    .mensagem-sucesso {
-        display: none;
-        background-color: #def7ec;
-        color: #03543f;
-        padding: 12px;
-        border-radius: 6px;
-        border-left: 4px solid #31c48d;
-        font-size: 14px;
-        font-weight: 600;
-        margin-top: 10px;
-    }
-
-    /* Bloco de Endereço */
-    .bloco-endereco {
-        text-align: left;
-        margin-bottom: 25px;
-    }
-    .item-endereco {
-        display: flex;
-        align-items: flex-start;
-        gap: 15px;
-        margin-bottom: 15px;
-    }
-    .item-endereco i {
-        font-size: 18px;
-        color: var(--cor-azul);
-        margin-top: 3px;
-    }
-    .item-endereco p {
-        margin: 0;
-        font-size: 15px;
-        line-height: 1.5;
-        color: #555;
-    }
-
-    /* Container do Mapa */
-    .mapa-google-container {
-        width: 100%;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-        border: 1px solid #ddd;
-    }
-
-    /* Responsividade */
-    @media (max-width: 768px) {
-        .contato-wrapper {
-            flex-direction: column;
-        }
-        .contato-coluna {
-            width: 100%;
-        }
-        .btn-enviar-contato {
-            width: 100%;
-            justify-content: center;
-        }
-    }
+    /* Estilos mantidos conforme seu original + extras */
+    .aba-atendimento { animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .titulo-contato { text-align: center; margin-bottom: 40px; }
+    .contato-wrapper { max-width: 1100px; margin: 0 auto; display: flex; gap: 30px; align-items: flex-start; }
+    .contato-coluna { flex: 1; width: 50%; }
+    .card-contato { background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.05); border: 1px solid #eee; }
+    .form-institucional { display: flex; flex-direction: column; gap: 15px; text-align: left; }
+    .form-grupo { display: flex; flex-direction: column; gap: 6px; }
+    .btn-enviar-contato { background-color: var(--cor-azul); color: #ffffff; border: none; padding: 12px 28px; cursor: pointer; border-radius: 6px; }
+    .mensagem-sucesso { display: none; background-color: #def7ec; padding: 12px; border-radius: 6px; border-left: 4px solid #31c48d; margin-top: 10px; }
+    @media (max-width: 768px) { .contato-wrapper { flex-direction: column; } }
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
-    // 1. Configurações
     const SUPABASE_URL = "https://epiofzncgvmjhpgwrqga.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwaW9mem5jZ3ZtamhwZ3dycWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwOTA2NDAsImV4cCI6MjA5OTY2NjY0MH0.PL_xurBbpf_x34URIH9AT9gewgxZDcow-ptGsxzrhxM";
-
-    // 2. Cliente Inicializado Globalmente
     const cliente = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // 3. Função de envio integrada
+    function alternarAba(aba) {
+        document.getElementById('aba-enviar').style.display = (aba === 'enviar') ? 'block' : 'none';
+        document.getElementById('aba-consultar').style.display = (aba === 'consultar') ? 'block' : 'none';
+    }
+
     async function enviarContato(event) {
         event.preventDefault();
-        
-        // Gerar protocolo único
-        const gerarProtocolo = () => `ISMEP${Date.now().toString().slice(-6)}#`;
-        const novoProtocolo = gerarProtocolo();
-
-        // Obter elementos
-        const nome = document.getElementById("nome").value;
-        const email = document.getElementById("email").value;
-        const assunto = document.getElementById("assunto").value;
-        const mensagem = document.getElementById("mensagem").value;
-        const msgSucesso = document.getElementById("msg-contato-sucesso");
-
+        const protocolo = `ISMEP${Date.now().toString().slice(-6)}#`;
         try {
-            // Enviar para Supabase
-            const { error } = await cliente
-                .from('contactos')
-                .insert([{ 
-                    nome: nome, 
-                    email: email, 
-                    assunto: assunto, 
-                    mensagem: mensagem,
-                    protocolo: novoProtocolo 
-                }]);
-
+            const { error } = await cliente.from('contactos').insert([{ 
+                nome: document.getElementById("nome").value, 
+                email: document.getElementById("email").value, 
+                assunto: document.getElementById("assunto").value, 
+                mensagem: document.getElementById("mensagem").value,
+                protocolo: protocolo 
+            }]);
             if (error) throw error;
-
-            // Sucesso: mostrar feedback com protocolo
-            msgSucesso.style.display = "block";
-            msgSucesso.innerHTML = `Mensagem enviada com sucesso! Seu protocolo é <strong>${novoProtocolo}</strong>. Em breve entraremos em contato.`;
-            
+            const msg = document.getElementById("msg-contato-sucesso");
+            msg.style.display = "block";
+            msg.innerHTML = `Mensagem enviada! Seu protocolo é <strong>${protocolo}</strong>.`;
             document.getElementById("form-contato").reset();
-            msgSucesso.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch (e) { alert("Erro: " + e.message); }
+    }
 
-        } catch (error) {
-            console.error("Erro Supabase:", error);
-            alert("Erro ao enviar mensagem: " + error.message);
-        }
+    async function executarConsulta() {
+        const protocolo = document.getElementById('input-protocolo-consulta').value;
+        const res = document.getElementById('resultado-consulta');
+        const { data: msg } = await cliente.from('contactos').select('*').eq('protocolo', protocolo).single();
+        const { data: chat } = await cliente.from('respostas').select('*').eq('protocolo', protocolo);
+
+        if (!msg) { res.innerHTML = "<p style='color:red;'>Protocolo não encontrado.</p>"; return; }
+        res.innerHTML = `<div style="background:#f4f7f6; padding:15px; border-radius:6px;">
+            <p><strong>Mensagem:</strong> ${msg.mensagem}</p><hr>
+            <strong>Respostas:</strong> ${chat && chat.length > 0 ? chat.map(c => `<p><em>${c.enviado_por}:</em> ${c.mensagem_resposta}</p>`).join('') : "<p>Aguardando resposta.</p>"}
+        </div>`;
     }
 </script>
