@@ -173,88 +173,55 @@ permalink: /admin/
     }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-    // 1. Inicialização única do cliente (sem duplicar a variável 'supabase')
+    // Configuração oficial
     const SUPABASE_URL = "https://wocbbywzbygajphunfxe.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvY2JieXd6YnlnYWpwaHVuZnhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5NTM1NzIsImV4cCI6MjA2MTUzMzU3Mn0.b5z-I9hKkR093b1N86XbN3Zf0T9u-K-X6v7p9j4u-m0";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvY2JieXd6YnlnYWpwaHVuZnhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5NTM1NzIsImV4cCI6MjA2MTUzMzU3Mn0.b5z-I9hKkR093b1N86XbN3Zf0T9u-K-X6v7p9j4u-m0";
 
-    const clienteSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Variável global de cliente
+    let db;
 
-    // 2. Função de Acesso garantida no escopo global
-    function verificarAcesso() {
-        const senha = document.getElementById("senha-admin").value;
-        const erro = document.getElementById("erro-login");
-        
-        if (senha === "medianeiras123") {
-            document.getElementById("login-admin-container").style.display = "none";
-            document.getElementById("painel-admin-principal").style.display = "flex";
-            carregarDadosSupabase();
+    // Aguarda o carregamento do DOM e da biblioteca
+    window.addEventListener('DOMContentLoaded', () => {
+        if (typeof supabase !== 'undefined') {
+            db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+            console.log("Supabase pronto para uso.");
         } else {
-            erro.style.display = "block";
-            erro.style.display = "block";
+            console.error("Supabase não carregado. Verifique a conexão.");
         }
-    }
+    });
 
-    // 3. Função de carregamento (usando o clienteSupabase renomeado)
-    async function carregarDadosSupabase() {
-        try {
-            const { data: contactos, error: errContactos } = await clienteSupabase
-                .from('contactos')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            if (errContactos) console.error(errContactos);
-            
-            document.getElementById("count-contatos").textContent = contactos ? contactos.length : 0;
-            const tabelaContatos = document.getElementById("tabela-contatos-body");
-            
-            if(contactos && contactos.length > 0) {
-                tabelaContatos.innerHTML = contactos.map(c => `
-                    <tr>
-                        <td>${new Date(c.created_at).toLocaleString('pt-BR')}</td>
-                        <td><strong>${c.nome}</strong></td>
-                        <td>${c.email}</td>
-                        <td>${c.assunto}</td>
-                        <td>${c.mensagem}</td>
-                    </tr>
-                `).join('');
-            }
-
-            const { data: gracas, error: errGracas } = await clienteSupabase
-                .from('gracas')
-                .select('*')
-                .order('created_at', { ascending: false });
-
-            document.getElementById("count-gracas").textContent = gracas ? gracas.length : 0;
-            const tabelaGracas = document.getElementById("tabela-gracas-body");
-            
-            if(gracas && gracas.length > 0) {
-                tabelaGracas.innerHTML = gracas.map(g => `
-                    <tr>
-                        <td>${new Date(g.created_at).toLocaleDateString('pt-BR')}</td>
-                        <td><strong>${g.nome}</strong></td>
-                        <td>${g.cidade}</td>
-                        <td>${g.data_graca}</td>
-                        <td>${g.relato}</td>
-                    </tr>
-                `).join('');
-            }
-        } catch (error) {
-            console.error("Erro no Supabase:", error.message);
-        }
-    }
-
-    function alternarPainel(evento, idModulo) {
-        const modulos = document.getElementsByClassName("modulo-admin");
-        for (let i = 0; i < modulos.length; i++) modulos[i].classList.remove("ativa");
-        const botoes = document.getElementsByClassName("nav-admin-btn");
-        for (let i = 0; i < botoes.length; i++) botoes[i].classList.remove("ativa");
-        document.getElementById(idModulo).classList.add("ativa");
-        evento.currentTarget.classList.add("ativa");
-    }
-
-    function gerarMarkdownNoticia(event) {
+    // Função de Testemunho corrigida para usar a variável 'db'
+    async function enviarTestemunho(event) {
         event.preventDefault();
-        // ... (resto da sua função de gerar Markdown permanece igual)
+        
+        if (!db) {
+            alert("Erro: Conexão com banco de dados não inicializada.");
+            return;
+        }
+
+        const nome = document.getElementById("nome").value;
+        const email = document.getElementById("email").value;
+        const cidade = document.getElementById("cidade").value;
+        const data_graca = document.getElementById("data_graca").value;
+        const relato = document.getElementById("relato").value;
+        const msgSucesso = document.getElementById("msg-sucesso");
+
+        try {
+            const { error } = await db
+                .from('gracas')
+                .insert([{ nome, email, cidade, data_graca, relato }]);
+
+            if (error) throw error;
+
+            msgSucesso.style.display = "block";
+            document.getElementById("form-graca").reset();
+            msgSucesso.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch (error) {
+            console.error("Erro:", error);
+            alert("Erro ao enviar testemunho: " + error.message);
+        }
     }
 </script>
