@@ -265,67 +265,51 @@ permalink: /institucional/
     }
 </style>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
+    // 1. Definição GLOBAL: esta variável ficará visível para todas as funções
+    const SUPABASE_URL = "https://epiofzncgvmjhpgwrqga.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwaW9mem5jZ3ZtamhwZ3dycWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwOTA2NDAsImV4cCI6MjA5OTY2NjY0MH0.PL_xurBbpf_x34URIH9AT9gewgxZDcow-ptGsxzrhxM";
+    
+    // Inicializa o cliente globalmente
+    const clienteSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Função de alternar abas (mantida conforme seu original)
     function alternarAba(evento, idAba) {
         const conteudos = document.getElementsByClassName("aba-conteudo");
-        for (let i = 0; i < conteudos.length; i++) {
-            conteudos[i].classList.remove("ativa");
-        }
+        for (let i = 0; i < conteudos.length; i++) conteudos[i].classList.remove("ativa");
         const botoes = document.getElementsByClassName("aba-btn");
-        for (let i = 0; i < botoes.length; i++) {
-            botoes[i].classList.remove("ativa");
-        }
+        for (let i = 0; i < botoes.length; i++) botoes[i].classList.remove("ativa");
         document.getElementById(idAba).classList.add("ativa");
         evento.currentTarget.classList.add("ativa");
     }
 
-    // Processamento Local e Feedback do Formulário de Graças
-    function enviarTestemunho(event) {
+    // 2. Função de envio que agora CONSEGUE encontrar a variável 'clienteSupabase'
+    async function enviarTestemunho(event) {
         event.preventDefault();
         
-        // Simulação de persistência assíncrona
+        const nome = document.getElementById("nome").value;
+        const email = document.getElementById("email").value;
+        const cidade = document.getElementById("cidade").value;
+        const data_graca = document.getElementById("data_graca").value;
+        const relato = document.getElementById("relato").value;
         const msgSucesso = document.getElementById("msg-sucesso");
-        msgSucesso.style.display = "block";
-        
-        // Reseta os inputs do formulário de forma segura
-        document.getElementById("form-graca").reset();
-        
-        // Faz o scroll suave até a mensagem de confirmação
-        msgSucesso.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        try {
+            // Agora 'clienteSupabase' está no escopo global e será encontrado
+            const { error } = await clienteSupabase
+                .from('gracas')
+                .insert([{ nome, email, cidade, data_graca, relato }]);
+
+            if (error) throw error;
+
+            msgSucesso.style.display = "block";
+            document.getElementById("form-graca").reset();
+            msgSucesso.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } catch (error) {
+            console.error("Erro ao enviar:", error);
+            alert("Erro ao enviar: " + error.message);
+        }
     }
-
-// Certifica-te que inicializaste o cliente fora da função
-// const clienteSupabase = supabase.createClient('URL', 'KEY');
-
-async function enviarTestemunho(event) {
-    event.preventDefault(); // Impede o recarregamento da página
-    
-    // Captura os dados do formulário
-    const nome = document.getElementById("nome").value;
-    const email = document.getElementById("email").value;
-    const cidade = document.getElementById("cidade").value;
-    const data_graca = document.getElementById("data_graca").value;
-    const relato = document.getElementById("relato").value;
-    
-    const msgSucesso = document.getElementById("msg-sucesso");
-
-    try {
-        // Envio para a tabela 'gracas' no Supabase
-        const { error } = await clienteSupabase
-            .from('gracas')
-            .insert([{ nome, email, cidade, data_graca, relato }]);
-
-        if (error) throw error; // Se houver erro no Supabase, cai no bloco catch
-
-        // Sucesso
-        msgSucesso.style.display = "block";
-        msgSucesso.textContent = "Testemunho enviado com sucesso! Deus abençoe.";
-        document.getElementById("form-graca").reset();
-        msgSucesso.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-    } catch (error) {
-        console.error("Erro ao enviar:", error);
-        alert("Ocorreu um erro ao enviar. Por favor, tente novamente.");
-    }
-}
 </script>
