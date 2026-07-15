@@ -359,3 +359,7 @@ footer {
     .info-block { justify-content: center; }
     .secao-titulo h2 { font-size: 24px; }
 }
+
+#modal-resposta { transition: opacity 0.3s; }
+
+}
