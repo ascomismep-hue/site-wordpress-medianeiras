@@ -1,0 +1,283 @@
+---
+layout: default
+title: Institucional
+permalink: /institucional/
+---
+
+<section class="secao-institucional" style="padding: 60px 5% 100px 5%;">
+    <div class="titulo-institucional">
+        <h2>Institucional</h2>
+        <p>Conheça a nossa história, fundação e as irmãs que dedicam a sua vida à nossa missão.</p>
+    </div>
+
+    <!-- Menu de Navegação por Abas -->
+    <div class="abas-container">
+        <button class="aba-btn ativa" onclick="alternarAba(event, 'historia')">História</button>
+        <button class="aba-btn" onclick="alternarAba(event, 'fundador')">Fundador</button>
+        <button class="aba-btn" onclick="alternarAba(event, 'madres')">Madres Gerais</button>
+        <button class="aba-btn" onclick="alternarAba(event, 'irmas')">Irmãs</button>
+        <button class="aba-btn" onclick="alternarAba(event, 'in-memorian')">In Memoriam</button>
+    </div>
+
+    <!-- Conteúdo das Abas -->
+    <div class="conteudo-abas-wrapper">
+        
+        <!-- Aba: História -->
+        <div id="historia" class="aba-conteudo ativa">
+            <h3>Nossa História</h3>
+            <p>O Instituto Religioso das Irmãs Medianeiras da Paz nasceu com o propósito de semear a paz, o amor e o acolhimento. Ao longo das décadas, nossa congregação expandiu suas frentes de missão, atuando fortemente na educação, saúde e assistência social.</p>
+            <p>Guiadas pela providência divina, seguimos firmes no propósito de ser presença confortadora e transformadora na vida dos que mais necessitam.</p>
+        </div>
+
+        <!-- Aba: Fundador -->
+        <div id="fundador" class="aba-conteudo">
+            <h3>O Fundador</h3>
+            <div class="bloco-perfil">
+                <img src="{{ '/imagens/fundador.jpg' | relative_url }}" alt="Foto do Fundador" class="perfil-img">
+                <div class="perfil-texto">
+                    <h4>[Nome do Fundador]</h4>
+                    <p>Com um coração ardente de zelo apostólico e amor aos necessitados, nosso fundador instituiu a congregação olhando para as carências da época e respondendo com fé, coragem e obras concretas de caridade e evangelização.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba: Madres Gerais -->
+        <div id="madres" class="aba-conteudo">
+            <h3>Madres Gerais e Períodos de Governo</h3>
+            <p>Abaixo, a linha sucessória das madres que conduziram e conduzem o nosso Instituto com sabedoria e Graça:</p>
+            
+            <div class="grid-perfis">
+                <!-- Madre 1 -->
+                <div class="card-perfil">
+                    <img src="{{ '/imagens/madre1.jpg' | relative_url }}" alt="Madre [Nome]" class="perfil-img-card">
+                    <h4>Madre [Nome 1]</h4>
+                    <span class="periodo-governo">Período: 2018 - 2024</span>
+                    <p>Conduziu a congregação focando na expansão das frentes educacionais e fortalecimento espiritual comunitário.</p>
+                </div>
+                <!-- Madre 2 (Atual) -->
+                <div class="card-perfil">
+                    <img src="{{ '/imagens/madre2.jpg' | relative_url }}" alt="Madre [Nome]" class="perfil-img-card">
+                    <h4>Madre [Nome 2]</h4>
+                    <span class="periodo-governo">Período: 2024 - Presente</span>
+                    <p>Atual Superiora Geral, liderando a missão com foco na interiorização das casas e acolhimento social.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aba: Irmãs -->
+        <div id="irmas" class="aba-conteudo">
+            <h3>Nossas Irmãs</h3>
+            <p>Contamos com mais de 50 Irmãs Medianeiras da Paz espalhadas em nossas diversas casas de missão, atuando diariamente na vinha do Senhor.</p>
+            <p>Cada irmã carrega consigo o carisma da paz e a missão de acolher, educar e cuidar do próximo em espírito de profunda entrega.</p>
+        </div>
+
+        <!-- Aba: In Memoriam -->
+        <div id="in-memorian" class="aba-conteudo">
+            <h3>In Memoriam</h3>
+            <p>Lembramos com carinho, respeito e eterna gratidão as irmãs que já completaram sua missão terrena e retornaram para a Casa do Pai:</p>
+            
+            <ul class="lista-memorial">
+                <li><strong>Irmã [Nome]</strong> (&dagger; 2023) - Dedicou 45 anos de vida religiosa à Saúde.</li>
+                <li><strong>Irmã [Nome]</strong> (&dagger; 2021) - Pioneira nas frentes de missão social na Bahia.</li>
+                <li><strong>Irmã [Nome]</strong> (&dagger; 2019) - Educadora exemplar em nossas escolas do Ceará.</li>
+            </ul>
+        </div>
+
+    </div>
+</section>
+
+<!-- Folha de Estilo da Página Institucional -->
+<style>
+    .titulo-institucional {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    .titulo-institucional h2 {
+        font-size: 32px;
+        color: var(--cor-preto);
+        margin: 0 0 10px 0;
+    }
+    .titulo-institucional h2::after {
+        content: '';
+        display: block;
+        width: 60px;
+        height: 4px;
+        background-color: var(--cor-ouro);
+        margin: 10px auto 0 auto;
+        border-radius: 2px;
+    }
+    .titulo-institucional p {
+        font-size: 16px;
+        color: #666;
+        margin: 0;
+    }
+
+    /* Abas de Navegação */
+    .abas-container {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #e0e0e0;
+        padding-bottom: 15px;
+    }
+    .aba-btn {
+        background: none;
+        border: none;
+        outline: none;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #666;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+    }
+    .aba-btn:hover {
+        color: var(--cor-vermelho);
+        background-color: #f9f9f9;
+        transform: translateY(-2px); /* Efeito de flutuação */
+    }
+    .aba-btn.ativa {
+        color: #ffffff;
+        background-color: var(--cor-azul);
+        box-shadow: 0 4px 10px rgba(0, 140, 201, 0.3);
+    }
+
+    /* Blocos de Conteúdo */
+    .conteudo-abas-wrapper {
+        background: #ffffff;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        min-height: 300px;
+    }
+    .aba-conteudo {
+        display: none;
+    }
+    .aba-conteudo.ativa {
+        display: block;
+        animation: abrirSuave 0.4s ease forwards;
+    }
+    .aba-conteudo h3 {
+        margin-top: 0;
+        color: var(--cor-azul);
+        font-size: 24px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 10px;
+    }
+
+    /* Perfis e Cards */
+    .bloco-perfil {
+        display: flex;
+        gap: 30px;
+        align-items: center;
+        margin-top: 20px;
+    }
+    .perfil-img {
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid var(--cor-ouro-claro);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    .perfil-img:hover {
+        transform: scale(1.05);
+    }
+    .perfil-texto h4 {
+        margin: 0 0 10px 0;
+        font-size: 20px;
+        color: var(--cor-preto);
+    }
+
+    .grid-perfis {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 35px;
+        margin-top: 25px;
+    }
+    .card-perfil {
+        flex: 1;
+        min-width: 250px;
+        max-width: 320px;
+        background: #fdfdfd;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #eee;
+        text-align: center;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .card-perfil:hover {
+        transform: translateY(-8px); /* Efeito flutuante nos cards */
+        box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+        border-color: var(--cor-ouro-claro);
+    }
+    .perfil-img-card {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 15px;
+        border: 3px solid var(--cor-azul);
+    }
+    .card-perfil h4 {
+        margin: 0 0 5px 0;
+        font-size: 18px;
+    }
+    .periodo-governo {
+        display: block;
+        font-size: 14px;
+        color: var(--cor-ouro);
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    /* Memorial */
+    .lista-memorial {
+        list-style: none;
+        padding: 0;
+        margin: 20px 0 0 0;
+    }
+    .lista-memorial li {
+        padding: 12px 15px;
+        border-bottom: 1px dashed #e0e0e0;
+        font-size: 16px;
+    }
+    .lista-memorial li:last-child {
+        border-bottom: none;
+    }
+
+    @keyframes abrirSuave {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+        .bloco-perfil { flex-direction: column; text-align: center; }
+        .grid-perfis { justify-content: center; }
+    }
+</style>
+
+<!-- Lógica de Alternância de Abas -->
+<script>
+    function alternarAba(evento, idAba) {
+        // Esconde todos os conteúdos das abas
+        const conteudos = document.getElementsByClassName("aba-conteudo");
+        for (let i = 0; i < conteudos.length; i++) {
+            conteudos[i].classList.remove("ativa");
+        }
+
+        // Remove a classe "ativa" de todos os botões
+        const botoes = document.getElementsByClassName("aba-btn");
+        for (let i = 0; i < botoes.length; i++) {
+            botoes[i].classList.remove("ativa");
+        }
+
+        // Mostra o conteúdo da aba selecionada e adiciona a classe ativa ao botão clicado
+        document.getElementById(idAba).classList.add("ativa");
+        evento.currentTarget.classList.add("ativa");
+    }
+</script>
