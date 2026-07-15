@@ -254,41 +254,45 @@ permalink: /contato/
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-    // Inicialização segura
+    // 1. Configurações
     const SUPABASE_URL = "https://wocbbywzbygajphunfxe.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvY2JieXd6YnlnYWpwaHVuZnhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5NTM1NzIsImV4cCI6MjA2MTUzMzU3Mn0.b5z-I9hKkR093b1N86XbN3Zf0T9u-K-X6v7p9j4u-m0";
-    
-    // Inicializa o cliente
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 2. Inicializamos o cliente dentro de uma função para garantir que o 'supabase' já existe
+    function getSupabaseClient() {
+        if (typeof supabase === 'undefined') {
+            console.error("A biblioteca Supabase ainda não foi carregada.");
+            return null;
+        }
+        return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
 
     async function enviarContato(event) {
         event.preventDefault();
         
-        // Verifica se o cliente foi criado
-        if (!_supabase) {
-            alert("Erro de conexão com o banco de dados.");
+        const cliente = getSupabaseClient();
+        if (!cliente) {
+            alert("Erro: O sistema de envio ainda está a carregar. Tente novamente em um segundo.");
             return;
         }
 
+        const nome = document.getElementById("nome").value;
+        const email = document.getElementById("email").value;
+        const assunto = document.getElementById("assunto").value;
+        const mensagem = document.getElementById("mensagem").value;
         const msgSucesso = document.getElementById("msg-contato-sucesso");
-        
-        // Captura valores
-        const dados = {
-            nome: document.getElementById("nome").value,
-            email: document.getElementById("email").value,
-            assunto: document.getElementById("assunto").value,
-            mensagem: document.getElementById("mensagem").value
-        };
 
         try {
-            const { error } = await _supabase
+            const { error } = await cliente
                 .from('contactos')
-                .insert([dados]);
+                .insert([{ nome, email, assunto, mensagem }]);
 
             if (error) throw error;
 
             msgSucesso.style.display = "block";
             document.getElementById("form-contato").reset();
+            msgSucesso.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
         } catch (error) {
             console.error("Erro Supabase:", error);
             alert("Erro ao enviar mensagem: " + error.message);
