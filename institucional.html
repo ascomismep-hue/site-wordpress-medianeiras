@@ -294,3 +294,37 @@ permalink: /institucional/
         msgSucesso.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+    const SUPABASE_URL = "https://wocbbywzbygajphunfxe.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvY2JieXd6YnlnYWpwaHVuZnhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5NTM1NzIsImV4cCI6MjA2MTUzMzU3Mn0.b5z-I9hKkR093b1N86XbN3Zf0T9u-K-X6v7p9j4u-m0";
+    const _supabaseIns = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function enviarTestemunho(event) {
+        event.preventDefault();
+        
+        const nome = document.getElementById("nome").value;
+        const email = document.getElementById("email").value;
+        const cidade = document.getElementById("cidade").value;
+        const data_graca = document.getElementById("data_graca").value;
+        const relato = document.getElementById("relato").value;
+        const msgSucesso = document.getElementById("msg-sucesso");
+
+        try {
+            const { error } = await _supabaseIns
+                .from('gracas')
+                .insert([{ nome, email, cidade, data_graca, relato }]);
+
+            if (error) throw error;
+
+            msgSucesso.style.display = "block";
+            document.getElementById("form-graca").reset();
+            msgSucesso.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        } catch (error) {
+            alert("Erro ao enviar testemunho: " + error.message);
+        }
+    }
+</script>
