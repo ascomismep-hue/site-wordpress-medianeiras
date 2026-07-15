@@ -296,6 +296,23 @@ permalink: /contato/
         } catch (error) {
             console.error("Erro Supabase:", error);
             alert("Erro ao enviar mensagem: " + error.message);
+
+            // Dentro da sua função enviarContato
+const gerarProtocolo = () => `ISMEP${Date.now().toString().slice(-6)}#`;
+const novoProtocolo = gerarProtocolo();
+
+const { error } = await clienteSupabase
+    .from('contactos')
+    .insert([{ 
+        nome: nome, 
+        email: email, 
+        assunto: assunto, 
+        mensagem: mensagem,
+        protocolo: novoProtocolo // Salvando o protocolo gerado
+    }]);
+
+if (!error) {
+    alert("Mensagem enviada! Seu protocolo de atendimento é: " + novoProtocolo);
         }
     }
 </script>
