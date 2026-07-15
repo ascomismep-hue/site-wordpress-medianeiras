@@ -6,16 +6,13 @@ permalink: /admin/
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<div id="login-admin-container" class="login-wrapper">
+<<div id="login-admin-container" class="login-wrapper">
     <div class="card-login">
-        <i class="fas fa-user-lock"></i>
-        <h3>Acesso Restrito - IRIMEP</h3>
-        <p>Insira as credenciais para aceder aos dados armazenados no Supabase.</p>
-        <div class="form-grupo-admin">
-            <input type="password" id="senha-admin" placeholder="Digite a senha de acesso">
-        </div>
-        <button onclick="verificarAcesso()" class="btn-admin-geral">Entrar no Painel</button>
-        <div id="erro-login" class="erro-mensagem">Senha incorreta. Tente novamente.</div>
+        <h3>Acesso Administrativo</h3>
+        <input type="email" id="email-admin" placeholder="Seu e-mail cadastrado">
+        <input type="password" id="senha-admin" placeholder="Sua senha">
+        <button onclick="realizarLogin()" class="btn-admin-geral">Entrar</button>
+        <div id="erro-login" class="erro-mensagem"></div>
     </div>
 </div>
 
