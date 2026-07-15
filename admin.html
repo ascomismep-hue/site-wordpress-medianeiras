@@ -88,6 +88,10 @@ permalink: /admin/
         document.getElementById("count-gracas").innerText = gracas?.length || 0;
         document.getElementById("tabela-gracas-body").innerHTML = gracas?.map(g => 
             `<tr><td>${new Date(g.created_at).toLocaleDateString()}</td><td>${g.nome}</td><td>${g.cidade}</td><td>${g.relato}</td></tr>`).join('');
+
+        `<td>
+            <button onclick="responderMensagem('${c.protocolo}')" class="btn-admin-geral">Responder</button>
+        </td>`
     }
 
     function alternarPainel(evt, id) {
