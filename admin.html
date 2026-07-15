@@ -201,8 +201,31 @@ permalink: /admin/
         }
     }
 
-    // Função para buscar dados (só roda se logado)
-    async function carregarDadosSupabase() {
-        // ... (seu código de carregar dados que fizemos anteriormente)
+   // Função chamada ao clicar no botão "Entrar"
+async function realizarLogin() {
+    const email = document.getElementById("email-admin").value;
+    const senha = document.getElementById("senha-admin").value;
+    const erro = document.getElementById("erro-login");
+
+    try {
+        // Autenticação direta com o Supabase
+        const { data, error } = await clienteSupabase.auth.signInWithPassword({
+            email: email,
+            password: senha
+        });
+
+        if (error) throw error;
+
+        // Se logou com sucesso, esconde a tela de login e carrega o painel
+        document.getElementById("login-admin-container").style.display = "none";
+        document.getElementById("painel-admin-principal").style.display = "flex";
+        
+        // Carrega os dados das tabelas
+        carregarDadosSupabase();
+    } catch (e) {
+        erro.textContent = "Erro no acesso: " + e.message;
+        erro.style.display = "block";
     }
+}
+    
 </script>
