@@ -1,52 +1,240 @@
-/* ==========================================================================
-   1. VARIÁVEIS E RESET (Configurações Globais)
-   ========================================================================== */
 :root {
-    --vermelho: #e31e24; --azul: #008cc9; --ouro: #d48f43;
-    --bg-site: #f0f4f8; --text-color: #2d3436;
-    --glass-bg: rgba(255, 255, 255, 0.7);
-    --glass-border: 1px solid rgba(255, 255, 255, 0.3);
+
+    --cor-vermelho: #e31e24;
+
+    --cor-azul: #008cc9;
+
+    --cor-ouro: #d48f43;
+
+    --cor-ouro-claro: #f6e1b9;
+
+    --cor-fundo-footer: #f4f4f4;
+
+    --cor-preto: #333333;
+
+    --fonte-padrao: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+
 }
+
+
 
 * { box-sizing: border-box; }
-body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background: var(--bg-site); color: var(--text-color); overflow-x: hidden; }
 
-/* ==========================================================================
-   2. COMPONENTES REUTILIZÁVEIS (Efeito Vidro e Cards)
-   ========================================================================== */
-.glass {
-    background: var(--glass-bg);
-    backdrop-filter: blur(15px);
-    border: var(--glass-border);
-    border-radius: 20px;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+
+
+body, html {
+
+    margin: 0;
+
+    padding: 0;
+
+    font-family: var(--fonte-padrao);
+
+    color: var(--cor-preto);
+
+    scroll-behavior: smooth;
+
+    overflow-x: hidden; /* Evita rolagem horizontal */
+
+    width: 100%;
+
 }
 
-.btn-admin-geral, .btn-enviar-contato {
-    border: none; border-radius: 12px; padding: 12px 24px; font-weight: 600; cursor: pointer;
-    background: var(--azul); color: white; transition: 0.3s;
-}
-.btn-enviar-contato:hover { transform: translateY(-2px); background: var(--vermelho); }
 
-/* ==========================================================================
-   3. LAYOUT E RESPONSIVIDADE (Grid e Mobile)
-   ========================================================================== */
-/* Estrutura flexível para qualquer página */
-.container-padrao { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+/* --- TOPO / MENU --- */
+
+header {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 15px 5%;
+
+    background-color: #ffffff;
+
+    position: sticky;
+
+    top: 0;
+
+    z-index: 1000;
+
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+
+}
+
+
+
+.logo-img { height: 60px; width: auto; transition: transform 0.3s ease; }
+
+nav { display: flex; gap: 25px; }
+
+nav a { text-decoration: none; color: var(--cor-preto); font-weight: 600; }
+
+
+
+/* --- BANNER E MENU ATUAÇÃO --- */
+
+.banner-container {
+
+    width: 100%;
+
+    height: 75vh;
+
+    min-height: 500px;
+
+    background: linear-gradient(rgba(0,0,0,0.2), rgba(0,0,0,0.4)), url('https://www.vaticannews.va/content/dam/vaticannews/multimedia/2025/aprile/21/ZZ.jpg/_jcr_content/renditions/cq5dam.thumbnail.cropped.750.422.jpeg') center/cover no-repeat;
+
+    display: flex;
+
+    align-items: flex-end;
+
+    justify-content: center;
+
+    position: relative;
+
+    margin-bottom: 100px;
+
+}
+
+
+
+.menu-atuacao {
+
+    display: flex;
+
+    justify-content: center;
+
+    flex-wrap: wrap;
+
+    gap: 20px;
+
+    background-color: #ffffff;
+
+    padding: 30px 40px;
+
+    border-radius: 12px;
+
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+
+    transform: translateY(50%);
+
+    z-index: 500;
+
+    width: 90%;
+
+    max-width: 900px;
+
+}
+
+
+
+/* --- RESPONSIVIDADE FORÇADA (MOBILE FIX) --- */
 
 @media (max-width: 768px) {
-    /* Força o empilhamento em qualquer página */
-    .contato-wrapper, .admin-dashboard, .footer-grid { flex-direction: column !important; }
+
+    .menu-atuacao { transform: translateY(20px); margin-bottom: 40px; }
+
+    header { flex-direction: column; gap: 15px; }
+
     
-    .contato-coluna, .sidebar-admin, .conteudo-admin { width: 100% !important; }
-    
-    /* Tabelas responsivas */
+
+    /* Corrige o empilhamento do contato e dashboard */
+
+    .contato-wrapper, 
+
+    .admin-dashboard {
+
+        flex-direction: column !important;
+
+    }
+
+
+
+    .contato-coluna, 
+
+    .sidebar-admin, 
+
+    .conteudo-admin {
+
+        width: 100% !important;
+
+        flex: none !important;
+
+    }
+
+
+
+    /* Tabelas roláveis */
+
     table { display: block; overflow-x: auto; white-space: nowrap; }
+
 }
 
-/* ==========================================================================
-   4. ESTILOS ESPECÍFICOS (Chat e Elementos)
-   ========================================================================== */
-.chat-bubble { padding: 12px 16px; border-radius: 18px; margin-bottom: 10px; max-width: 85%; font-size: 14px; }
-.bubble-admin { background: var(--azul); color: white; margin-left: auto; }
-.bubble-user { background: white; border: 1px solid #ddd; }
+
+
+/* --- DASHBOARD / CHAT --- */
+
+#modal-resposta { transition: opacity 0.3s; z-index: 2000; }
+
+
+
+#resultado-consulta {
+
+    background: #f8fafc;
+
+    border-radius: 12px;
+
+    padding: 20px;
+
+    border-left: 5px solid var(--cor-azul);
+
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+
+}
+
+
+
+.chat-bubble {
+
+    padding: 12px 16px;
+
+    border-radius: 18px;
+
+    margin-bottom: 10px;
+
+    max-width: 85%;
+
+    font-size: 14px;
+
+    line-height: 1.4;
+
+}
+
+
+
+.bubble-admin { background: var(--cor-azul); color: white; align-self: flex-end; margin-left: auto; }
+
+.bubble-user { background: #e2e8f0; color: #1a1a1a; align-self: flex-start; }
+
+
+
+/* Rodapé */
+
+footer {
+
+    background-color: var(--cor-fundo-footer);
+
+    padding: 60px 5% 30px 5%;
+
+    border-top: 6px solid var(--cor-vermelho);
+
+    text-align: center;
+
+    margin-top: 60px;
+
+} 
+
