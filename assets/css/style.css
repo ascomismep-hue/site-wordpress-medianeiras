@@ -363,3 +363,26 @@ footer {
 #modal-resposta { transition: opacity 0.3s; }
 
 }
+
+/* Estilo para a consulta de status */
+#resultado-consulta {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 5px solid var(--cor-azul);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.chat-bubble {
+    padding: 12px 16px;
+    border-radius: 18px;
+    margin-bottom: 10px;
+    max-width: 85%;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.bubble-admin { background: var(--cor-azul); color: white; align-self: flex-end; }
+.bubble-user { background: #e2e8f0; color: #1a1a1a; align-self: flex-start; }
+
+}
