@@ -258,24 +258,18 @@ permalink: /contato/
     const SUPABASE_URL = "https://epiofzncgvmjhpgwrqga.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwaW9mem5jZ3ZtamhwZ3dycWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwOTA2NDAsImV4cCI6MjA5OTY2NjY0MH0.PL_xurBbpf_x34URIH9AT9gewgxZDcow-ptGsxzrhxM";
 
-    // 2. Inicializamos o cliente dentro de uma função para garantir que o 'supabase' já existe
-    function getSupabaseClient() {
-        if (typeof supabase === 'undefined') {
-            console.error("A biblioteca Supabase ainda não foi carregada.");
-            return null;
-        }
-        return supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    }
+    // 2. Cliente Inicializado Globalmente
+    const cliente = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+    // 3. Função de envio integrada
     async function enviarContato(event) {
         event.preventDefault();
         
-        const cliente = getSupabaseClient();
-        if (!cliente) {
-            alert("Erro: O sistema de envio ainda está a carregar. Tente novamente em um segundo.");
-            return;
-        }
+        // Gerar protocolo único
+        const gerarProtocolo = () => `ISMEP${Date.now().toString().slice(-6)}#`;
+        const novoProtocolo = gerarProtocolo();
 
+        // Obter elementos
         const nome = document.getElementById("nome").value;
         const email = document.getElementById("email").value;
         const assunto = document.getElementById("assunto").value;
@@ -283,36 +277,29 @@ permalink: /contato/
         const msgSucesso = document.getElementById("msg-contato-sucesso");
 
         try {
+            // Enviar para Supabase
             const { error } = await cliente
                 .from('contactos')
-                .insert([{ nome, email, assunto, mensagem }]);
+                .insert([{ 
+                    nome: nome, 
+                    email: email, 
+                    assunto: assunto, 
+                    mensagem: mensagem,
+                    protocolo: novoProtocolo 
+                }]);
 
             if (error) throw error;
 
+            // Sucesso: mostrar feedback com protocolo
             msgSucesso.style.display = "block";
+            msgSucesso.innerHTML = `Mensagem enviada com sucesso! Seu protocolo é <strong>${novoProtocolo}</strong>. Em breve entraremos em contato.`;
+            
             document.getElementById("form-contato").reset();
             msgSucesso.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
         } catch (error) {
             console.error("Erro Supabase:", error);
             alert("Erro ao enviar mensagem: " + error.message);
-
-            // Dentro da sua função enviarContato
-const gerarProtocolo = () => `ISMEP${Date.now().toString().slice(-6)}#`;
-const novoProtocolo = gerarProtocolo();
-
-const { error } = await clienteSupabase
-    .from('contactos')
-    .insert([{ 
-        nome: nome, 
-        email: email, 
-        assunto: assunto, 
-        mensagem: mensagem,
-        protocolo: novoProtocolo // Salvando o protocolo gerado
-    }]);
-
-if (!error) {
-    alert("Mensagem enviada! Seu protocolo de atendimento é: " + novoProtocolo);
         }
     }
 </script>
