@@ -176,52 +176,36 @@ permalink: /admin/
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script>
-    // Configuração oficial
-    const SUPABASE_URL = "https://wocbbywzbygajphunfxe.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvY2JieXd6YnlnYWpwaHVuZnhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5NTM1NzIsImV4cCI6MjA2MTUzMzU3Mn0.b5z-I9hKkR093b1N86XbN3Zf0T9u-K-X6v7p9j4u-m0";
+    const SUPABASE_URL = "https://epiofzncgvmjhpgwrqga.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwaW9mem5jZ3ZtamhwZ3dycWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwOTA2NDAsImV4cCI6MjA5OTY2NjY0MH0.PL_xurBbpf_x34URIH9AT9gewgxZDcow-ptGsxzrhxM"; // Cole a chave ANON/PUBLIC
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Variável global de cliente
-    let db;
-
-    // Aguarda o carregamento do DOM e da biblioteca
-    window.addEventListener('DOMContentLoaded', () => {
-        if (typeof supabase !== 'undefined') {
-            db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-            console.log("Supabase pronto para uso.");
-        } else {
-            console.error("Supabase não carregado. Verifique a conexão.");
-        }
-    });
-
-    // Função de Testemunho corrigida para usar a variável 'db'
-    async function enviarTestemunho(event) {
-        event.preventDefault();
-        
-        if (!db) {
-            alert("Erro: Conexão com banco de dados não inicializada.");
-            return;
-        }
-
-        const nome = document.getElementById("nome").value;
-        const email = document.getElementById("email").value;
-        const cidade = document.getElementById("cidade").value;
-        const data_graca = document.getElementById("data_graca").value;
-        const relato = document.getElementById("relato").value;
-        const msgSucesso = document.getElementById("msg-sucesso");
+    // Função de Login Real
+    async function realizarLogin() {
+        const email = document.getElementById("email-admin").value;
+        const senha = document.getElementById("senha-admin").value;
+        const erro = document.getElementById("erro-login");
 
         try {
-            const { error } = await db
-                .from('gracas')
-                .insert([{ nome, email, cidade, data_graca, relato }]);
+            const { data, error } = await db.auth.signInWithPassword({
+                email: email,
+                password: senha
+            });
 
             if (error) throw error;
 
-            msgSucesso.style.display = "block";
-            document.getElementById("form-graca").reset();
-            msgSucesso.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        } catch (error) {
-            console.error("Erro:", error);
-            alert("Erro ao enviar testemunho: " + error.message);
+            // Sucesso!
+            document.getElementById("login-admin-container").style.display = "none";
+            document.getElementById("painel-admin-principal").style.display = "flex";
+            carregarDadosSupabase();
+        } catch (e) {
+            erro.textContent = "Erro: " + e.message;
+            erro.style.display = "block";
         }
+    }
+
+    // Função para buscar dados (só roda se logado)
+    async function carregarDadosSupabase() {
+        // ... (seu código de carregar dados que fizemos anteriormente)
     }
 </script>
