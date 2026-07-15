@@ -67,45 +67,41 @@ permalink: /admin/
     </main>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-    const SUPABASE_URL = "https://epiofzncgvmjhpgwrqga.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwaW9mem5jZ3ZtamhwZ3dycWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwOTA2NDAsImV4cCI6MjA5OTY2NjY0MH0.PL_xurBbpf_x34URIH9AT9gewgxZDcow-ptGsxzrhxM";
-    const clienteSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    // 1. Defina as constantes
+    const SUPABASE_URL = "https://wocbbywzbygajphunfxe.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndvY2JieXd6YnlnYWpwaHVuZnhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5NTM1NzIsImV4cCI6MjA2MTUzMzU3Mn0.b5z-I9hKkR093b1N86XbN3Zf0T9u-K-X6v7p9j4u-m0";
 
-    async function realizarLogin() {
-        const email = document.getElementById("email-admin").value;
-        const senha = document.getElementById("senha-admin").value;
+    // 2. Inicialize o cliente no escopo global (fora da função)
+    const clienteSupabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 3. A função agora usa 'clienteSupabase' que foi definido acima
+    async function enviarContato(event) {
+        event.preventDefault();
+        
+        const nome = document.getElementById("nome").value;
+        const email = document.getElementById("email").value;
+        const assunto = document.getElementById("assunto").value;
+        const mensagem = document.getElementById("mensagem").value;
+        const msgSucesso = document.getElementById("msg-contato-sucesso");
+
         try {
-            const { error } = await clienteSupabase.auth.signInWithPassword({ email, password: senha });
+            // Agora 'clienteSupabase' está disponível e definido
+            const { error } = await clienteSupabase
+                .from('contactos')
+                .insert([{ nome, email, assunto, mensagem }]);
+
             if (error) throw error;
-            document.getElementById("login-admin-container").style.display = "none";
-            document.getElementById("painel-admin-principal").style.display = "flex";
-            carregarDadosSupabase();
-        } catch (e) {
-            alert("Erro no login: " + e.message);
+
+            msgSucesso.style.display = "block";
+            document.getElementById("form-contato").reset();
+            msgSucesso.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        } catch (error) {
+            console.error("Erro Supabase:", error);
+            alert("Erro ao enviar mensagem: " + error.message);
         }
-    }
-
-    async function carregarDadosSupabase() {
-        // Carrega Contatos
-        const { data: contatos } = await clienteSupabase.from('contactos').select('*');
-        document.getElementById("count-contatos").textContent = contatos ? contatos.length : 0;
-        document.getElementById("tabela-contatos-body").innerHTML = contatos?.map(c => 
-            `<tr><td>${new Date(c.created_at).toLocaleDateString()}</td><td>${c.nome}</td><td>${c.email}</td><td>${c.mensagem}</td></tr>`
-        ).join('') || '<tr><td>Nenhum dado</td></tr>';
-
-        // Carrega Graças
-        const { data: gracas } = await clienteSupabase.from('gracas').select('*');
-        document.getElementById("count-gracas").textContent = gracas ? gracas.length : 0;
-        document.getElementById("tabela-gracas-body").innerHTML = gracas?.map(g => 
-            `<tr><td>${new Date(g.created_at).toLocaleDateString()}</td><td>${g.nome}</td><td>${g.cidade}</td><td>${g.relato}</td></tr>`
-        ).join('') || '<tr><td>Nenhum dado</td></tr>';
-    }
-
-    function alternarPainel(evento, idModulo) {
-        document.querySelectorAll('.modulo-admin').forEach(m => m.classList.remove('ativa'));
-        document.querySelectorAll('.nav-admin-btn').forEach(b => b.classList.remove('ativa'));
-        document.getElementById(idModulo).classList.add('ativa');
-        evento.currentTarget.classList.add('ativa');
     }
 </script>
