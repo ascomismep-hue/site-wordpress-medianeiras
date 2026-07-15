@@ -104,15 +104,30 @@ permalink: /contato/
     }
 
     async function executarConsulta() {
-        const protocolo = document.getElementById('input-protocolo-consulta').value;
-        const res = document.getElementById('resultado-consulta');
-        const { data: msg } = await cliente.from('contactos').select('*').eq('protocolo', protocolo).single();
-        const { data: chat } = await cliente.from('respostas').select('*').eq('protocolo', protocolo);
+    const protocolo = document.getElementById('input-protocolo-consulta').value;
+    const res = document.getElementById('resultado-consulta');
+    
+    // Mostra um "carregando"
+    res.innerHTML = "Consultando...";
 
-        if (!msg) { res.innerHTML = "<p style='color:red;'>Protocolo não encontrado.</p>"; return; }
-        res.innerHTML = `<div style="background:#f4f7f6; padding:15px; border-radius:6px;">
-            <p><strong>Mensagem:</strong> ${msg.mensagem}</p><hr>
-            <strong>Respostas:</strong> ${chat && chat.length > 0 ? chat.map(c => `<p><em>${c.enviado_por}:</em> ${c.mensagem_resposta}</p>`).join('') : "<p>Aguardando resposta.</p>"}
-        </div>`;
+    const { data: msg } = await cliente.from('contactos').select('*').eq('protocolo', protocolo).single();
+    const { data: chat } = await cliente.from('respostas').select('*').eq('protocolo', protocolo);
+
+    if (!msg) {
+        res.innerHTML = "<p style='color:red;'>⚠️ Protocolo não encontrado.</p>";
+        return;
     }
+
+    // Monta o chat interativo
+    res.innerHTML = `
+        <div style="display:flex; flex-direction:column; gap:10px;">
+            <div class="chat-bubble bubble-user"><strong>Você:</strong> ${msg.mensagem}</div>
+            ${chat && chat.length > 0 
+                ? chat.map(c => `<div class="chat-bubble bubble-admin"><strong>Sede:</strong> ${c.mensagem_resposta}</div>`).join('') 
+                : "<div style='font-size:12px; color:#666;'>Aguardando resposta da sede...</div>"
+            }
+        </div>
+    `;
+}
+    
 </script>
