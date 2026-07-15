@@ -175,8 +175,8 @@ permalink: /admin/
 
 <script>
     // CONFIGURAÇÃO DO SUPABASE - COLOQUE AS SUAS CREDENCIAIS AQUI
-    const SUPABASE_URL = "SUA_URL_DO_SUPABASE_AQUI";
-    const SUPABASE_ANON_KEY = "SUA_CHAVE_ANON_DO_SUPABASE_AQUI";
+    const SUPABASE_URL = "https://epiofzncgvmjhpgwrqga.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwaW9mem5jZ3ZtamhwZ3dycWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwOTA2NDAsImV4cCI6MjA5OTY2NjY0MH0.PL_xurBbpf_x34URIH9AT9gewgxZDcow-ptGsxzrhxM";
     
     const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
