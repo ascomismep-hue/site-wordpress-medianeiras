@@ -1,0 +1,29 @@
+---
+layout: default
+title: Notícia
+---
+<section style="padding: 60px 10%;">
+    <div id="noticia-completa">Carregando...</div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const cliente = supabase.createClient("URL", "KEY");
+    
+    async function carregarDetalhe() {
+        const params = new URLSearchParams(window.location.search);
+        const id = params.get('id');
+        
+        const { data: n } = await cliente.from('noticias').select('*').eq('id', id).single();
+        
+        if (n) {
+            document.getElementById("noticia-completa").innerHTML = `
+                <h1>${n.titulo}</h1>
+                <p style="color:#888;">Publicado em: ${new Date(n.created_at).toLocaleDateString()}</p>
+                <img src="${n.imagem_url}" style="width:100%; max-width:600px;">
+                <p style="margin-top:20px; line-height:1.6;">${n.texto.replace(/\n/g, '<br>')}</p>
+            `;
+        }
+    }
+    carregarDetalhe();
+</script>
