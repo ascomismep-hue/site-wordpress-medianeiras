@@ -4,41 +4,35 @@ title: Contato
 permalink: /contato/
 ---
 
-<section class="secao-contato" style="padding: 40px 5% 100px 5%;">
-    <div class="titulo-contato">
+<section class="secao-contato" style="padding: 40px 5%; max-width: 900px; margin: auto;">
+    <div class="titulo-contato" style="text-align: center; margin-bottom: 40px;">
         <h2>Atendimento ao Público</h2>
     </div>
 
-    <div class="contato-wrapper">
-        <div class="contato-coluna">
-            <div class="card-contato">
-                <div style="display: flex; gap: 0; margin-bottom: 20px; border-radius: 8px; overflow: hidden;">
-                    <button type="button" onclick="alternarAba('enviar', event)" class="tab-button active">Enviar Mensagem</button>
-                    <button type="button" onclick="alternarAba('consultar', event)" class="tab-button">Consultar Protocolo</button>
-                </div>
-
-                <div id="aba-enviar" class="aba-atendimento">
-                    <form id="form-contato" onsubmit="enviarContato(event)" class="form-institucional">
-                        <div class="form-grupo"><label>Nome</label><input type="text" id="nome" required></div>
-                        <div class="form-grupo"><label>E-mail</label><input type="email" id="email" required></div>
-                        <div class="form-grupo"><label>Assunto</label><input type="text" id="assunto" required></div>
-                        <div class="form-grupo"><label>Mensagem</label><textarea id="mensagem" rows="4" required></textarea></div>
-                        <button type="submit" class="btn-enviar-contato">Enviar</button>
-                        <div id="msg-contato-sucesso" class="mensagem-sucesso" style="margin-top:10px;"></div>
-                    </form>
-                </div>
-
-                <div id="aba-consultar" class="aba-atendimento" style="display:none;">
-                    <h3>Consultar Status</h3>
-                    <div class="form-grupo">
-                        <input type="text" id="input-protocolo-consulta" placeholder="Ex: ISMEP123456#">
-                        <button onclick="executarConsulta()" class="btn-enviar-contato" style="margin-top:10px;">Verificar Status</button>
-                    </div>
-                    <div id="resultado-consulta" style="margin-top:20px;"></div>
-                </div>
-            </div>
+    <div class="card-contato" style="background: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);">
+        <div style="display: flex; gap: 10px; margin-bottom: 30px; background: #f8f9fa; padding: 5px; border-radius: 12px;">
+            <button type="button" onclick="alternarAba('enviar', event)" class="tab-button active" style="flex:1; border:none; padding:12px; border-radius:8px; cursor:pointer;">Enviar Mensagem</button>
+            <button type="button" onclick="alternarAba('consultar', event)" class="tab-button" style="flex:1; border:none; padding:12px; border-radius:8px; cursor:pointer;">Consultar Protocolo</button>
         </div>
-        <div class="contato-coluna">...</div>
+
+        <div id="aba-enviar" class="aba-atendimento">
+            <form id="form-contato" onsubmit="enviarContato(event)" style="display:flex; flex-direction:column; gap:20px;">
+                <div class="form-grupo"><label style="font-weight:600;">Nome</label><input type="text" id="nome" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;" required></div>
+                <div class="form-grupo"><label style="font-weight:600;">E-mail</label><input type="email" id="email" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;" required></div>
+                <div class="form-grupo"><label style="font-weight:600;">Assunto</label><input type="text" id="assunto" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;" required></div>
+                <div class="form-grupo"><label style="font-weight:600;">Mensagem</label><textarea id="mensagem" rows="5" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:8px;" required></textarea></div>
+                <button type="submit" class="btn-enviar-contato" style="background:var(--cor-azul); color:white; border:none; padding:15px; border-radius:8px; cursor:pointer; font-weight:bold;">Enviar Mensagem</button>
+            </form>
+        </div>
+
+        <div id="aba-consultar" class="aba-atendimento" style="display:none;">
+            <h3 style="margin-bottom:20px;">Consultar Status</h3>
+            <div class="form-grupo" style="display:flex; gap:10px;">
+                <input type="text" id="input-protocolo-consulta" placeholder="Ex: ISMEP123456#" style="flex:1; padding:12px; border:1px solid #ddd; border-radius:8px;">
+                <button onclick="executarConsulta()" class="btn-enviar-contato" style="background:var(--cor-azul); color:white; border:none; padding:12px 20px; border-radius:8px; cursor:pointer;">Verificar</button>
+            </div>
+            <div id="resultado-consulta" style="margin-top:20px; padding:20px; background:#f8f9fa; border-radius:12px;"></div>
+        </div>
     </div>
 </section>
 
