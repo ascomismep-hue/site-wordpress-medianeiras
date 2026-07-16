@@ -38,6 +38,7 @@ permalink: /admin/
         <h3 style="margin-bottom: 20px;">Painel</h3>
         <button class="nav-admin-btn ativa" onclick="alternarPainel(event, 'aba-contatos')">Mensagens (<span id="count-contatos">0</span>)</button>
         <button class="nav-admin-btn" onclick="alternarPainel(event, 'aba-gracas')">Graças (<span id="count-gracas">0</span>)</button>
+        <button class="nav-admin-btn" onclick="alternarPainel(event, 'aba-noticias')">Publicar Notícias</button>
     </aside>
 
     <main class="conteudo-admin">
@@ -68,6 +69,16 @@ permalink: /admin/
             <button onclick="fecharModal()" class="btn-admin-geral" style="background:#666;">Fechar</button>
             <button onclick="enviarRespostaModal()" class="btn-admin-geral">Enviar Resposta</button>
         </div>
+    </div>
+</div>
+
+<div id="aba-noticias" class="modulo-admin">
+    <h2>Publicar Notícia</h2>
+    <div style="display:flex; flex-direction:column; gap:10px; max-width: 500px;">
+        <input type="text" id="titulo-noticia" placeholder="Título da Notícia" style="padding:10px;">
+        <input type="text" id="link-img-noticia" placeholder="Link da Imagem" style="padding:10px;">
+        <textarea id="texto-noticia" placeholder="Conteúdo da notícia..." style="padding:10px; height:150px;"></textarea>
+        <button onclick="publicarNoticia()" class="btn-admin-geral" style="background:green;">Publicar Notícia</button>
     </div>
 </div>
 
@@ -127,10 +138,21 @@ permalink: /admin/
     }
 
     async function finalizarProtocolo(protocolo) {
-        if(!confirm("Finalizar este protocolo?")) return;
-        await cliente.from('contactos').update({ status: 'finalizado' }).eq('protocolo', protocolo);
-        carregarDados();
+    if(!confirm("Tem certeza que deseja finalizar este protocolo?")) return;
+    
+    // O comando de update precisa do eq('protocolo', protocolo)
+    const { error } = await cliente
+        .from('contactos')
+        .update({ status: 'finalizado' })
+        .eq('protocolo', protocolo);
+
+    if (error) {
+        alert("Erro ao finalizar: " + error.message);
+    } else {
+        alert("Protocolo finalizado com sucesso!");
+        carregarDados(); // Recarrega a tabela
     }
+}
 
     function fecharModal() { document.getElementById('modal-resposta').style.display = "none"; }
     function alternarPainel(evt, id) {
@@ -139,4 +161,27 @@ permalink: /admin/
         document.getElementById(id).classList.add('ativa');
         evt.currentTarget.classList.add('ativa');
     }
+
+    async function publicarNoticia() {
+    const titulo = document.getElementById("titulo-noticia").value;
+    const imagem = document.getElementById("link-img-noticia").value;
+    const texto = document.getElementById("texto-noticia").value;
+
+    if (!titulo || !texto) return alert("Preencha o título e o conteúdo!");
+
+    const { error } = await cliente.from('noticias').insert([{ 
+        titulo: titulo, 
+        imagem: imagem, 
+        texto: texto,
+        data: new Date().toISOString()
+    }]);
+
+    if (error) {
+        alert("Erro ao publicar: " + error.message);
+    } else {
+        alert("Notícia publicada com sucesso!");
+        document.getElementById("titulo-noticia").value = "";
+        document.getElementById("texto-noticia").value = "";
+    }
+}
 </script>
