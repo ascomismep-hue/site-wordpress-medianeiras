@@ -10,7 +10,7 @@ title: Notícias
     </div>
 
     <div id="grid-noticias-supabase" class="grid-noticias" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; padding: 0 5%;">
-        <p style="text-align: center;">Carregando notícias...</p>
+        <p style="text-align: center; width: 100%;">Carregando notícias...</p>
     </div>
 </section>
 
@@ -22,40 +22,34 @@ title: Notícias
     async function carregarNoticias() {
         const grid = document.getElementById("grid-noticias-supabase");
         
-        const { data: noticias, error } = await cliente
-            .from('noticias')
-            .select('*')
-            .order('created_at', { ascending: false });
+        try {
+            const { data: noticias, error } = await cliente
+                .from('noticias')
+                .select('*')
+                .order('created_at', { ascending: false });
 
-        if (error) { grid.innerHTML = "Erro ao carregar."; return; }
+            if (error) throw error;
 
-        grid.innerHTML = noticias.map(n => {
-            const data = new Date(n.created_at).toLocaleDateString('pt-BR');
-            return `
-            <article class="card-noticia" style="border: 1px solid #eee; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                ${n.imagem_url ? `<img src="${n.imagem_url}" style="width:100%; height:200px; object-fit:cover;">` : ''}
-                <div style="padding: 20px;">
-                    <small style="color:#888;">${data}</small>
-                    <h3 style="margin: 10px 0;">${n.titulo}</h3>
-                    <p style="color: #666; font-size: 14px;">${n.texto.substring(0, 100)}...</p>
-                    <a href="/detalhe-noticia?id=${n.id}" style="color:var(--cor-azul); font-weight:bold;">Leia mais</a>
-                </div>
-            </article>`;
-        }).join('');
+            if (!noticias || noticias.length === 0) {
+                grid.innerHTML = "<p style='text-align:center;'>Nenhuma notícia publicada ainda.</p>";
+                return;
+            }
+
+            grid.innerHTML = noticias.map(n => `
+                <article class="card-noticia" style="border: 1px solid #eee; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                    ${n.imagem_url ? `<img src="${n.imagem_url}" alt="${n.titulo}" style="width:100%; height:200px; object-fit:cover;">` : ''}
+                    <div style="padding: 20px;">
+                        <h3>${n.titulo}</h3>
+                        <p style="color: #666; font-size: 14px; margin: 10px 0;">${n.texto ? n.texto.substring(0, 120) : ''}...</p>
+                        <a href="/detalhe-noticia?id=${n.id}" style="color:#008cc9; font-weight:bold;">Leia mais</a>
+                    </div>
+                </article>
+            `).join('');
+        } catch (err) {
+            console.error("Erro:", err);
+            grid.innerHTML = "<p style='text-align:center; color:red;'>Erro ao carregar. Verifique a Policy de SELECT no Supabase.</p>";
+        }
     }
 
-        // Renderiza os cards
-        grid.innerHTML = noticias.map(n => `
-            <article class="card-noticia" style="border: 1px solid #eee; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-                ${n.imagem_url ? `<img src="${n.imagem_url}" alt="${n.titulo}" style="width:100%; height:200px; object-fit:cover;">` : ''}
-                <div class="noticia-corpo" style="padding: 20px;">
-                    <h3>${n.titulo}</h3>
-                    <p style="color: #666; font-size: 14px; margin: 10px 0;">${n.texto.substring(0, 100)}...</p>
-                </div>
-            </article>
-        `).join('');
-    }
-
-    // Executa a função ao carregar a página
     carregarNoticias();
 </script>
