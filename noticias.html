@@ -2,30 +2,63 @@
 layout: default
 title: Notícias
 ---
-<section class="secao-noticias" style="padding-top: 60px;">
-    <div class="secao-titulo">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<section class="secao-noticias" style="padding-top: 60px; padding-bottom: 60px;">
+    <div class="secao-titulo" style="text-align: center; margin-bottom: 40px;">
         <h2>Todas as Notícias</h2>
     </div>
 
-    {% if site.posts.size > 0 %}
-    <div class="grid-noticias">
-        {% for post in site.posts %}
-        <article class="card-noticia">
-            {% if post.imagem %}
-            <img src="{{ post.imagem | relative_url }}" alt="{{ post.title }}" class="noticia-imagem">
-            {% else %}
-            <div class="noticia-imagem"></div>
-            {% endif %}
-            <div class="noticia-corpo">
-                <span class="noticia-data">{{ post.date | date: "%d de %B de %Y" }}</span>
-                <h3>{{ post.title }}</h3>
-                <p>{{ post.excerpt | strip_html | truncatewords: 20 }}</p>
-                <a href="{{ post.url | relative_url }}" class="noticia-link">Leia mais <i class="fas fa-arrow-right"></i></a>
-            </div>
-        </article>
-        {% endfor %}
+    <div id="grid-noticias-supabase" class="grid-noticias" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; padding: 0 5%;">
+        <p style="text-align: center;">Carregando notícias...</p>
     </div>
-    {% else %}
-    <p class="aviso-sem-noticias">Nenhuma notícia publicada ainda.</p>
-    {% endif %}
 </section>
+
+<script>
+    const SUPABASE_URL = "https://epiofzncgvmjhpgwrqga.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwaW9mem5jZ3ZtamhwZ3dycWdhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQwOTA2NDAsImV4cCI6MjA5OTY2NjY0MH0.PL_xurBbpf_x34URIH9AT9gewgxZDcow-ptGsxzrhxM";
+    const cliente = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    async function carregarNoticias() {
+        const grid = document.getElementById("grid-noticias-supabase");
+        
+        // Busca no Supabase ordenado pela data mais recente
+        const { data: noticias, error } = await cliente
+            .from('noticias')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            grid.innerHTML = "<p>Erro ao carregar notícias. Tente novamente mais tarde.</p>";
+            console.error(error);
+            return;
+        }
+
+        if (!noticias || noticias.length === 0) {
+            grid.innerHTML = "<p class='aviso-sem-noticias'>Nenhuma notícia publicada ainda.</p>";
+            return;
+        }
+
+        // Renderiza os cards
+        grid.innerHTML = noticias.map(n => `
+            <article class="card-noticia" style="border: 1px solid #eee; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                ${n.imagem_url ? `<img src="${n.imagem_url}" alt="${n.titulo}" style="width:100%; height:200px; object-fit:cover;">` : ''}
+                <div class="noticia-corpo" style="padding: 20px;">
+                    <h3>${n.titulo}</h3>
+                    <p style="color: #666; font-size: 14px; margin: 10px 0;">${n.texto.substring(0, 100)}...</p>
+                </div>
+            </article>
+        `).join('');
+    }
+
+    // Executa a função ao carregar a página
+    carregarNoticias();
+</script>
+Por que isso resolve?
+Conexão Direta: Agora o JavaScript busca a tabela noticias lá no seu Supabase, ignorando se o Jekyll encontrou posts ou não.
+
+Dinâmico: Assim que você publicar uma nova notícia pelo seu Painel Administrativo, ela aparecerá automaticamente nesta página sem que você precise editar o código do site.
+
+Segurança (Importante): Não esqueça de ir no seu painel do Supabase > Database > Policies e garantir que a tabela noticias tenha uma regra de SELECT permitida para anon (público) com USING (true). Caso contrário, os visitantes verão apenas "Carregando..." e nenhum dado aparecerá.
+
+Dica: Se a imagem não aparecer, verifique no Supabase se o bucket imagens está configurado como Public nas configurações dele.
