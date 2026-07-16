@@ -60,6 +60,16 @@ permalink: /admin/
     </main>
 </div>
 
+<div id="aba-noticias" class="modulo-admin">
+    <h2>Publicar Notícia</h2>
+    <div style="display:flex; flex-direction:column; gap:10px; max-width: 500px;">
+        <input type="text" id="titulo-noticia" placeholder="Título da Notícia" style="padding:10px;">
+        <input type="text" id="link-img-noticia" placeholder="Link da Imagem" style="padding:10px;">
+        <textarea id="texto-noticia" placeholder="Conteúdo da notícia..." style="padding:10px; height:150px;"></textarea>
+        <button onclick="publicarNoticia()" class="btn-admin-geral" style="background:green;">Publicar Notícia</button>
+    </div>
+</div>
+
 <div id="modal-resposta" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index: 1000;">
     <div style="background:#fff; padding:30px; border-radius:16px; width:500px; max-height: 80vh; overflow-y: auto;">
         <h3 id="modal-titulo">Histórico e Resposta</h3>
@@ -69,16 +79,6 @@ permalink: /admin/
             <button onclick="fecharModal()" class="btn-admin-geral" style="background:#666;">Fechar</button>
             <button onclick="enviarRespostaModal()" class="btn-admin-geral">Enviar Resposta</button>
         </div>
-    </div>
-</div>
-
-<div id="aba-noticias" class="modulo-admin">
-    <h2>Publicar Notícia</h2>
-    <div style="display:flex; flex-direction:column; gap:10px; max-width: 500px;">
-        <input type="text" id="titulo-noticia" placeholder="Título da Notícia" style="padding:10px;">
-        <input type="text" id="link-img-noticia" placeholder="Link da Imagem" style="padding:10px;">
-        <textarea id="texto-noticia" placeholder="Conteúdo da notícia..." style="padding:10px; height:150px;"></textarea>
-        <button onclick="publicarNoticia()" class="btn-admin-geral" style="background:green;">Publicar Notícia</button>
     </div>
 </div>
 
@@ -163,25 +163,29 @@ permalink: /admin/
     }
 
     async function publicarNoticia() {
-    const titulo = document.getElementById("titulo-noticia").value;
-    const imagem = document.getElementById("link-img-noticia").value;
-    const texto = document.getElementById("texto-noticia").value;
+    const file = document.getElementById("upload-imagem").files[0];
+    if (!file) return alert("Selecione uma imagem!");
 
-    if (!titulo || !texto) return alert("Preencha o título e o conteúdo!");
+    // 1. Upload para o Bucket
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const { data: uploadData, error: uploadError } = await cliente.storage
+        .from('imagens')
+        .upload(fileName, file);
 
-    const { error } = await cliente.from('noticias').insert([{ 
-        titulo: titulo, 
-        imagem: imagem, 
-        texto: texto,
-        data: new Date().toISOString()
+    if (uploadError) return alert("Erro no upload: " + uploadError.message);
+
+    // 2. Obter URL pública
+    const { data: urlData } = cliente.storage.from('imagens').getPublicUrl(fileName);
+
+    // 3. Inserir no banco
+    await cliente.from('noticias').insert([{ 
+        titulo: document.getElementById("titulo-noticia").value,
+        imagem_url: urlData.publicUrl,
+        texto: document.getElementById("texto-noticia").value
     }]);
 
-    if (error) {
-        alert("Erro ao publicar: " + error.message);
-    } else {
-        alert("Notícia publicada com sucesso!");
-        document.getElementById("titulo-noticia").value = "";
-        document.getElementById("texto-noticia").value = "";
+    alert("Notícia publicada!");
     }
 }
 </script>
