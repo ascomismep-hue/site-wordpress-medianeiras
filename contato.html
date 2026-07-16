@@ -58,24 +58,43 @@ permalink: /contato/
         document.getElementById('aba-consultar').style.display = (aba === 'consultar') ? 'block' : 'none';
     }
 
-    async function enviarContato(event) {
-        event.preventDefault();
-        const protocolo = `ISMEP${Date.now().toString().slice(-6)}#`;
-        try {
-            const { error } = await cliente.from('contactos').insert([{ 
-                nome: document.getElementById("nome").value, 
-                email: document.getElementById("email").value, 
-                assunto: document.getElementById("assunto").value, 
-                mensagem: document.getElementById("mensagem").value,
-                protocolo: protocolo 
-            }]);
-            if (error) throw error;
-            const msg = document.getElementById("msg-contato-sucesso");
-            msg.style.display = "block";
-            msg.innerHTML = `Mensagem enviada! Seu protocolo é <strong>${protocolo}</strong>.`;
-            document.getElementById("form-contato").reset();
-        } catch (e) { alert("Erro: " + e.message); }
+   async function enviarContato(event) {
+    event.preventDefault();
+    const protocolo = `ISMEP${Date.now().toString().slice(-6)}#`;
+    const btn = event.target.querySelector('button');
+    
+    try {
+        btn.innerText = "Enviando...";
+        
+        const { error } = await cliente.from('contactos').insert([{ 
+            nome: document.getElementById("nome").value, 
+            email: document.getElementById("email").value, 
+            assunto: document.getElementById("assunto").value, 
+            mensagem: document.getElementById("mensagem").value,
+            protocolo: protocolo 
+        }]);
+
+        if (error) throw error;
+
+        // Correção de segurança: verificar se a div existe
+        const msgDiv = document.getElementById("msg-contato-sucesso");
+        if (msgDiv) {
+            msgDiv.style.display = "block";
+            msgDiv.style.backgroundColor = "#def7ec"; // Cor de sucesso
+            msgDiv.innerHTML = `Mensagem enviada com sucesso! Protocolo: <strong>${protocolo}</strong>`;
+        } else {
+            alert("Mensagem enviada! Protocolo: " + protocolo);
+        }
+
+        document.getElementById("form-contato").reset();
+        btn.innerText = "Enviar Mensagem";
+
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao enviar: " + e.message);
+        btn.innerText = "Enviar Mensagem";
     }
+}
 
     async function executarConsulta() {
         const protocolo = document.getElementById('input-protocolo-consulta').value;
