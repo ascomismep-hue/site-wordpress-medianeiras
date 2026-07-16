@@ -54,11 +54,3 @@ title: Notícias
     // Executa a função ao carregar a página
     carregarNoticias();
 </script>
-Por que isso resolve?
-Conexão Direta: Agora o JavaScript busca a tabela noticias lá no seu Supabase, ignorando se o Jekyll encontrou posts ou não.
-
-Dinâmico: Assim que você publicar uma nova notícia pelo seu Painel Administrativo, ela aparecerá automaticamente nesta página sem que você precise editar o código do site.
-
-Segurança (Importante): Não esqueça de ir no seu painel do Supabase > Database > Policies e garantir que a tabela noticias tenha uma regra de SELECT permitida para anon (público) com USING (true). Caso contrário, os visitantes verão apenas "Carregando..." e nenhum dado aparecerá.
-
-Dica: Se a imagem não aparecer, verifique no Supabase se o bucket imagens está configurado como Public nas configurações dele.
