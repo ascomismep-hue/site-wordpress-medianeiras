@@ -21,11 +21,21 @@ export default function HeroSlider() {
   const next = () => setIndex(i => (i + 1) % (banners.length || 1));
   const prev = () => setIndex(i => (i - 1 + banners.length) % (banners.length || 1));
 
-  useEffect(() => {
-    if (!has || banners.length <= 1) return;
-    timerRef.current = setInterval(next, 6000);
-    return () => clearInterval(timerRef.current);
-  }, [has, banners.length]);
+ useEffect(() => {
+    const fetchBanners = async () => {
+      const { data, error } = await supabase
+        .from('Banner')
+        .select('*')
+        .eq('active', true) // Filtro de ativos
+        .order('order', { ascending: true }); // Ordenação
+
+      if (!error && data) {
+        setBanners(data.filter(b => b.image_url || b.video_url));
+      }
+    };
+
+    fetchBanners();
+  }, []);
 
   if (!has) {
     // Fallback hero estático
