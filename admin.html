@@ -8,7 +8,6 @@ permalink: /admin/
     .login-wrapper { display: flex; justify-content: center; padding: 80px 20px; background: #f4f7f6; min-height: 80vh; }
     .card-login { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; border-top: 6px solid var(--cor-azul); }
     .card-login input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
-    
     .admin-dashboard { display: flex; max-width: 1200px; margin: 20px auto; background: #fff; border-radius: 12px; overflow: hidden; min-height: 500px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); }
     .sidebar-admin { width: 280px; background: #2d3748; color: #fff; padding: 20px; }
     .nav-admin-btn { display: block; width: 100%; padding: 15px; background: none; border: none; color: #cbd5e0; text-align: left; cursor: pointer; transition: 0.3s; }
@@ -39,6 +38,7 @@ permalink: /admin/
         <button class="nav-admin-btn ativa" onclick="alternarPainel(event, 'aba-contatos')">Mensagens (<span id="count-contatos">0</span>)</button>
         <button class="nav-admin-btn" onclick="alternarPainel(event, 'aba-gracas')">Graças (<span id="count-gracas">0</span>)</button>
         <button class="nav-admin-btn" onclick="alternarPainel(event, 'aba-noticias')">Publicar Notícias</button>
+        <button class="nav-admin-btn" onclick="alternarPainel(event, 'aba-agenda')">Agenda</button>
     </aside>
 
     <main class="conteudo-admin">
@@ -50,49 +50,30 @@ permalink: /admin/
             </table>
         </div>
 
-        <div id="aba-gracas" class="modulo-admin">
-            <h2>Graças Recebidas</h2>
-            <table>
-                <thead><tr><th>Data</th><th>Nome</th><th>Cidade</th><th>Relato</th></tr></thead>
-                <tbody id="tabela-gracas-body"></tbody>
-            </table>
-        </div>
+        <div id="aba-gracas" class="modulo-admin"><h2>Graças Recebidas</h2></div>
 
         <div id="aba-noticias" class="modulo-admin">
             <h2>Publicar Notícia</h2>
             <div style="display:flex; flex-direction:column; gap:15px; max-width: 500px;">
-                <input type="text" id="titulo-noticia" placeholder="Título da Notícia" style="padding:10px; border-radius:6px; border:1px solid #ddd;">
-                <label>Escolher Imagem:</label>
-                <input type="file" id="upload-imagem" accept="image/*" style="padding:10px; border:1px dashed #aaa; border-radius:6px;">
-                <textarea id="texto-noticia" placeholder="Conteúdo da notícia..." style="padding:10px; height:150px; border-radius:6px; border:1px solid #ddd;"></textarea>
-                <button onclick="publicarNoticia()" class="btn-admin-geral" style="background:green; padding:12px;">Publicar Notícia</button>
+                <input type="text" id="titulo-noticia" placeholder="Título" style="padding:10px;">
+                <input type="file" id="upload-imagem" accept="image/*">
+                <textarea id="texto-noticia" placeholder="Conteúdo..." style="padding:10px; height:150px;"></textarea>
+                <button onclick="publicarNoticia()" class="btn-admin-geral" style="background:green;">Publicar</button>
             </div>
         </div>
-    </main>
-</div>
 
-<div id="aba-agenda" class="modulo-admin">
-    <h2>Incluir na Agenda</h2>
-    <input type="text" id="titulo-agenda" placeholder="Título">
-    <select id="tipo-agenda">
-        <option value="Geral">Geral</option>
-        <option value="Madre">Madre</option>
-    </select>
-    <input type="date" id="data-agenda">
-    <textarea id="desc-agenda" placeholder="Descrição"></textarea>
-    <button onclick="salvarAgenda()" class="btn-admin-geral">Salvar Compromisso</button>
-</div>
-
-<div id="modal-resposta" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index: 1000;">
-    <div style="background:#fff; padding:30px; border-radius:16px; width:500px; max-height: 80vh; overflow-y: auto;">
-        <h3 id="modal-titulo">Histórico e Resposta</h3>
-        <div id="resultado-historico" style="margin-bottom: 20px; font-size: 14px; border-bottom: 1px solid #eee; padding-bottom: 10px;"></div>
-        <textarea id="texto-resposta" placeholder="Digite sua resposta aqui..." style="width:100%; height:80px; padding:10px; border-radius:8px; border:1px solid #ddd;"></textarea>
-        <div style="text-align:right; margin-top:15px;">
-            <button onclick="fecharModal()" class="btn-admin-geral" style="background:#666;">Fechar</button>
-            <button onclick="enviarRespostaModal()" class="btn-admin-geral">Enviar Resposta</button>
+        <div id="aba-agenda" class="modulo-admin">
+            <h2>Incluir na Agenda</h2>
+            <input type="text" id="titulo-agenda" placeholder="Título" style="width:100%; padding:10px; margin-bottom:10px;">
+            <select id="tipo-agenda" style="width:100%; padding:10px; margin-bottom:10px;">
+                <option value="Geral">Geral</option>
+                <option value="Madre">Madre</option>
+            </select>
+            <input type="date" id="data-agenda" style="width:100%; padding:10px; margin-bottom:10px;">
+            <textarea id="desc-agenda" placeholder="Descrição" style="width:100%; padding:10px;"></textarea>
+            <button onclick="salvarAgenda()" class="btn-admin-geral" style="margin-top:10px;">Salvar Compromisso</button>
         </div>
-    </div>
+    </main>
 </div>
 
 <script>
@@ -116,53 +97,8 @@ permalink: /admin/
         const { data: contatos } = await cliente.from('contactos').select('*');
         document.getElementById("count-contatos").innerText = contatos?.length || 0;
         document.getElementById("tabela-contatos-body").innerHTML = contatos?.map(c => `
-            <tr>
-                <td><strong>${c.status || 'pendente'}</strong></td>
-                <td>${c.protocolo}</td>
-                <td>${c.nome}</td>
-                <td>${c.mensagem.substring(0, 30)}...</td>
-                <td>
-                    <button onclick="abrirHistorico('${c.protocolo}')" class="btn-admin-geral">Ver</button>
-                    <button onclick="finalizarProtocolo('${c.protocolo}')" class="btn-admin-geral" style="background:green">Finalizar</button>
-                </td>
-            </tr>`).join('');
-    }
-
-    async function abrirHistorico(protocolo) {
-        protocoloAtual = protocolo;
-        const { data: msg } = await cliente.from('contactos').select('mensagem').eq('protocolo', protocolo).single();
-        const { data: chat } = await cliente.from('respostas').select('*').eq('protocolo', protocolo);
-        document.getElementById('modal-titulo').innerText = "Protocolo: " + protocolo;
-        document.getElementById('resultado-historico').innerHTML = `<p><strong>Cliente:</strong> ${msg.mensagem}</p>${chat?.map(c => `<p><em>${c.enviado_por}:</em> ${c.mensagem_resposta}</p>`).join('') || ''}`;
-        document.getElementById('modal-resposta').style.display = "flex";
-    }
-
-    async function enviarRespostaModal() {
-        const resposta = document.getElementById('texto-resposta').value;
-        if (!resposta) return alert("Escreva algo!");
-        await cliente.from('respostas').insert([{ protocolo: protocoloAtual, mensagem_resposta: resposta, enviado_por: "Administrador" }]);
-        alert("Enviado!");
-        fecharModal();
-        carregarDados();
-    }
-
-    async function finalizarProtocolo(protocolo) {
-    if(!confirm("Finalizar este protocolo?")) return;
-    
-    // Converte para número (caso seja string)
-    const protocoloID = Number(protocolo); 
-    
-    const { data, error } = await cliente
-        .from('contactos')
-        .update({ status: 'finalizado' })
-        .eq('protocolo', protocoloID);
-
-    if (error) {
-        console.error("Erro ao finalizar:", error);
-        alert("Erro: " + error.message);
-    } else {
-        alert("Protocolo finalizado com sucesso!");
-        carregarDados();
+            <tr><td>${c.status || 'pendente'}</td><td>${c.protocolo}</td><td>${c.nome}</td><td>${c.mensagem.substring(0, 30)}...</td>
+            <td><button onclick="abrirHistorico('${c.protocolo}')" class="btn-admin-geral">Ver</button></td></tr>`).join('');
     }
 
     async function publicarNoticia() {
@@ -176,21 +112,19 @@ permalink: /admin/
         alert("Notícia publicada!");
     }
 
-    function fecharModal() { document.getElementById('modal-resposta').style.display = "none"; }
-    function alternarPainel(evt, id) {
-        document.querySelectorAll('.modulo-admin').forEach(m => m.classList.remove('ativa'));
-        document.querySelectorAll('.nav-admin-btn').forEach(b => b.classList.remove('ativa'));
-        document.getElementById(id).classList.add('ativa');
-        evt.currentTarget.classList.add('ativa');
+    async function salvarAgenda() {
+        const { error } = await cliente.from('agenda').insert([{
+            titulo: document.getElementById("titulo-agenda").value,
+            tipo: document.getElementById("tipo-agenda").value,
+            data_inicio: document.getElementById("data-agenda").value,
+            descricao: document.getElementById("desc-agenda").value
+        }]);
+        if(error) alert("Erro: " + error.message);
+        else alert("Compromisso agendado!");
     }
 
-    async function salvarAgenda() {
-        await cliente.from('agenda').insert([{
-        titulo: document.getElementById("titulo-agenda").value,
-        tipo: document.getElementById("tipo-agenda").value,
-        data_inicio: document.getElementById("data-agenda").value,
-        descricao: document.getElementById("desc-agenda").value
-    }]);
-    alert("Compromisso agendado!");
-}        
+    function alternarPainel(evt, id) {
+        document.querySelectorAll('.modulo-admin').forEach(m => m.classList.remove('ativa'));
+        document.getElementById(id).classList.add('ativa');
+    }
 </script>
