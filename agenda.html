@@ -1,0 +1,68 @@
+---
+layout: default
+title: Agenda
+---
+<section style="padding: 60px 5%;">
+    <h2>Agenda de Compromissos</h2>
+
+    <!-- Filtros -->
+    <div style="margin-bottom: 30px; display: flex; gap: 15px; flex-wrap: wrap;">
+        <select id="filtro-tipo" onchange="carregarAgenda()" style="padding: 10px; border-radius: 6px;">
+            <option value="Geral">Agenda Geral</option>
+            <option value="Madre">Agenda da Madre</option>
+        </select>
+        
+        <select id="filtro-ano" onchange="carregarAgenda()" style="padding: 10px; border-radius: 6px;">
+            <option value="2026">2026</option>
+            <option value="2027">2027</option>
+        </select>
+    </div>
+
+    <!-- Container dos Cards -->
+    <div id="grid-agenda" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+        <p>Carregando compromissos...</p>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const cliente = supabase.createClient("SUA_URL_AQUI", "SUA_KEY_AQUI");
+
+    async function carregarAgenda() {
+        const grid = document.getElementById("grid-agenda");
+        const tipo = document.getElementById("filtro-tipo").value;
+        const ano = document.getElementById("filtro-ano").value;
+
+        // Definindo o intervalo de busca para o ano inteiro
+        const dataInicio = `${ano}-01-01T00:00:00Z`;
+        const dataFim = `${ano}-12-31T23:59:59Z`;
+
+        const { data: agenda, error } = await cliente
+            .from('agenda')
+            .select('*')
+            .eq('tipo', tipo)
+            .gte('data_inicio', dataInicio)
+            .lte('data_inicio', dataFim)
+            .order('data_inicio', { ascending: true });
+
+        if (error) {
+            grid.innerHTML = "<p>Erro ao carregar agenda.</p>";
+            return;
+        }
+
+        if (!agenda || agenda.length === 0) {
+            grid.innerHTML = "<p>Nenhum compromisso encontrado para este filtro.</p>";
+            return;
+        }
+
+        grid.innerHTML = agenda.map(item => `
+            <div style="border-left: 5px solid var(--cor-azul); padding: 15px; background: #f9f9f9; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <small style="color: #666;">${new Date(item.data_inicio).toLocaleDateString('pt-BR')}</small>
+                <h3 style="margin: 5px 0;">${item.titulo}</h3>
+                <p style="font-size: 14px;">${item.descricao}</p>
+            </div>
+        `).join('');
+    }
+
+    carregarAgenda();
+</script>
