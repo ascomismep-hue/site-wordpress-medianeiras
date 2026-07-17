@@ -4,11 +4,16 @@ import path from 'path'
 
 export default defineConfig({
   plugins: [react()],
-  // Isso força o Vite a usar caminhos relativos para scripts e CSS
-  base: './', 
+  // Alterado para '/' para funcionar corretamente com domínios customizados no GitHub Pages
+  base: '/', 
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Otimização para build
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+  }
 })
