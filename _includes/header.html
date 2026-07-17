@@ -1,12 +1,17 @@
 <header>
-    <div class="logo-container">
-        <img src="{{ '/imagens/logo.png' | relative_url }}" alt="Logo IRIMEP" class="logo-img">
+    <div class="container header-flex">
+        <div class="logo-container">
+            <!-- Adicionamos o link aqui -->
+            <a href="{{ '/' | relative_url }}">
+                <img src="{{ '/imagens/logo.png' | relative_url }}" alt="Logo IRIMEP" class="logo-img">
+            </a>
+        </div>
+        <nav>
+            <a href="{{ '/' | relative_url }}">Início</a>
+            <a href="{{ '/institucional' | relative_url }}">Institucional</a>
+            <a href="{{ '/agenda' | relative_url }}">Agenda</a>
+            <a href="{{ '/noticias' | relative_url }}">Notícias</a>
+            <a href="{{ '/contato' | relative_url }}">Contate-nos</a>
+        </nav>
     </div>
-    <nav>
-        <a href="{{ '/' | relative_url }}">Início</a>
-        <a href="{{ '/institucional' | relative_url }}">Institucional</a>
-        <a href="{{ '/agenda' | relative_url }}">Agenda</a>
-        <a href="{{ '/noticias' | relative_url }}">Notícias</a>
-        <a href="{{ '/contato' | relative_url }}">Contate-nos</a>
-    </nav>
 </header>
