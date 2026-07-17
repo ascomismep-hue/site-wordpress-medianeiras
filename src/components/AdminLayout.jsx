@@ -1,7 +1,7 @@
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { LayoutDashboard, FileText, CalendarDays, Newspaper, MessagesSquare, Settings, Users, LogOut, Menu, X, Image, Images, FileDown, Crown, Heart } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { supabase } from "@/api/supabaseClient"; // Importação ajustada
 
 const NAV = [
   { to: "/admin", label: "Painel", icon: LayoutDashboard, end: true, roles: ["admin", "publisher"] },
@@ -28,11 +28,36 @@ export default function AdminLayout() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    base44.auth.me()
-      .then(u => setUser(u))
-      .catch(() => { window.location.href = "/admin/login"; })
-      .finally(() => setLoading(false));
-  }, []);
+    const checkUser = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          navigate("/admin/login");
+          return;
+        }
+
+        // Busca o perfil do usuário na tabela 'profiles' para pegar a role
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+
+        setUser({ 
+          ...session.user, 
+          role: profile?.role || 'user' 
+        });
+      } catch (err) {
+        console.error("Erro ao verificar sessão:", err);
+        navigate("/admin/login");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkUser();
+  }, [navigate]);
 
   useEffect(() => { setOpen(false); }, [location.pathname]);
 
@@ -40,7 +65,8 @@ export default function AdminLayout() {
   const items = NAV.filter(n => n.roles.includes(role));
 
   const logout = async () => {
-    await base44.auth.logout("/admin/login");
+    await supabase.auth.signOut();
+    navigate("/admin/login");
   };
 
   if (loading) {
@@ -99,11 +125,9 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] flex">
-      {/* Desktop sidebar */}
       <aside className="hidden lg:flex w-72 shrink-0 bg-white border-r border-[#c5a059]/15 flex-col fixed inset-y-0">
         {SidebarContent}
       </aside>
-      {/* Mobile drawer */}
       {open && (
         <>
           <div className="lg:hidden fixed inset-0 bg-black/40 z-40" onClick={() => setOpen(false)} />
@@ -113,7 +137,6 @@ export default function AdminLayout() {
         </>
       )}
       <div className="flex-1 lg:ml-72 flex flex-col min-w-0">
-        {/* Mobile topbar */}
         <div className="lg:hidden flex items-center justify-between px-4 h-16 bg-white border-b border-[#c5a059]/15 sticky top-0 z-30">
           <button onClick={() => setOpen(true)} className="p-2 text-[#005a8d]"><Menu className="w-6 h-6" /></button>
           <span className="font-serif font-bold text-[#005a8d]">Painel IMPAZ</span>
