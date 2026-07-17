@@ -17,6 +17,38 @@ body {
     line-height: 1.6;
 }
 
+/* Container do Header */
+.header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Limitando o tamanho da logo */
+.logo-img {
+    height: 50px; /* Ajuste este valor para o tamanho ideal */
+    width: auto;
+    display: block;
+    transition: transform 0.3s ease;
+}
+
+.logo-img:hover {
+    transform: scale(1.05);
+}
+
+/* Garantindo que o nav não fique colado */
+nav {
+    display: flex;
+    gap: 20px;
+}
+
+/* Opcional: para melhorar o alinhamento em telas menores */
+@media(max-width: 768px) {
+    .header-flex {
+        flex-direction: column;
+        gap: 15px;
+}
+
 /* Container Centralizador */
 .container {
     max-width: 1200px;
