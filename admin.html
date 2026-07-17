@@ -71,6 +71,18 @@ permalink: /admin/
     </main>
 </div>
 
+<div id="aba-agenda" class="modulo-admin">
+    <h2>Incluir na Agenda</h2>
+    <input type="text" id="titulo-agenda" placeholder="Título">
+    <select id="tipo-agenda">
+        <option value="Geral">Geral</option>
+        <option value="Madre">Madre</option>
+    </select>
+    <input type="date" id="data-agenda">
+    <textarea id="desc-agenda" placeholder="Descrição"></textarea>
+    <button onclick="salvarAgenda()" class="btn-admin-geral">Salvar Compromisso</button>
+</div>
+
 <div id="modal-resposta" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); justify-content:center; align-items:center; z-index: 1000;">
     <div style="background:#fff; padding:30px; border-radius:16px; width:500px; max-height: 80vh; overflow-y: auto;">
         <h3 id="modal-titulo">Histórico e Resposta</h3>
@@ -152,7 +164,6 @@ permalink: /admin/
         alert("Protocolo finalizado com sucesso!");
         carregarDados();
     }
-}
 
     async function publicarNoticia() {
         const file = document.getElementById("upload-imagem").files[0];
@@ -172,4 +183,15 @@ permalink: /admin/
         document.getElementById(id).classList.add('ativa');
         evt.currentTarget.classList.add('ativa');
     }
+
+    async function salvarAgenda() {
+        await cliente.from('agenda').insert([{
+        titulo: document.getElementById("titulo-agenda").value,
+        tipo: document.getElementById("tipo-agenda").value,
+        data_inicio: document.getElementById("data-agenda").value,
+        descricao: document.getElementById("desc-agenda").value
+    }]);
+    alert("Compromisso agendado!");
+}
+        
 </script>
