@@ -2,49 +2,48 @@ import { Toaster } from "@/components/ui/toaster";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import PageNotFound from './lib/PageNotFound';
-import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import ScrollToTop from './components/ScrollToTop';
+import PageNotFound from './lib/PageNotFound.jsx';
+import { AuthProvider, useAuth } from '@/lib/AuthContext.jsx';
+import ScrollToTop from './components/ScrollToTop.jsx';
 
 // Layouts
-import PublicLayout from '@/components/PublicLayout';
-import AdminLayout from '@/components/AdminLayout';
+import PublicLayout from '@/components/PublicLayout.jsx';
+import AdminLayout from '@/components/AdminLayout.jsx';
 
-// Páginas Públicas
-import Home from '@/pages/Home';
-import QuemSomos from '@/pages/QuemSomos';
-import Agenda from '@/pages/Agenda';
-import Vocacional from '@/pages/Vocacional';
-import ObrasMissoes from '@/pages/ObrasMissoes';
-import Contato from '@/pages/Contato';
-import Galeria from '@/pages/Galeria';
-import Downloads from '@/pages/Downloads';
-import Madres from '@/pages/Madres';
-import Irmas from '@/pages/Irmas';
-import Doacao from '@/pages/Doacao';
-import DomCampelo from '@/pages/DomCampelo';
+// Páginas Públicas - Certifique-se que os arquivos na pasta 'pages' têm exatamente estes nomes
+import Home from '@/pages/Home.jsx';
+import QuemSomos from '@/pages/QuemSomos.jsx';
+import Agenda from '@/pages/Agenda.jsx';
+import Vocacional from '@/pages/Vocacional.jsx';
+import ObrasMissoes from '@/pages/ObrasMissoes.jsx';
+import Contato from '@/pages/Contato.jsx';
+import Galeria from '@/pages/Galeria.jsx';
+import Downloads from '@/pages/Downloads.jsx';
+import Madres from '@/pages/Madres.jsx';
+import Irmas from '@/pages/Irmas.jsx';
+import Doacao from '@/pages/Doacao.jsx';
+import DomCampelo from '@/pages/DomCampelo.jsx';
 
-// Páginas Admin
-import AdminLogin from '@/pages/admin/AdminLogin';
-import AdminDashboard from '@/pages/admin/AdminDashboard';
-import AdminAgenda from '@/pages/admin/AdminAgenda';
-import AdminNoticias from '@/pages/admin/AdminNoticias';
-import AdminMensagens from '@/pages/admin/AdminMensagens';
-import AdminConteudo from '@/pages/admin/AdminConteudo';
-import AdminObras from '@/pages/admin/AdminObras';
-import AdminConfig from '@/pages/admin/AdminConfig';
-import AdminUsuarios from '@/pages/admin/AdminUsuarios';
-import AdminBanners from '@/pages/admin/AdminBanners';
-import AdminGaleria from '@/pages/admin/AdminGaleria';
-import AdminDownloads from '@/pages/admin/AdminDownloads';
-import AdminIrmas from '@/pages/admin/AdminIrmas';
-import AdminMadres from '@/pages/admin/AdminMadres';
-import AdminDoacoes from '@/pages/admin/AdminDoacoes';
+// Páginas Admin - Certifique-se que estão dentro de 'pages/admin/'
+import AdminLogin from '@/pages/admin/AdminLogin.jsx';
+import AdminDashboard from '@/pages/admin/AdminDashboard.jsx';
+import AdminAgenda from '@/pages/admin/AdminAgenda.jsx';
+import AdminNoticias from '@/pages/admin/AdminNoticias.jsx';
+import AdminMensagens from '@/pages/admin/AdminMensagens.jsx';
+import AdminConteudo from '@/pages/admin/AdminConteudo.jsx';
+import AdminObras from '@/pages/admin/AdminObras.jsx';
+import AdminConfig from '@/pages/admin/AdminConfig.jsx';
+import AdminUsuarios from '@/pages/admin/AdminUsuarios.jsx';
+import AdminBanners from '@/pages/admin/AdminBanners.jsx';
+import AdminGaleria from '@/pages/admin/AdminGaleria.jsx';
+import AdminDownloads from '@/pages/admin/AdminDownloads.jsx';
+import AdminIrmas from '@/pages/admin/AdminIrmas.jsx';
+import AdminMadres from '@/pages/admin/AdminMadres.jsx';
+import AdminDoacoes from '@/pages/admin/AdminDoacoes.jsx';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth } = useAuth();
 
-  // Exibe loading enquanto o Supabase verifica a sessão inicial
   if (isLoadingAuth) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
@@ -55,7 +54,6 @@ const AuthenticatedApp = () => {
 
   return (
     <Routes>
-      {/* Rotas Públicas */}
       <Route element={<PublicLayout />}>
         <Route path="/" element={<Home />} />
         <Route path="/quem-somos" element={<QuemSomos />} />
@@ -71,7 +69,6 @@ const AuthenticatedApp = () => {
         <Route path="/dom-campelo" element={<DomCampelo />} />
       </Route>
 
-      {/* Rotas Administrativas */}
       <Route path="/admin/login" element={<AdminLogin />} />
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminDashboard />} />
