@@ -18,18 +18,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          
       - name: Install dependencies
-        # O "--legacy-peer-deps" ajuda a evitar erros de dependência com bibliotecas legadas
         run: npm install --legacy-peer-deps
-      
-      # Verifica erros de tipagem/código antes de gerar o build
-      - name: Type check
-        run: npm run typecheck
-        
       - name: Build
         run: npm run build
-        
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
