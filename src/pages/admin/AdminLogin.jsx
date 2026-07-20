@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "@/lib/supabaseClient"; // Certifique-se de importar seu cliente Supabase
+import { supabase } from "@/api/supabaseClient"; // Certifique-se de importar seu cliente Supabase
 import { Link, useNavigate } from "react-router-dom";
 import { Loader2, Lock } from "lucide-react";
 
