@@ -1,7 +1,7 @@
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { Menu, X, Phone, Mail, MapPin, Globe, ChevronDown } from "lucide-react";
-import { base44 } from "@/api/base44Client";
+import { supabase } from "@/api/supabaseClient";
 import FloatingDonation from "./FloatingDonation";
 
 const NAV = [
