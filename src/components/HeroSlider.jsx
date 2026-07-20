@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/api/supabaseClient";
-import { Emblem } from "@/components/PublicLayout";
+import { Emblem } from "@/components/ui/Emblem";
 
 export default function HeroSlider() {
   const [banners, setBanners] = useState([]);
