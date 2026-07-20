@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ArrowRight, Quote, Sparkles } from "lucide-react";
-import { supabase } from "@/lib/supabaseClient"; // Importe o cliente Supabase
+import { supabase } from "@/api/supabaseClient"; // Importe o cliente Supabase
 import useAgendaEvents from "@/hooks/useAgendaEvents";
 import EventCard from "@/components/EventCard";
 import NewsCard from "@/components/NewsCard";
