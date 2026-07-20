@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/api/supabaseClient";
 import { Star } from "lucide-react";
 
 export default function Madres() {
