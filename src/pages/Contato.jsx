@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabaseClient"; // Padrão Home
+import { supabase } from "@/api/supabaseClient"; // Padrão Home
 import { MapPin, Phone, Mail, CheckCircle2, Loader2, Heart } from "lucide-react";
 
 export default function Contato() {
