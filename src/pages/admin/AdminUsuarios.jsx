@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/api/supabaseClient";
 import { Users, UserPlus, Loader2, Shield } from "lucide-react";
 
 export default function AdminUsuarios() {
