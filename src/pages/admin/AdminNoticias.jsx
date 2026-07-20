@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/api/supabaseClient";
 import { Plus, Trash2, Loader2, Newspaper, Pencil } from "lucide-react";
 
 // Componentes auxiliares (Header, Input, etc)
