@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { supabase } from "@/lib/supabaseClient"; // Importe seu cliente Supabase
+import { supabase } from "@/api/supabaseClient"; // Importe seu cliente Supabase
 import { Cake, CalendarDays, Mail, MessageCircle, Loader2, Bell } from "lucide-react";
 
 function fmtBR(d) { try { return new Date(d + "T00:00:00").toLocaleDateString("pt-BR"); } catch { return d; } }
