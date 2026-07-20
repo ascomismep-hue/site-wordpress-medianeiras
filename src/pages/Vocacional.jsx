@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/api/supabaseClient";
 import { Heart, CheckCircle2, Loader2 } from "lucide-react";
 
 const ETAPAS = [
