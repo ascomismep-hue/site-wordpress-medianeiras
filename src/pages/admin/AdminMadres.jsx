@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { Plus, Trash2, Edit, Save, Loader2 } from "lucide-react";
-import { Header, Loading, Field, Modal } from "./AdminBanners";
+import { Header, Loading, Field, Modal } from "@/pages/admin/AdminBanners";
 import MediaUpload from "@/components/admin/MediaUpload";
 
 const EMPTY = { name: "", photo_url: "", start_year: "", end_year: "", bio: "", order: 0 };
