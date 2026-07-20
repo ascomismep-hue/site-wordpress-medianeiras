@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/api/supabaseClient";
 import { Plus, Trash2, Edit, Save, X, Loader2, Image as ImageIcon, Video } from "lucide-react";
 import MediaUpload from "@/components/admin/MediaUpload";
 
