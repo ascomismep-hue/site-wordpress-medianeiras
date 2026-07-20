@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/api/supabaseClient";
 import { Plus, Trash2, Loader2, CalendarDays } from "lucide-react";
 
 export default function AdminAgenda() {
