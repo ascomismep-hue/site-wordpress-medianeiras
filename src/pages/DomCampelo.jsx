@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { supabase } from "@/lib/supabaseClient";
+import { supabase } from "@/api/supabaseClient";
 import { Heart, BookOpen, Church, Quote, Sparkles, Mail } from "lucide-react";
 
 export default function DomCampelo() {
