@@ -3,8 +3,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import InstitucionalSubNav from "./components/InstitucionalSubNav";
-import AdminDashboard from "./admin/AdminDashboard";
-import AdminAgenda from "./admin/AdminAgenda";
+import LoginUnificado from "./admin/LoginUnificado"; // Importa a central de login unificada
 
 // Import das subpáginas institucionais
 import SobreNos from "./pages/institucional/SobreNos";
@@ -12,6 +11,7 @@ import MadresGerais from "./pages/institucional/MadresGerais";
 import Irmas from "./pages/institucional/Irmas";
 import Memorial from "./pages/institucional/Memorial";
 import CausaDomCampelo from "./pages/institucional/CausaDomCampelo";
+import Agenda from "./pages/Agenda"; // Importa a página de agenda pública
 
 function LayoutInstitucional({ children }) {
   return (
@@ -41,9 +41,11 @@ export default function App() {
             <Route path="/institucional/memorial" element={<LayoutInstitucional><Memorial /></LayoutInstitucional>} />
             <Route path="/institucional/causa-dom-campelo" element={<LayoutInstitucional><CausaDomCampelo /></LayoutInstitucional>} />
 
-            {/* Rota do Painel Administrativo */}
-            <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin-agenda" element={<AdminAgenda />} />
+            {/* Rota da Agenda Pública */}
+            <Route path="/agenda" element={<Agenda />} />
+
+            {/* Rota Unificada do Painel Administrativo / Login */}
+            <Route path="/admin" element={<LoginUnificado />} />
           </Routes>
         </main>
         <Footer />
