@@ -41,7 +41,7 @@ export default function Irmas() {
                 <div>
                   <h3 className="text-xl font-serif font-bold text-[#005a8d] mb-3">{irma.nome}</h3>
                   <div className="space-y-1.5 text-sm text-gray-600">
-                    <p><strong className="text-gray-800">Nascimento:</strong> {irma.data_nascimento} ({irma.local_nascimento})</p>
+                    <p><strong className="text-gray-800">Nascimento:</strong> {irma.data_nascimento} {irma.local_nascimento && `(${irma.local_nascimento})`}</p>
                     <p><strong className="text-gray-800">Primeiros Votos:</strong> {irma.primeiros_votos}</p>
                     <p><strong className="text-gray-800">Votos Perpétuos:</strong> {irma.votos_perpetuos}</p>
                   </div>
