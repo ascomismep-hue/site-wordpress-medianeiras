@@ -62,6 +62,8 @@ export default function LoginUnificado() {
       return <AdminAgenda onLogout={handleLogout} />;
     } else if (logado.tipo === "obras") {
       return <AdminObrasMissoes onLogout={handleLogout} />;
+    } else if (logado.tipo === "noticias") {
+      return <AdminNoticias onLogout={handleLogout} />;
     }
   }
 
