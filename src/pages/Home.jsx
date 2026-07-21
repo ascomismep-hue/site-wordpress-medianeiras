@@ -7,10 +7,12 @@ export default function Home() {
   const [banners, setBanners] = useState([]);
   const [eventosHome, setEventosHome] = useState([]);
   const [casasMissao, setCasasMissao] = useState([]);
+  const [noticiasHome, setNoticiasHome] = useState([]);
   
   const [loadingBanners, setLoadingBanners] = useState(true);
   const [loadingEventos, setLoadingEventos] = useState(true);
   const [loadingCasas, setLoadingCasas] = useState(true);
+  const [loadingNoticias, setLoadingNoticias] = useState(true);
 
   // Estado para controlar o carrossel de Casas de Missão
   const [indiceCarrossel, setIndiceCarrossel] = useState(0);
@@ -65,9 +67,27 @@ export default function Home() {
       }
     }
 
+    async function fetchNoticiasHome() {
+      try {
+        const { data, error } = await supabase
+          .from("noticias")
+          .select("*")
+          .eq("active", true)
+          .order("data_publicacao", { ascending: false })
+          .limit(3);
+
+        if (data && !error) setNoticiasHome(data);
+      } catch (err) {
+        console.error("Erro ao buscar notícias:", err);
+      } finally {
+        setLoadingNoticias(false);
+      }
+    }
+
     fetchBanners();
     fetchEventosFuturos();
     fetchCasasMissao();
+    fetchNoticiasHome();
   }, []);
 
   // Efeito para o carrossel rodar automaticamente a cada 10 segundos
@@ -148,20 +168,25 @@ export default function Home() {
               Destaques
             </div>
 
-            <h3 className="font-serif text-2xl font-bold text-[#c5a059] mb-6 flex items-center gap-2">
-              <Church className="w-6 h-6" /> Avisos e Notícias
-            </h3>
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-serif text-2xl font-bold text-[#c5a059] flex items-center gap-2">
+                <Church className="w-6 h-6" /> Avisos e Notícias
+              </h3>
+              <Link to="/noticias" className="text-xs font-bold text-white/80 hover:text-white underline">
+                Ver Todas &rarr;
+              </Link>
+            </div>
 
-            {loadingBanners ? (
-              <div className="flex justify-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-[#c5a059]" />
+            {loadingNoticias ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="w-6 h-6 animate-spin text-[#c5a059]" />
               </div>
-            ) : banners.length > 0 ? (
-              <div className="space-y-4">
-                {banners.slice(0, 2).map((banner) => (
-                  <div key={banner.id} className="bg-white/10 p-5 rounded-2xl border border-white/15 hover:bg-white/20 transition-all shadow-sm">
-                    <h4 className="font-bold text-lg text-white mb-1">{banner.title}</h4>
-                    <p className="text-sm text-white/80 line-clamp-2">{banner.subtitle}</p>
+            ) : noticiasHome.length > 0 ? (
+              <div className="space-y-3">
+                {noticiasHome.map((item) => (
+                  <div key={item.id} className="bg-white/10 p-4 rounded-2xl border border-white/15 hover:bg-white/20 transition-all shadow-sm">
+                    <h4 className="font-bold text-white text-sm mb-1">{item.titulo}</h4>
+                    <p className="text-xs text-white/80 line-clamp-1">{item.subtitulo || item.conteudo}</p>
                   </div>
                 ))}
               </div>
@@ -390,7 +415,6 @@ export default function Home() {
                       <h3 className="text-xl font-serif font-bold text-[#005a8d] mb-2">{evento.titulo}</h3>
                       
                       <div className="space-y-1 mb-4 text-xs text-gray-500 font-medium">
-                        {/* Exibe a data mesmo se for da semana atual, garantindo que a informação apareça */}
                         <p className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-[#c5a059]" /> {dataFormatada}</p>
                         {evento.horario && <p className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#c5a059]" /> {evento.horario}</p>}
                         {evento.local && <p className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-[#c5a059]" /> {evento.local}</p>}
