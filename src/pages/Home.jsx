@@ -390,7 +390,8 @@ export default function Home() {
                       <h3 className="text-xl font-serif font-bold text-[#005a8d] mb-2">{evento.titulo}</h3>
                       
                       <div className="space-y-1 mb-4 text-xs text-gray-500 font-medium">
-                        {!eDaSemana && <p className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-[#c5a059]" /> {dataFormatada}</p>}
+                        {/* Exibe a data mesmo se for da semana atual, garantindo que a informação apareça */}
+                        <p className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-[#c5a059]" /> {dataFormatada}</p>
                         {evento.horario && <p className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#c5a059]" /> {evento.horario}</p>}
                         {evento.local && <p className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-[#c5a059]" /> {evento.local}</p>}
                       </div>
