@@ -31,24 +31,34 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa]">
-      {/* Seção de Destaque / Banners */}
-      <section className="relative bg-[#005a8d] text-white py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      {/* Seção de Destaque / Banners com Logo Original */}
+      <section className="relative bg-[#005a8d] text-white py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        {/* Efeito de fundo sutil com a logo */}
+        <div className="absolute inset-0 opacity-5 pointer-events-none">
+          <img src="/logo.png" alt="" className="w-full h-full object-cover" />
+        </div>
+
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center relative z-10">
           <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider text-[#c5a059]">
-              <Emblem className="w-5 h-5" />
-              Instituto Religioso das Medianeiras da Paz
+            {/* Logo Original */}
+            <div className="bg-white/10 p-4 rounded-3xl inline-block border border-white/20 shadow-inner">
+              <img 
+                src="/logo.png" 
+                alt="Instituto Religioso das Irmãs Medianeiras da Paz - IRIMEP" 
+                className="h-20 sm:h-24 w-auto object-contain brightness-0 invert" 
+              />
             </div>
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight">
+
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-[#c5a059]">
               Consagradas à paz, à oração e ao serviço.
             </h1>
-            <p className="text-lg text-white/80 leading-relaxed">
+            <p className="text-lg text-white/90 leading-relaxed">
               Bem-vindo ao portal oficial do IRIMEP. Conheça nossa história de fé, nossas obras sociais, a agenda e o caminho vocacional.
             </p>
             <div className="flex flex-wrap gap-4 pt-4">
               <Link
                 to="/quem-somos"
-                className="bg-[#e31e24] hover:bg-[#b3181e] text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center gap-2"
+                className="bg-[#e31e24] hover:bg-[#b3181e] text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center gap-2 shadow-lg"
               >
                 Conheça Nossa História <ArrowRight className="w-4 h-4" />
               </Link>
@@ -61,8 +71,8 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="bg-white/5 border border-white/10 p-6 rounded-3xl backdrop-blur-sm">
-            <h3 className="font-serif text-2xl font-bold text-[#c5a059] mb-4">Destaques Recentes</h3>
+          <div className="bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-sm shadow-xl">
+            <h3 className="font-serif text-2xl font-bold text-[#c5a059] mb-6">Destaques Recentes</h3>
             {loading ? (
               <div className="flex justify-center py-10">
                 <Loader2 className="w-8 h-8 animate-spin text-[#c5a059]" />
@@ -70,9 +80,9 @@ export default function Home() {
             ) : banners.length > 0 ? (
               <div className="space-y-4">
                 {banners.slice(0, 2).map((banner) => (
-                  <div key={banner.id} className="bg-white/10 p-4 rounded-2xl border border-white/10">
+                  <div key={banner.id} className="bg-white/10 p-5 rounded-2xl border border-white/10 hover:bg-white/15 transition-colors">
                     <h4 className="font-bold text-lg text-white">{banner.title}</h4>
-                    <p className="text-sm text-white/70 mt-1 line-clamp-2">{banner.subtitle}</p>
+                    <p className="text-sm text-white/80 mt-1 line-clamp-2">{banner.subtitle}</p>
                   </div>
                 ))}
               </div>
