@@ -54,7 +54,7 @@ export default function Home() {
 
             <div className="flex flex-wrap gap-4 pt-4">
               <Link
-                to="/quem-somos"
+                to="/institucional"
                 className="bg-[#e31e24] hover:bg-[#c9181d] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg hover:shadow-red-600/30 flex items-center gap-2 group"
               >
                 Conheça Nossa História 
