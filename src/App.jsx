@@ -4,6 +4,7 @@ import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import InstitucionalSubNav from "./components/InstitucionalSubNav";
 import AdminDashboard from "./admin/AdminDashboard";
+import AdminAgenda from "./admin/AdminAgenda";
 
 // Import das subpáginas institucionais
 import SobreNos from "./pages/institucional/SobreNos";
@@ -42,6 +43,7 @@ export default function App() {
 
             {/* Rota do Painel Administrativo */}
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin-agenda" element={<AdminAgenda />} />
           </Routes>
         </main>
         <Footer />
