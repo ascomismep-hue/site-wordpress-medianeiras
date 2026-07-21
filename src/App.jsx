@@ -3,7 +3,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import InstitucionalSubNav from "./components/InstitucionalSubNav";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminDashboard from "./admin/AdminDashboard";
 
 // Import das subpáginas institucionais
 import SobreNos from "./pages/institucional/SobreNos";
