@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { Emblem } from "@/components/ui/Emblem";
-import { ChevronRight, Calendar, Heart, ArrowRight, Loader2 } from "lucide-react";
+import { ChevronRight, Calendar, Heart, ArrowRight, Loader2, Sparkles, BookOpen, Users, Church } from "lucide-react";
 
 export default function Home() {
   const [banners, setBanners] = useState([]);
@@ -30,101 +30,124 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f8f9fa]">
-      {/* Seção de Destaque / Banners com Logo Original */}
-      <section className="relative bg-[#005a8d] text-white py-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
-        {/* Efeito de fundo sutil com a logo */}
-        <div className="absolute inset-0 opacity-5 pointer-events-none">
-          <img src="/logo.png" alt="" className="w-full h-full object-cover" />
-        </div>
+    <div className="flex flex-col min-h-screen bg-[#faf8f5]">
+      {/* Hero Section - Visual Rico com Cores e Identidade */}
+      <section className="relative bg-gradient-to-br from-[#005a8d] via-[#004065] to-[#00263f] text-white py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
+        {/* Elementos decorativos de fundo */}
+        <div className="absolute top-0 right-0 -mt-12 -mr-12 w-96 h-96 bg-[#c5a059]/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-1/4 -mb-12 w-80 h-80 bg-[#e31e24]/10 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center relative z-10">
           <div className="space-y-6">
-            {/* Logo Original */}
-            <div className="bg-white/10 p-4 rounded-3xl inline-block border border-white/20 shadow-inner">
-              <img 
-                src="/logo.png" 
-                alt="Instituto Religioso das Irmãs Medianeiras da Paz - IRIMEP" 
-                className="h-20 sm:h-24 w-auto object-contain brightness-0 invert" 
-              />
+            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider text-[#c5a059] shadow-lg backdrop-blur-md">
+              <Sparkles className="w-4 h-4 text-[#c5a059]" />
+              Instituto Religioso das Medianeiras da Paz
             </div>
 
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-[#c5a059]">
-              Consagradas à paz, à oração e ao serviço.
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-wide text-white drop-shadow-md">
+              Consagradas à paz, à <span className="text-[#c5a059]">oração</span> e ao <span className="text-[#e31e24]">serviço</span>.
             </h1>
-            <p className="text-lg text-white/90 leading-relaxed">
-              Bem-vindo ao portal oficial do IRIMEP. Conheça nossa história de fé, nossas obras sociais, a agenda e o caminho vocacional.
+
+            <p className="text-lg text-white/90 leading-relaxed font-light">
+              Bem-vindo ao portal oficial do IRIMEP. Um espaço de comunhão, fé e esperança onde compartilhamos nossa missão de amor ao próximo e edificação espiritual.
             </p>
+
             <div className="flex flex-wrap gap-4 pt-4">
               <Link
                 to="/quem-somos"
-                className="bg-[#e31e24] hover:bg-[#b3181e] text-white px-6 py-3 rounded-xl font-semibold transition-colors flex items-center gap-2 shadow-lg"
+                className="bg-[#e31e24] hover:bg-[#c9181d] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-xl hover:shadow-red-500/20 flex items-center gap-2 group"
               >
-                Conheça Nossa História <ArrowRight className="w-4 h-4" />
+                Conheça Nossa História 
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 to="/agenda"
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/20 px-6 py-3 rounded-xl font-semibold transition-colors"
+                className="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-8 py-4 rounded-2xl font-bold transition-all backdrop-blur-md hover:border-[#c5a059]"
               >
-                Ver Agenda
+                Ver Agenda de Eventos
               </Link>
             </div>
           </div>
 
-          <div className="bg-white/5 border border-white/10 p-8 rounded-3xl backdrop-blur-sm shadow-xl">
-            <h3 className="font-serif text-2xl font-bold text-[#c5a059] mb-6">Destaques Recentes</h3>
+          {/* Card Dinâmico de Destaques */}
+          <div className="bg-white/10 border border-white/20 p-8 rounded-3xl backdrop-blur-xl shadow-2xl relative">
+            <div className="absolute -top-3 -right-3 bg-[#c5a059] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow">
+              Destaques
+            </div>
+            
+            <h3 className="font-serif text-2xl font-bold text-[#c5a059] mb-6 flex items-center gap-2">
+              <Church className="w-6 h-6" /> Avisos e Notícias
+            </h3>
+
             {loading ? (
-              <div className="flex justify-center py-10">
+              <div className="flex justify-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-[#c5a059]" />
               </div>
             ) : banners.length > 0 ? (
               <div className="space-y-4">
                 {banners.slice(0, 2).map((banner) => (
-                  <div key={banner.id} className="bg-white/10 p-5 rounded-2xl border border-white/10 hover:bg-white/15 transition-colors">
-                    <h4 className="font-bold text-lg text-white">{banner.title}</h4>
-                    <p className="text-sm text-white/80 mt-1 line-clamp-2">{banner.subtitle}</p>
+                  <div key={banner.id} className="bg-white/10 p-5 rounded-2xl border border-white/10 hover:bg-white/20 transition-all">
+                    <h4 className="font-bold text-lg text-white mb-1">{banner.title}</h4>
+                    <p className="text-sm text-white/80 line-clamp-2">{banner.subtitle}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-white/70 py-6 text-center">Nenhum banner ativo no momento.</p>
+              <div className="text-center py-8 bg-black/10 rounded-2xl border border-white/5">
+                <p className="text-sm text-white/80">Acompanhe nossas próximas programações e avisos oficiais em breve.</p>
+              </div>
             )}
           </div>
         </div>
       </section>
 
-      {/* Seção de Chamadas Rápidas */}
-      <section className="py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      {/* Seção de Chamadas Rápidas com Cores Vivas */}
+      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#005a8d]">Pilares da nossa Missão</h2>
+          <div className="w-24 h-1 bg-[#c5a059] mx-auto rounded-full"></div>
+          <p className="text-gray-600">Explore os principais caminhos e atuações da nossa congregação religiosa.</p>
+        </div>
+
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#c5a059]/20 hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 bg-[#005a8d]/10 rounded-2xl flex items-center justify-center text-[#005a8d] mb-6">
-              <Calendar className="w-6 h-6" />
+          {/* Card 1 */}
+          <div className="bg-white p-8 rounded-3xl shadow-xl shadow-gray-100 border border-gray-100 hover:border-[#c5a059]/40 hover:-translate-y-1 transition-all group">
+            <div className="w-14 h-14 bg-gradient-to-br from-[#005a8d] to-[#004065] rounded-2xl flex items-center justify-center text-white mb-6 shadow-md group-hover:scale-110 transition-transform">
+              <Calendar className="w-7 h-7" />
             </div>
-            <h3 className="font-serif text-xl font-bold text-[#005a8d] mb-2">Agenda e Eventos</h3>
-            <p className="text-gray-600 text-sm mb-4">Acompanhe as celebrações, encontros e programações da nossa congregação.</p>
-            <Link to="/agenda" className="text-[#e31e24] font-semibold text-sm flex items-center gap-1 hover:underline">
-              Ver programação <ChevronRight className="w-4 h-4" />
+            <h3 className="font-serif text-2xl font-bold text-[#005a8d] mb-3">Agenda e Eventos</h3>
+            <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+              Acompanhe as celebrações litúrgicas, encontros espirituais, retiros e programações da nossa congregação.
+            </p>
+            <Link to="/agenda" className="text-[#e31e24] font-bold text-sm flex items-center gap-2 group-hover:translate-x-1 transition-transform">
+              Ver programação completa <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
 
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#c5a059]/20 hover:shadow-md transition-shadow">
-            <div className="w-12 h-12 bg-[#005a8d]/10 rounded-2xl flex items-center justify-center text-[#005a8d] mb-6">
-              <Heart className="w-6 h-6" />
+          {/* Card 2 */}
+          <div className="bg-white p-8 rounded-3xl shadow-xl shadow-gray-100 border border-gray-100 hover:border-[#c5a059]/40 hover:-translate-y-1 transition-all group">
+            <div className="w-14 h-14 bg-gradient-to-br from-[#e31e24] to-[#b3181e] rounded-2xl flex items-center justify-center text-white mb-6 shadow-md group-hover:scale-110 transition-transform">
+              <Heart className="w-7 h-7" />
             </div>
-            <h3 className="font-serif text-xl font-bold text-[#005a8d] mb-2">Obras e Missões</h3>
-            <p className="text-gray-600 text-sm mb-4">Conheça o trabalho social e evangelizador desenvolvido pelas nossas irmãs.</p>
-            <Link to="/obras-e-missoes" className="text-[#e31e24] font-semibold text-sm flex items-center gap-1 hover:underline">
-              Saiba mais <ChevronRight className="w-4 h-4" />
+            <h3 className="font-serif text-2xl font-bold text-[#005a8d] mb-3">Obras e Missões</h3>
+            <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+              Conheça o trabalho social, humanitário e evangelizador desenvolvido com dedicação pelas nossas irmãs.
+            </p>
+            <Link to="/obras-e-missoes" className="text-[#e31e24] font-bold text-sm flex items-center gap-2 group-hover:translate-x-1 transition-transform">
+              Saiba mais sobre as obras <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
 
-          <div className="bg-white p-8 rounded-3xl shadow-sm border border-[#c5a059]/20 hover:shadow-md transition-shadow sm:col-span-2 lg:col-span-1">
-            <div className="w-12 h-12 bg-[#005a8d]/10 rounded-2xl flex items-center justify-center text-[#005a8d] mb-6">
-              <Emblem className="w-6 h-6" />
+          {/* Card 3 */}
+          <div className="bg-white p-8 rounded-3xl shadow-xl shadow-gray-100 border border-gray-100 hover:border-[#c5a059]/40 hover:-translate-y-1 transition-all group sm:col-span-2 lg:col-span-1">
+            <div className="w-14 h-14 bg-gradient-to-br from-[#c5a059] to-[#a8843e] rounded-2xl flex items-center justify-center text-white mb-6 shadow-md group-hover:scale-110 transition-transform">
+              <Users className="w-7 h-7" />
             </div>
-            <h3 className="font-serif text-xl font-bold text-[#005a8d] mb-2">Caminho Vocacional</h3>
-            <p className="text-gray-600 text-sm mb-4">Sente o chamado para a vida consagrada? Descubra como trilhar este caminho conosco.</p>
-            <Link to="/vocacional" className="text-[#e31e24] font-semibold text-sm flex items-center gap-1 hover:underline">
+            <h3 className="font-serif text-2xl font-bold text-[#005a8d] mb-3">Caminho Vocacional</h3>
+            <p className="text-gray-600 text-sm mb-6 leading-relaxed">
+              Sente o chamado divino para a vida consagrada? Descubra os passos para trilhar este caminho de entrega conosco.
+            </p>
+            <Link to="/vocacional" className="text-[#e31e24] font-bold text-sm flex items-center gap-2 group-hover:translate-x-1 transition-transform">
               Quero saber mais <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
