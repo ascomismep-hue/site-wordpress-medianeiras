@@ -46,8 +46,11 @@ export default function LoginUnificado() {
 
   function handleLogout() {
     sessionStorage.removeItem("irimep_painel_logado");
+    sessionStorage.removeItem("irimep_auth");
+    sessionStorage.removeItem("irimep_agenda_auth");
     setLogado(null);
     setSenha("");
+    window.location.reload();
   }
 
   if (logado) {
