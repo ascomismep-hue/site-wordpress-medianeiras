@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User, Phone } from "lucide-react";
+import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User, Phone, LogOut } from "lucide-react";
+import Login from "./Login";
 
 export default function AdminDashboard() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [activeTab, setActiveTab] = useState("sobre");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -25,8 +27,17 @@ export default function AdminDashboard() {
   const [gracasList, setGracasList] = useState([]);
 
   useEffect(() => {
-    fetchTabData(activeTab);
-  }, [activeTab]);
+    const auth = sessionStorage.getItem("irimep_auth");
+    if (auth === "true") {
+      setIsAuthenticated(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchTabData(activeTab);
+    }
+  }, [activeTab, isAuthenticated]);
 
   async function fetchTabData(tab) {
     setLoading(true);
@@ -60,6 +71,16 @@ export default function AdminDashboard() {
       console.error("Erro ao buscar dados:", err);
     }
     setLoading(false);
+  }
+
+  function handleLogout() {
+    sessionStorage.removeItem("irimep_auth");
+    setIsAuthenticated(false);
+  }
+
+  // Se não estiver logado, mostra a tela de login
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
   // Upload integrado usando o bucket "images"
@@ -169,12 +190,20 @@ export default function AdminDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="flex items-center gap-3 mb-8">
-        <Shield className="w-8 h-8 text-[#005a8d]" />
-        <div>
-          <h1 className="text-3xl font-serif font-bold text-[#005a8d]">Painel Administrativo Unificado</h1>
-          <p className="text-gray-600 text-sm">Gerencie todo o conteúdo, fotos e históricos das páginas institucionais.</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div className="flex items-center gap-3">
+          <Shield className="w-8 h-8 text-[#005a8d]" />
+          <div>
+            <h1 className="text-3xl font-serif font-bold text-[#005a8d]">Painel Administrativo Unificado</h1>
+            <p className="text-gray-600 text-sm">Gerencie todo o conteúdo, fotos e históricos das páginas institucionais.</p>
+          </div>
         </div>
+        <button 
+          onClick={handleLogout}
+          className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2.5 rounded-2xl font-bold text-sm transition-colors border border-red-100"
+        >
+          <LogOut className="w-4 h-4" /> Sair do Painel
+        </button>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
