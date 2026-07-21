@@ -6,6 +6,7 @@ import InstitucionalSubNav from "./components/InstitucionalSubNav";
 import LoginUnificado from "./admin/LoginUnificado"; // Central de Login Unificada
 import Agenda from "./pages/Agenda"; // Página pública de Agenda
 import ObrasMissoes from "./pages/ObrasMissoes"; // Importa a página de Obras e Missões
+import Noticias from "./pages/Noticias"
 
 // Import das subpáginas institucionais
 import SobreNos from "./pages/institucional/SobreNos";
@@ -44,6 +45,8 @@ export default function App() {
 
             {/* Rota da Agenda Pública */}
             <Route path="/agenda" element={<Agenda />} />
+
+            <Route path="/noticias" element={<Noticias />} />
 
             {/* Rota de Obras e Missões */}
             <Route path="/obras-e-missoes" element={<ObrasMissoes />} />
