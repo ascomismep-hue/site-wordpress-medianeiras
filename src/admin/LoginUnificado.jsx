@@ -4,6 +4,7 @@ import { Shield, Lock, Calendar, Church, Heart, Loader2 } from "lucide-react";
 import AdminDashboard from "./AdminDashboard";
 import AdminAgenda from "./AdminAgenda";
 import AdminObrasMissoes from "./AdminObrasMissoes"; // Importa o painel de Obras e Missões
+import AdminNoticias from "./AdminNoticias";
 
 export default function LoginUnificado() {
   const [tipoPainel, setTipoPainel] = useState("institucional");
@@ -94,6 +95,17 @@ export default function LoginUnificado() {
                 }`}
               >
                 <Church className="w-4 h-4" /> Institucional
+              </button>
+              <button
+                type="button"
+                onClick={() => { setTipoPainel("noticias"); setErro(false); }}
+                className={`py-3 px-2 rounded-xl font-bold text-[11px] flex flex-col items-center justify-center gap-1.5 border transition-all ${
+                   tipoPainel === "noticias" 
+                     ? "bg-[#005a8d] text-white border-[#005a8d] shadow-sm" 
+                     : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+                }`}
+               >
+                 <Church className="w-4 h-4" /> Notícias
               </button>
               <button
                 type="button"
