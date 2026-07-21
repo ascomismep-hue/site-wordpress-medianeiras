@@ -1,8 +1,9 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import InstitucionalSubNav from "./components/InstitucionalSubNav";
+import AdminDashboard from "./pages/AdminDashboard";
 
 // Import das subpáginas institucionais
 import SobreNos from "./pages/institucional/SobreNos";
@@ -29,12 +30,18 @@ export default function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             
+            {/* Redireciona /institucional direto para Sobre Nós */}
+            <Route path="/institucional" element={<Navigate to="/institucional/sobre-nos" replace />} />
+
             {/* Rotas das Subpáginas Institucionais */}
             <Route path="/institucional/sobre-nos" element={<LayoutInstitucional><SobreNos /></LayoutInstitucional>} />
             <Route path="/institucional/madres-gerais" element={<LayoutInstitucional><MadresGerais /></LayoutInstitucional>} />
             <Route path="/institucional/irmas" element={<LayoutInstitucional><Irmas /></LayoutInstitucional>} />
             <Route path="/institucional/memorial" element={<LayoutInstitucional><Memorial /></LayoutInstitucional>} />
             <Route path="/institucional/causa-dom-campelo" element={<LayoutInstitucional><CausaDomCampelo /></LayoutInstitucional>} />
+
+            {/* Rota do Painel Administrativo */}
+            <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
         </main>
         <Footer />
