@@ -1,16 +1,23 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Plus, Trash2, Calendar, Lock, Shield, LogOut, CheckCircle2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Calendar, Lock, LogOut, CheckCircle2 } from "lucide-react";
 
-export default function AdminAgenda() {
+export default function AdminAgenda({ onLogout }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [senhaInput, setSenhaInput] = useState("");
   const [erroLogin, setErroLogin] = useState(false);
+  const [carregandoLogin, setCarregandoLogin] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [agendaList, setAgendaList] = useState([]);
   
+  // Estados para alteração de senha
+  const [senhaAtual, setSenhaAtual] = useState("");
+  const [novaSenha, setNovaSenha] = useState("");
+  const [sucessoSenha, setSucessoSenha] = useState(false);
+  const [erroSenha, setErroSenha] = useState("");
+
   const [novoEvento, setNovoEvento] = useState({ 
     titulo: "", 
     data_evento: "", 
@@ -20,9 +27,6 @@ export default function AdminAgenda() {
     tipo: "geral" 
   });
 
-  // Senha específica para o painel de agenda
-  const SENHA_AGENDA = "agenda2026";
-
   useEffect(() => {
     const auth = sessionStorage.getItem("irimep_agenda_auth");
     if (auth === "true") {
@@ -31,21 +35,43 @@ export default function AdminAgenda() {
     }
   }, []);
 
-  function handleLogin(e) {
+  async function handleLogin(e) {
     e.preventDefault();
-    if (senhaInput === SENHA_AGENDA) {
-      sessionStorage.setItem("irimep_agenda_auth", "true");
-      setIsAuthenticated(true);
-      fetchAgenda();
-    } else {
+    setCarregandoLogin(true);
+    setErroLogin(false);
+
+    try {
+      // Busca a senha cadastrada no Supabase para a agenda
+      const { data, error } = await supabase
+        .from("configuracoes_acesso")
+        .select("senha")
+        .eq("perfil", "agenda")
+        .single();
+
+      if (error || !data) {
+        setErroLogin(true);
+      } else if (senhaInput === data.senha) {
+        sessionStorage.setItem("irimep_agenda_auth", "true");
+        setIsAuthenticated(true);
+        fetchAgenda();
+      } else {
+        setErroLogin(true);
+        setSenhaInput("");
+      }
+    } catch (err) {
+      console.error("Erro no login:", err);
       setErroLogin(true);
-      setSenhaInput("");
     }
+    setCarregandoLogin(false);
   }
 
-  function handleLogout() {
+  function handleLogoutApp() {
     sessionStorage.removeItem("irimep_agenda_auth");
-    setIsAuthenticated(false);
+    if (onLogout) {
+      onLogout();
+    } else {
+      setIsAuthenticated(false);
+    }
   }
 
   async function fetchAgenda() {
@@ -74,6 +100,36 @@ export default function AdminAgenda() {
     }
   }
 
+  async function handleAlterarSenha(e) {
+    e.preventDefault();
+    setErroSenha("");
+
+    const { data, error: fetchError } = await supabase
+      .from("configuracoes_acesso")
+      .select("senha")
+      .eq("perfil", "agenda")
+      .single();
+
+    if (fetchError || !data || data.senha !== senhaAtual) {
+      setErroSenha("A senha atual está incorreta.");
+      return;
+    }
+
+    const { error: updateError } = await supabase
+      .from("configuracoes_acesso")
+      .update({ senha: novaSenha })
+      .eq("perfil", "agenda");
+
+    if (!updateError) {
+      setSucessoSenha(true);
+      setSenhaAtual("");
+      setNovaSenha("");
+      setTimeout(() => setSucessoSenha(false), 4000);
+    } else {
+      setErroSenha("Erro ao atualizar a senha no banco.");
+    }
+  }
+
   function triggerSuccess() {
     setSuccess(true);
     setTimeout(() => setSuccess(false), 3000);
@@ -89,7 +145,7 @@ export default function AdminAgenda() {
           </div>
           
           <h1 className="text-2xl font-serif font-bold text-[#005a8d] mb-2">Painel da Agenda</h1>
-          <p className="text-gray-500 text-sm mb-8">Digite a senha exclusiva para gerenciar a agenda e eventos.</p>
+          <p className="text-gray-500 text-sm mb-8">Digite a senha para gerenciar a agenda e eventos.</p>
 
           {erroLogin && (
             <div className="bg-red-50 text-red-600 p-3.5 rounded-xl mb-6 text-sm font-medium border border-red-100">
@@ -117,9 +173,10 @@ export default function AdminAgenda() {
 
             <button 
               type="submit" 
-              className="w-full bg-[#005a8d] hover:bg-[#004068] text-white font-bold py-3.5 rounded-2xl transition-colors shadow-sm text-sm"
+              disabled={carregandoLogin}
+              className="w-full bg-[#005a8d] hover:bg-[#004068] text-white font-bold py-3.5 rounded-2xl transition-colors shadow-sm text-sm flex items-center justify-center gap-2"
             >
-              Entrar no Painel da Agenda
+              {carregandoLogin ? <Loader2 className="w-5 h-5 animate-spin" /> : "Entrar no Painel da Agenda"}
             </button>
           </form>
         </div>
@@ -139,7 +196,7 @@ export default function AdminAgenda() {
           </div>
         </div>
         <button 
-          onClick={handleLogout}
+          onClick={handleLogoutApp}
           className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2.5 rounded-2xl font-bold text-sm transition-colors border border-red-100"
         >
           <LogOut className="w-4 h-4" /> Sair
@@ -226,6 +283,51 @@ export default function AdminAgenda() {
               ))}
             </div>
           )}
+        </div>
+
+        {/* Seção de Alterar Senha */}
+        <div className="bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4 pt-6 mt-10">
+          <h3 className="text-xl font-serif font-bold text-[#005a8d]">Alterar Senha da Agenda</h3>
+          
+          {sucessoSenha && (
+            <div className="bg-emerald-50 text-emerald-700 p-3.5 rounded-xl text-sm font-medium flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0" /> Senha alterada com sucesso no Supabase!
+            </div>
+          )}
+
+          {erroSenha && (
+            <div className="bg-red-50 text-red-600 p-3.5 rounded-xl text-sm font-medium border border-red-100">
+              {erroSenha}
+            </div>
+          )}
+
+          <form onSubmit={handleAlterarSenha} className="space-y-3 max-w-md">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-1">Senha Atual</label>
+              <input 
+                type="password" 
+                placeholder="Digite a senha atual" 
+                value={senhaAtual} 
+                onChange={e => setSenhaAtual(e.target.value)} 
+                required
+                className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-1">Nova Senha</label>
+              <input 
+                type="password" 
+                placeholder="Digite a nova senha" 
+                value={novaSenha} 
+                onChange={e => setNovaSenha(e.target.value)} 
+                required
+                className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm"
+              />
+            </div>
+            <button type="submit" className="bg-[#005a8d] hover:bg-[#004068] text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-colors">
+              Atualizar Senha
+            </button>
+          </form>
         </div>
 
       </div>
