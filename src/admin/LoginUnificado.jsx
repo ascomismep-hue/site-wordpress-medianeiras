@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Shield, Lock, Calendar, Church, Loader2 } from "lucide-react";
+import { Shield, Lock, Calendar, Church, Heart, Loader2 } from "lucide-react";
 import AdminDashboard from "./AdminDashboard";
 import AdminAgenda from "./AdminAgenda";
+import AdminObrasMissoes from "./AdminObrasMissoes"; // Importa o painel de Obras e Missões
 
 export default function LoginUnificado() {
   const [tipoPainel, setTipoPainel] = useState("institucional");
@@ -56,8 +57,10 @@ export default function LoginUnificado() {
   if (logado) {
     if (logado.tipo === "institucional") {
       return <AdminDashboard onLogout={handleLogout} />;
-    } else {
+    } else if (logado.tipo === "agenda") {
       return <AdminAgenda onLogout={handleLogout} />;
+    } else if (logado.tipo === "obras") {
+      return <AdminObrasMissoes onLogout={handleLogout} />;
     }
   }
 
@@ -80,11 +83,11 @@ export default function LoginUnificado() {
         <form onSubmit={handleLogin} className="space-y-4 text-left">
           <div>
             <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Selecione o Painel</label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => { setTipoPainel("institucional"); setErro(false); }}
-                className={`py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border transition-all ${
+                className={`py-3 px-2 rounded-xl font-bold text-[11px] flex flex-col items-center justify-center gap-1.5 border transition-all ${
                   tipoPainel === "institucional" 
                     ? "bg-[#005a8d] text-white border-[#005a8d] shadow-sm" 
                     : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
@@ -95,13 +98,24 @@ export default function LoginUnificado() {
               <button
                 type="button"
                 onClick={() => { setTipoPainel("agenda"); setErro(false); }}
-                className={`py-3 px-4 rounded-xl font-bold text-xs flex items-center justify-center gap-2 border transition-all ${
+                className={`py-3 px-2 rounded-xl font-bold text-[11px] flex flex-col items-center justify-center gap-1.5 border transition-all ${
                   tipoPainel === "agenda" 
                     ? "bg-[#005a8d] text-white border-[#005a8d] shadow-sm" 
                     : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
                 }`}
               >
                 <Calendar className="w-4 h-4" /> Agenda
+              </button>
+              <button
+                type="button"
+                onClick={() => { setTipoPainel("obras"); setErro(false); }}
+                className={`py-3 px-2 rounded-xl font-bold text-[11px] flex flex-col items-center justify-center gap-1.5 border transition-all ${
+                  tipoPainel === "obras" 
+                    ? "bg-[#005a8d] text-white border-[#005a8d] shadow-sm" 
+                    : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+                }`}
+              >
+                <Heart className="w-4 h-4" /> Obras & Missões
               </button>
             </div>
           </div>
