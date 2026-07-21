@@ -3,7 +3,8 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import InstitucionalSubNav from "./components/InstitucionalSubNav";
-import LoginUnificado from "./admin/LoginUnificado"; // Importa a central de login unificada
+import LoginUnificado from "./admin/LoginUnificado"; // Central de Login Unificada
+import Agenda from "./pages/Agenda"; // Página pública de Agenda
 
 // Import das subpáginas institucionais
 import SobreNos from "./pages/institucional/SobreNos";
@@ -11,7 +12,6 @@ import MadresGerais from "./pages/institucional/MadresGerais";
 import Irmas from "./pages/institucional/Irmas";
 import Memorial from "./pages/institucional/Memorial";
 import CausaDomCampelo from "./pages/institucional/CausaDomCampelo";
-import Agenda from "./pages/Agenda"; // Importa a página de agenda pública
 
 function LayoutInstitucional({ children }) {
   return (
@@ -44,7 +44,7 @@ export default function App() {
             {/* Rota da Agenda Pública */}
             <Route path="/agenda" element={<Agenda />} />
 
-            {/* Rota Unificada do Painel Administrativo / Login */}
+            {/* Rota Única de Login e Gerenciamento */}
             <Route path="/admin" element={<LoginUnificado />} />
           </Routes>
         </main>
