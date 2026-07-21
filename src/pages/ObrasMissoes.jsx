@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Heart, Building2, MapPin, Phone, GraduationCap, Stethoscope, Users, Sparkles } from "lucide-react";
+import { Loader2, Heart, Building2, MapPin, Phone, GraduationCap, Stethoscope, Users, Sparkles, CheckCircle2 } from "lucide-react";
 
 export default function ObrasMissoes() {
   const [abaAtiva, setAbaAtiva] = useState("obras"); // "obras" ou "casas"
   const [obrasList, setObrasList] = useState([]);
   const [casasList, setCasasList] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Estado para controlar qual item está expandido para exibição detalhada dinâmica
+  const [itemExpandido, setItemExpandido] = useState(null);
 
   useEffect(() => {
     fetchDados();
@@ -24,7 +27,6 @@ export default function ObrasMissoes() {
     setLoading(false);
   }
 
-  // Separar obras por categoria
   const educacao = obrasList.filter(o => o.categoria === "educacao");
   const saude = obrasList.filter(o => o.categoria === "saude");
   const social = obrasList.filter(o => o.categoria === "social");
@@ -40,7 +42,7 @@ export default function ObrasMissoes() {
           </div>
           <h1 className="text-4xl sm:text-5xl font-serif font-bold">Obras e Missões</h1>
           <p className="text-white/80 max-w-xl mx-auto text-sm sm:text-base font-light">
-            Conheça o alcance da nossa congregação através das frentes de atuação social e das casas missionárias espalhadas.
+            Conheça o alcance da nossa congregação através das frentes de atuação social, educacional, de saúde e das casas missionárias.
           </p>
         </div>
       </section>
@@ -77,125 +79,231 @@ export default function ObrasMissoes() {
         ) : abaAtiva === "obras" ? (
           <div className="space-y-20">
             
-            {/* Bloco 1: EDUCAÇÃO (Tons de Azul e Dourado) */}
+            {/* Bloco 1: EDUCAÇÃO */}
             {educacao.length > 0 && (
-              <div className="space-y-8">
-                <div className="flex items-center gap-3 border-b border-blue-100 pb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-blue-50 text-[#005a8d] flex items-center justify-center shadow-xs">
-                    <GraduationCap className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Educação</h2>
-                    <p className="text-gray-500 text-sm">Formação integral, escolas e projetos pedagógicos.</p>
+              <div className="space-y-6">
+                <div className="bg-blue-50/70 border border-blue-100 p-6 rounded-3xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-white text-[#005a8d] flex items-center justify-center shadow-xs shrink-0">
+                      <GraduationCap className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Educação</h2>
+                      <p className="text-gray-600 text-sm mt-0.5">
+                        <strong className="text-[#005a8d]">Objetivo:</strong> Promover a formação integral de crianças e jovens, unindo excelência pedagógica, valores cristãos e apoio às famílias em vulnerabilidade.
+                      </p>
+                    </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {educacao.map(item => (
-                    <div key={item.id} className="bg-white rounded-3xl shadow-sm border border-blue-100 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
-                      {item.foto_url && (
-                        <div className="h-48 overflow-hidden bg-gray-100">
-                          <img src={item.foto_url} alt={item.titulo} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                        </div>
-                      )}
-                      <div className="p-6 space-y-3 flex-1 flex flex-col justify-between">
-                        <div>
-                          <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#005a8d] px-2.5 py-1 rounded-full">Educação</span>
-                          <h3 className="text-xl font-serif font-bold text-gray-800 mt-2">{item.titulo}</h3>
-                          {item.subtitulo && <p className="text-xs font-semibold text-[#c5a059]">{item.subtitulo}</p>}
-                          <p className="text-gray-600 text-sm mt-3 leading-relaxed">{item.descricao}</p>
-                        </div>
-                        {item.unidades_escolas && (
-                          <div className="pt-4 border-t border-gray-100 text-xs text-gray-500 font-medium space-y-1">
-                            <p className="text-[#005a8d] font-bold">Unidades / Escolas:</p>
-                            <p>{item.unidades_escolas}</p>
+                  {educacao.map(item => {
+                    const isOpen = itemExpandido === item.id;
+                    return (
+                      <div 
+                        key={item.id} 
+                        onClick={() => setItemExpandido(isOpen ? null : item.id)}
+                        className={`bg-white rounded-3xl shadow-sm border transition-all duration-300 overflow-hidden flex flex-col justify-between cursor-pointer ${
+                          isOpen ? "border-[#005a8d] ring-2 ring-[#005a8d]/20 shadow-md" : "border-blue-100 hover:border-blue-300"
+                        }`}
+                      >
+                        {item.foto_url && (
+                          <div className="h-48 overflow-hidden bg-gray-100 relative">
+                            <img src={item.foto_url} alt={item.titulo} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                            <span className="absolute top-3 right-3 bg-blue-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow">
+                              {isOpen ? "Recolher" : "Ver Detalhes"}
+                            </span>
                           </div>
                         )}
+                        <div className="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#005a8d] px-2.5 py-1 rounded-full">Educação</span>
+                            <h3 className="text-xl font-serif font-bold text-gray-800 mt-2">{item.titulo}</h3>
+                            {item.subtitulo && <p className="text-xs font-semibold text-[#c5a059]">{item.subtitulo}</p>}
+                            <p className="text-gray-600 text-sm mt-3 leading-relaxed">{item.descricao}</p>
+                          </div>
+
+                          {/* Seção Dinâmica Expandida */}
+                          {isOpen && (
+                            <div className="pt-4 mt-4 border-t border-blue-100 space-y-3 bg-blue-50/40 p-4 rounded-2xl animate-fadeIn">
+                              {item.unidades_escolas && (
+                                <div className="text-xs text-gray-700 space-y-1">
+                                  <p className="text-[#005a8d] font-bold flex items-center gap-1">
+                                    <CheckCircle2 className="w-3.5 h-3.5" /> Unidades e Escolas:
+                                  </p>
+                                  <p className="pl-4">{item.unidades_escolas}</p>
+                                </div>
+                              )}
+                              {item.telefone && (
+                                <div className="text-xs text-gray-700 flex items-center gap-1.5 pt-1">
+                                  <Phone className="w-3.5 h-3.5 text-[#005a8d]" />
+                                  <span className="font-semibold">{item.telefone}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {!isOpen && (
+                            <div className="pt-3 text-xs text-[#005a8d] font-bold flex items-center gap-1">
+                              Clique para ver mais informações &rarr;
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            {/* Bloco 2: SAÚDE (Tons de Verde/Esmeralda) */}
+            {/* Bloco 2: SAÚDE */}
             {saude.length > 0 && (
-              <div className="space-y-8">
-                <div className="flex items-center gap-3 border-b border-emerald-100 pb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center shadow-xs">
-                    <Stethoscope className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-serif font-bold text-emerald-900">Saúde</h2>
-                    <p className="text-gray-500 text-sm">Atendimento humanizado, postos e apoio assistencial.</p>
+              <div className="space-y-6">
+                <div className="bg-emerald-50/70 border border-emerald-100 p-6 rounded-3xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-white text-emerald-700 flex items-center justify-center shadow-xs shrink-0">
+                      <Stethoscope className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-serif font-bold text-emerald-900">Saúde</h2>
+                      <p className="text-gray-600 text-sm mt-0.5">
+                        <strong className="text-emerald-800">Objetivo:</strong> Oferecer atendimento médico-hospitalar humanizado, priorizando o acolhimento aos mais necessitados e atuando como referência na região.
+                      </p>
+                    </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {saude.map(item => (
-                    <div key={item.id} className="bg-white rounded-3xl shadow-sm border border-emerald-100 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
-                      {item.foto_url && (
-                        <div className="h-48 overflow-hidden bg-gray-100">
-                          <img src={item.foto_url} alt={item.titulo} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                        </div>
-                      )}
-                      <div className="p-6 space-y-3 flex-1 flex flex-col justify-between">
-                        <div>
-                          <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">Saúde</span>
-                          <h3 className="text-xl font-serif font-bold text-gray-800 mt-2">{item.titulo}</h3>
-                          {item.subtitulo && <p className="text-xs font-semibold text-emerald-600">{item.subtitulo}</p>}
-                          <p className="text-gray-600 text-sm mt-3 leading-relaxed">{item.descricao}</p>
-                        </div>
-                        {item.unidades_escolas && (
-                          <div className="pt-4 border-t border-gray-100 text-xs text-gray-500 font-medium space-y-1">
-                            <p className="text-emerald-800 font-bold">Unidades / Projetos:</p>
-                            <p>{item.unidades_escolas}</p>
+                  {saude.map(item => {
+                    const isOpen = itemExpandido === item.id;
+                    return (
+                      <div 
+                        key={item.id} 
+                        onClick={() => setItemExpandido(isOpen ? null : item.id)}
+                        className={`bg-white rounded-3xl shadow-sm border transition-all duration-300 overflow-hidden flex flex-col justify-between cursor-pointer ${
+                          isOpen ? "border-emerald-600 ring-2 ring-emerald-600/20 shadow-md" : "border-emerald-100 hover:border-emerald-300"
+                        }`}
+                      >
+                        {item.foto_url && (
+                          <div className="h-48 overflow-hidden bg-gray-100 relative">
+                            <img src={item.foto_url} alt={item.titulo} className="w-full h-full object-cover" />
+                            <span className="absolute top-3 right-3 bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow">
+                              {isOpen ? "Recolher" : "Ver Detalhes"}
+                            </span>
                           </div>
                         )}
+                        <div className="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">Saúde</span>
+                            <h3 className="text-xl font-serif font-bold text-gray-800 mt-2">{item.titulo}</h3>
+                            {item.subtitulo && <p className="text-xs font-semibold text-emerald-600">{item.subtitulo}</p>}
+                            <p className="text-gray-600 text-sm mt-3 leading-relaxed">{item.descricao}</p>
+                          </div>
+
+                          {isOpen && (
+                            <div className="pt-4 mt-4 border-t border-emerald-100 space-y-3 bg-emerald-50/40 p-4 rounded-2xl animate-fadeIn">
+                              {item.unidades_escolas && (
+                                <div className="text-xs text-gray-700 space-y-1">
+                                  <p className="text-emerald-800 font-bold flex items-center gap-1">
+                                    <CheckCircle2 className="w-3.5 h-3.5" /> Unidades e Projetos:
+                                  </p>
+                                  <p className="pl-4">{item.unidades_escolas}</p>
+                                </div>
+                              )}
+                              {item.telefone && (
+                                <div className="text-xs text-gray-700 flex items-center gap-1.5 pt-1">
+                                  <Phone className="w-3.5 h-3.5 text-emerald-700" />
+                                  <span className="font-semibold">{item.telefone}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {!isOpen && (
+                            <div className="pt-3 text-xs text-emerald-700 font-bold flex items-center gap-1">
+                              Clique para ver mais informações &rarr;
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
 
-            {/* Bloco 3: SOCIAL (Tons de Vermelho/Rosa Institucional) */}
+            {/* Bloco 3: SOCIAL */}
             {social.length > 0 && (
-              <div className="space-y-8">
-                <div className="flex items-center gap-3 border-b border-red-100 pb-4">
-                  <div className="w-12 h-12 rounded-2xl bg-red-50 text-[#e31e24] flex items-center justify-center shadow-xs">
-                    <Users className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h2 className="text-2xl font-serif font-bold text-red-950">Social</h2>
-                    <p className="text-gray-500 text-sm">Apoio a famílias carentes, abrigos e projetos comunitários.</p>
+              <div className="space-y-6">
+                <div className="bg-red-50/70 border border-red-100 p-6 rounded-3xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 rounded-2xl bg-white text-[#e31e24] flex items-center justify-center shadow-xs shrink-0">
+                      <Users className="w-7 h-7" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-serif font-bold text-red-950">Social & Missão</h2>
+                      <p className="text-gray-600 text-sm mt-0.5">
+                        <strong className="text-red-900">Objetivo:</strong> Estender o amor cristão aos mais vulneráveis através de amparo comunitário, assistência social e evangelização ativa.
+                      </p>
+                    </div>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {social.map(item => (
-                    <div key={item.id} className="bg-white rounded-3xl shadow-sm border border-red-100 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
-                      {item.foto_url && (
-                        <div className="h-48 overflow-hidden bg-gray-100">
-                          <img src={item.foto_url} alt={item.titulo} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                        </div>
-                      )}
-                      <div className="p-6 space-y-3 flex-1 flex flex-col justify-between">
-                        <div>
-                          <span className="text-[10px] font-bold uppercase tracking-wider bg-red-50 text-[#e31e24] px-2.5 py-1 rounded-full">Social</span>
-                          <h3 className="text-xl font-serif font-bold text-gray-800 mt-2">{item.titulo}</h3>
-                          {item.subtitulo && <p className="text-xs font-semibold text-red-600">{item.subtitulo}</p>}
-                          <p className="text-gray-600 text-sm mt-3 leading-relaxed">{item.descricao}</p>
-                        </div>
-                        {item.unidades_escolas && (
-                          <div className="pt-4 border-t border-gray-100 text-xs text-gray-500 font-medium space-y-1">
-                            <p className="text-red-900 font-bold">Projetos Relacionados:</p>
-                            <p>{item.unidades_escolas}</p>
+                  {social.map(item => {
+                    const isOpen = itemExpandido === item.id;
+                    return (
+                      <div 
+                        key={item.id} 
+                        onClick={() => setItemExpandido(isOpen ? null : item.id)}
+                        className={`bg-white rounded-3xl shadow-sm border transition-all duration-300 overflow-hidden flex flex-col justify-between cursor-pointer ${
+                          isOpen ? "border-red-600 ring-2 ring-red-600/20 shadow-md" : "border-red-100 hover:border-red-300"
+                        }`}
+                      >
+                        {item.foto_url && (
+                          <div className="h-48 overflow-hidden bg-gray-100 relative">
+                            <img src={item.foto_url} alt={item.titulo} className="w-full h-full object-cover" />
+                            <span className="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow">
+                              {isOpen ? "Recolher" : "Ver Detalhes"}
+                            </span>
                           </div>
                         )}
+                        <div className="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider bg-red-50 text-[#e31e24] px-2.5 py-1 rounded-full">Social</span>
+                            <h3 className="text-xl font-serif font-bold text-gray-800 mt-2">{item.titulo}</h3>
+                            {item.subtitulo && <p className="text-xs font-semibold text-red-600">{item.subtitulo}</p>}
+                            <p className="text-gray-600 text-sm mt-3 leading-relaxed">{item.descricao}</p>
+                          </div>
+
+                          {isOpen && (
+                            <div className="pt-4 mt-4 border-t border-red-100 space-y-3 bg-red-50/40 p-4 rounded-2xl animate-fadeIn">
+                              {item.unidades_escolas && (
+                                <div className="text-xs text-gray-700 space-y-1">
+                                  <p className="text-red-900 font-bold flex items-center gap-1">
+                                    <CheckCircle2 className="w-3.5 h-3.5" /> Projetos Relacionados:
+                                  </p>
+                                  <p className="pl-4">{item.unidades_escolas}</p>
+                                </div>
+                              )}
+                              {item.telefone && (
+                                <div className="text-xs text-gray-700 flex items-center gap-1.5 pt-1">
+                                  <Phone className="w-3.5 h-3.5 text-[#e31e24]" />
+                                  <span className="font-semibold">{item.telefone}</span>
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {!isOpen && (
+                            <div className="pt-3 text-xs text-[#e31e24] font-bold flex items-center gap-1">
+                              Clique para ver mais informações &rarr;
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             )}
@@ -221,37 +329,49 @@ export default function ObrasMissoes() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {casas.map(casa => (
-                  <div key={casa.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
-                    {casa.foto_url && (
-                      <div className="h-52 overflow-hidden bg-gray-100">
-                        <img src={casa.foto_url} alt={casa.nome_casa} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                      </div>
-                    )}
-                    <div className="p-7 space-y-4 flex-1 flex flex-col justify-between">
-                      <div className="space-y-2">
-                        <span className="text-xs font-bold text-[#c5a059] bg-[#c5a059]/10 px-3 py-1 rounded-full inline-block">
-                          {casa.cidade_estado}
-                        </span>
-                        <h3 className="text-xl font-serif font-bold text-[#005a8d]">{casa.nome_casa}</h3>
-                        {casa.descricao_breve && <p className="text-gray-600 text-sm leading-relaxed">{casa.descricao_breve}</p>}
-                      </div>
+                {casasList.map(casa => {
+                  const isOpen = itemExpandido === `casa-${casa.id}`;
+                  return (
+                    <div 
+                      key={casa.id} 
+                      onClick={() => setItemExpandido(isOpen ? null : `casa-${casa.id}`)}
+                      className={`bg-white rounded-3xl shadow-sm border transition-all duration-300 overflow-hidden flex flex-col justify-between cursor-pointer ${
+                        isOpen ? "border-[#c5a059] ring-2 ring-[#c5a059]/20 shadow-md" : "border-gray-100 hover:border-amber-200"
+                      }`}
+                    >
+                      {casa.foto_url && (
+                        <div className="h-52 overflow-hidden bg-gray-100 relative">
+                          <img src={casa.foto_url} alt={casa.nome_casa} className="w-full h-full object-cover" />
+                          <span className="absolute top-3 right-3 bg-[#c5a059] text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow">
+                            {isOpen ? "Recolher" : "Ver Contato"}
+                          </span>
+                        </div>
+                      )}
+                      <div className="p-7 space-y-4 flex-1 flex flex-col justify-between">
+                        <div className="space-y-2">
+                          <span className="text-xs font-bold text-[#c5a059] bg-[#c5a059]/10 px-3 py-1 rounded-full inline-block">
+                            {casa.cidade_estado}
+                          </span>
+                          <h3 className="text-xl font-serif font-bold text-[#005a8d]">{casa.nome_casa}</h3>
+                          {casa.descricao_breve && <p className="text-gray-600 text-sm leading-relaxed">{casa.descricao_breve}</p>}
+                        </div>
 
-                      <div className="space-y-2 pt-4 border-t border-gray-100 text-xs text-gray-500 font-medium">
-                        <p className="flex items-start gap-2">
-                          <MapPin className="w-4 h-4 text-[#c5a059] shrink-0 mt-0.5" /> 
-                          <span>{casa.endereco}</span>
-                        </p>
-                        {casa.telefone && (
-                          <p className="flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-[#c5a059] shrink-0" /> 
-                            <span>{casa.telefone}</span>
+                        <div className="space-y-2 pt-4 border-t border-gray-100 text-xs text-gray-500 font-medium">
+                          <p className="flex items-start gap-2">
+                            <MapPin className="w-4 h-4 text-[#c5a059] shrink-0 mt-0.5" /> 
+                            <span>{casa.endereco}</span>
                           </p>
-                        )}
+                          {casa.telefone && (
+                            <p className="flex items-center gap-2">
+                              <Phone className="w-4 h-4 text-[#c5a059] shrink-0" /> 
+                              <span className="font-semibold text-gray-700">{casa.telefone}</span>
+                            </p>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
