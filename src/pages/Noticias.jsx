@@ -62,9 +62,9 @@ export default function Noticias() {
                   </div>
                 )}
 
-                {/* Renderiza o texto rico formatado e imagens inseridas no corpo */}
+                {/* Adicionado 'text-justify' para alinhar e justificar todo o texto do corpo da notícia */}
                 <div 
-                  className="prose prose-blue max-w-none text-gray-700 leading-relaxed space-y-4"
+                  className="prose prose-blue max-w-none text-gray-700 leading-relaxed text-justify space-y-4"
                   dangerouslySetInnerHTML={{ __html: item.conteudo }}
                 />
               </article>
