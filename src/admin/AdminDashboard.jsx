@@ -70,6 +70,16 @@ export default function AdminDashboard({ onLogout }) {
     setLoading(false);
   }
 
+  function handleSair() {
+    sessionStorage.removeItem("irimep_painel_logado");
+    sessionStorage.removeItem("irimep_auth");
+    if (onLogout) {
+      onLogout();
+    } else {
+      window.location.reload();
+    }
+  }
+
   // Upload integrado usando o bucket "images"
   async function handleImageUpload(e, callbackUrlSetter) {
     const file = e.target.files[0];
@@ -217,7 +227,7 @@ export default function AdminDashboard({ onLogout }) {
           </div>
         </div>
         <button 
-          onClick={onLogout}
+          onClick={handleSair}
           className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2.5 rounded-2xl font-bold text-sm transition-colors border border-red-100"
         >
           <LogOut className="w-4 h-4" /> Sair do Painel
