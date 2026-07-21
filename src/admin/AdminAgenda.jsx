@@ -1,13 +1,8 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Plus, Trash2, Calendar, Lock, LogOut, CheckCircle2 } from "lucide-react";
+import { Loader2, Plus, Trash2, Calendar, LogOut, CheckCircle2, KeyRound } from "lucide-react";
 
 export default function AdminAgenda({ onLogout }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [senhaInput, setSenhaInput] = useState("");
-  const [erroLogin, setErroLogin] = useState(false);
-  const [carregandoLogin, setCarregandoLogin] = useState(false);
-
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [agendaList, setAgendaList] = useState([]);
@@ -28,55 +23,24 @@ export default function AdminAgenda({ onLogout }) {
   });
 
   useEffect(() => {
-    const auth = sessionStorage.getItem("irimep_agenda_auth");
-    if (auth === "true") {
-      setIsAuthenticated(true);
-      fetchAgenda();
-    }
+    fetchAgenda();
   }, []);
-
-  async function handleLogin(e) {
-    e.preventDefault();
-    setCarregandoLogin(true);
-    setErroLogin(false);
-
-    try {
-      // Busca a senha cadastrada no Supabase para a agenda
-      const { data, error } = await supabase
-        .from("configuracoes_acesso")
-        .select("senha")
-        .eq("perfil", "agenda")
-        .single();
-
-      if (error || !data) {
-        setErroLogin(true);
-      } else if (senhaInput === data.senha) {
-        sessionStorage.setItem("irimep_agenda_auth", "true");
-        setIsAuthenticated(true);
-        fetchAgenda();
-      } else {
-        setErroLogin(true);
-        setSenhaInput("");
-      }
-    } catch (err) {
-      console.error("Erro no login:", err);
-      setErroLogin(true);
-    }
-    setCarregandoLogin(false);
-  }
-
-  function handleSair() {
-    sessionStorage.removeItem("irimep_painel_logado");
-    sessionStorage.removeItem("irimep_agenda_auth");
-    if (onLogout) onLogout();
-    window.location.reload(); // Força o reset completo da tela
-  }
 
   async function fetchAgenda() {
     setLoading(true);
     const { data } = await supabase.from("agenda_eventos").select("*").order("data_evento");
     if (data) setAgendaList(data);
     setLoading(false);
+  }
+
+  function handleSair() {
+    sessionStorage.removeItem("irimep_painel_logado");
+    sessionStorage.removeItem("irimep_agenda_auth");
+    if (onLogout) {
+      onLogout();
+    } else {
+      window.location.reload();
+    }
   }
 
   async function handleAddEvento(e) {
@@ -133,56 +97,6 @@ export default function AdminAgenda({ onLogout }) {
     setTimeout(() => setSuccess(false), 3000);
   }
 
-  // --- TELA DE LOGIN DA AGENDA ---
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
-        <div className="max-w-md w-full bg-white p-8 sm:p-10 rounded-3xl shadow-sm border border-gray-100 text-center">
-          <div className="w-16 h-16 bg-[#005a8d]/10 text-[#005a8d] rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <Calendar className="w-8 h-8" />
-          </div>
-          
-          <h1 className="text-2xl font-serif font-bold text-[#005a8d] mb-2">Painel da Agenda</h1>
-          <p className="text-gray-500 text-sm mb-8">Digite a senha para gerenciar a agenda e eventos.</p>
-
-          {erroLogin && (
-            <div className="bg-red-50 text-red-600 p-3.5 rounded-xl mb-6 text-sm font-medium border border-red-100">
-              Senha incorreta. Tente novamente.
-            </div>
-          )}
-
-          <form onSubmit={handleLogin} className="space-y-4 text-left">
-            <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Senha de Acesso</label>
-              <div className="relative">
-                <span className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                  <Lock className="w-4 h-4" />
-                </span>
-                <input 
-                  type="password" 
-                  placeholder="Digite a senha..."
-                  value={senhaInput}
-                  onChange={e => { setSenhaInput(e.target.value); setErroLogin(false); }}
-                  required
-                  className="w-full pl-11 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-[#005a8d] focus:bg-white transition-all text-sm"
-                />
-              </div>
-            </div>
-
-            <button 
-              type="submit" 
-              disabled={carregandoLogin}
-              className="w-full bg-[#005a8d] hover:bg-[#004068] text-white font-bold py-3.5 rounded-2xl transition-colors shadow-sm text-sm flex items-center justify-center gap-2"
-            >
-              {carregandoLogin ? <Loader2 className="w-5 h-5 animate-spin" /> : "Entrar no Painel da Agenda"}
-            </button>
-          </form>
-        </div>
-      </div>
-    );
-  }
-
-  // --- PAINEL DE GERENCIAMENTO DA AGENDA ---
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -194,11 +108,11 @@ export default function AdminAgenda({ onLogout }) {
           </div>
         </div>
         <button 
-           onClick={handleSair}
-           className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2.5 rounded-2xl font-bold text-sm transition-colors border border-red-100"
+          onClick={handleSair}
+          className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2.5 rounded-2xl font-bold text-sm transition-colors border border-red-100"
         >
           <LogOut className="w-4 h-4" /> Sair
-         </button>
+        </button>
       </div>
 
       <div className="bg-white p-6 sm:p-10 rounded-3xl shadow-sm border border-gray-100 space-y-8">
@@ -285,7 +199,10 @@ export default function AdminAgenda({ onLogout }) {
 
         {/* Seção de Alterar Senha */}
         <div className="bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4 pt-6 mt-10">
-          <h3 className="text-xl font-serif font-bold text-[#005a8d]">Alterar Senha da Agenda</h3>
+          <div className="flex items-center gap-2">
+            <KeyRound className="w-6 h-6 text-[#005a8d]" />
+            <h3 className="text-xl font-serif font-bold text-[#005a8d]">Alterar Senha da Agenda</h3>
+          </div>
           
           {sucessoSenha && (
             <div className="bg-emerald-50 text-emerald-700 p-3.5 rounded-xl text-sm font-medium flex items-center gap-2">
