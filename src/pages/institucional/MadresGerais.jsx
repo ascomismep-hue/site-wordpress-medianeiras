@@ -44,7 +44,7 @@ export default function MadresGerais() {
                   <div className="flex items-center gap-1.5 text-xs text-[#c5a059] font-bold mb-3 uppercase tracking-wider">
                     <Award className="w-4 h-4" /> Mandato: {madre.periodo_mandato}
                   </div>
-                  <p className="text-gray-600 text-sm leading-relaxed">{madre.biografia}</p>
+                  <p className="text-gray-600 text-sm leading-relaxed text-justify">{madre.biografia}</p>
                 </div>
               </div>
             </div>
