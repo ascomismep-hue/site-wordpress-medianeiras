@@ -1,14 +1,18 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User, Phone, LogOut } from "lucide-react";
-import Login from "./Login";
+import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User, Phone, LogOut, KeyRound } from "lucide-react";
 
-export default function AdminDashboard() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState("sobre");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  // Estados de Alteração de Senha
+  const [senhaAtual, setSenhaAtual] = useState("");
+  const [novaSenha, setNovaSenha] = useState("");
+  const [sucessoSenha, setSucessoSenha] = useState(false);
+  const [erroSenha, setErroSenha] = useState("");
 
   // Estados dos dados
   const [sobreData, setSobreData] = useState({ id: 1, historia: "", linha_do_tempo: [] });
@@ -27,17 +31,10 @@ export default function AdminDashboard() {
   const [gracasList, setGracasList] = useState([]);
 
   useEffect(() => {
-    const auth = sessionStorage.getItem("irimep_auth");
-    if (auth === "true") {
-      setIsAuthenticated(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isAuthenticated) {
+    if (activeTab !== "senha") {
       fetchTabData(activeTab);
     }
-  }, [activeTab, isAuthenticated]);
+  }, [activeTab]);
 
   async function fetchTabData(tab) {
     setLoading(true);
@@ -71,16 +68,6 @@ export default function AdminDashboard() {
       console.error("Erro ao buscar dados:", err);
     }
     setLoading(false);
-  }
-
-  function handleLogout() {
-    sessionStorage.removeItem("irimep_auth");
-    setIsAuthenticated(false);
-  }
-
-  // Se não estiver logado, mostra a tela de login
-  if (!isAuthenticated) {
-    return <Login onLoginSuccess={() => setIsAuthenticated(true)} />;
   }
 
   // Upload integrado usando o bucket "images"
@@ -174,6 +161,36 @@ export default function AdminDashboard() {
     }
   }
 
+  async function handleAlterarSenha(e) {
+    e.preventDefault();
+    setErroSenha("");
+
+    const { data, error: fetchError } = await supabase
+      .from("configuracoes_acesso")
+      .select("senha")
+      .eq("perfil", "institucional")
+      .single();
+
+    if (fetchError || !data || data.senha !== senhaAtual) {
+      setErroSenha("A senha atual está incorreta.");
+      return;
+    }
+
+    const { error: updateError } = await supabase
+      .from("configuracoes_acesso")
+      .update({ senha: novaSenha })
+      .eq("perfil", "institucional");
+
+    if (!updateError) {
+      setSucessoSenha(true);
+      setSenhaAtual("");
+      setNovaSenha("");
+      setTimeout(() => setSucessoSenha(false), 4000);
+    } else {
+      setErroSenha("Erro ao atualizar a senha no banco.");
+    }
+  }
+
   function triggerSuccess() {
     setSuccess(true);
     setTimeout(() => setSuccess(false), 3000);
@@ -186,6 +203,7 @@ export default function AdminDashboard() {
     { id: "memorial", label: "Memorial" },
     { id: "domcampelo", label: "Causa Dom Campelo" },
     { id: "gracas", label: "Graças Alcançadas" },
+    { id: "senha", label: "Alterar Senha" },
   ];
 
   return (
@@ -199,7 +217,7 @@ export default function AdminDashboard() {
           </div>
         </div>
         <button 
-          onClick={handleLogout}
+          onClick={onLogout}
           className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2.5 rounded-2xl font-bold text-sm transition-colors border border-red-100"
         >
           <LogOut className="w-4 h-4" /> Sair do Painel
@@ -239,7 +257,7 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {loading ? (
+          {loading && activeTab !== "senha" ? (
             <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#005a8d]" /></div>
           ) : (
             <>
@@ -454,6 +472,56 @@ export default function AdminDashboard() {
                     ))}
                     {gracasList.length === 0 && <p className="text-gray-500 text-center py-8">Nenhum relato enviado ainda.</p>}
                   </div>
+                </div>
+              )}
+
+              {/* ALTERAR SENHA */}
+              {activeTab === "senha" && (
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <KeyRound className="w-7 h-7 text-[#005a8d]" />
+                    <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Alterar Senha do Painel Institucional</h2>
+                  </div>
+
+                  {sucessoSenha && (
+                    <div className="bg-emerald-50 text-emerald-700 p-4 rounded-2xl flex items-center gap-2 font-medium">
+                      <CheckCircle2 className="w-5 h-5 shrink-0" /> Senha alterada com sucesso no Supabase!
+                    </div>
+                  )}
+
+                  {erroSenha && (
+                    <div className="bg-red-50 text-red-600 p-4 rounded-2xl font-medium border border-red-100">
+                      {erroSenha}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleAlterarSenha} className="bg-gray-50 p-6 sm:p-8 rounded-3xl border border-gray-200 space-y-4 max-w-xl">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 mb-1">Senha Atual</label>
+                      <input 
+                        type="password" 
+                        required 
+                        placeholder="Digite a senha atual" 
+                        value={senhaAtual} 
+                        onChange={e => setSenhaAtual(e.target.value)} 
+                        className="w-full p-3.5 rounded-xl border border-gray-300 bg-white text-sm"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 mb-1">Nova Senha</label>
+                      <input 
+                        type="password" 
+                        required 
+                        placeholder="Digite a nova senha" 
+                        value={novaSenha} 
+                        onChange={e => setNovaSenha(e.target.value)} 
+                        className="w-full p-3.5 rounded-xl border border-gray-300 bg-white text-sm"
+                      />
+                    </div>
+                    <button type="submit" className="bg-[#005a8d] hover:bg-[#004068] text-white px-6 py-3.5 rounded-xl font-bold text-sm transition-colors shadow-sm">
+                      Atualizar Senha
+                    </button>
+                  </form>
                 </div>
               )}
             </>
