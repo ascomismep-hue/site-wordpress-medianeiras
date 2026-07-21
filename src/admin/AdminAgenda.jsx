@@ -28,7 +28,12 @@ export default function AdminAgenda({ onLogout }) {
 
   async function fetchAgenda() {
     setLoading(true);
-    const { data } = await supabase.from("agenda_eventos").select("*").order("data_evento");
+    // Traz os eventos ordenados cronologicamente
+    const { data } = await supabase
+      .from("agenda_eventos")
+      .select("*")
+      .order("data_evento", { ascending: true });
+    
     if (data) setAgendaList(data);
     setLoading(false);
   }
@@ -97,6 +102,11 @@ export default function AdminAgenda({ onLogout }) {
     setTimeout(() => setSuccess(false), 3000);
   }
 
+  // Calcula a data de 1 ano atrás para travar o input de data no painel (opcional mas recomendado)
+  const umAnoAtras = new Date();
+  umAnoAtras.setFullYear(umAnoAtras.getFullYear() - 1);
+  const dataMinima = umAnoAtras.toISOString().split('T')[0];
+
   return (
     <div className="max-w-5xl mx-auto px-4 py-12">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -142,7 +152,14 @@ export default function AdminAgenda({ onLogout }) {
 
             <div>
               <label className="block text-xs font-bold text-gray-500 mb-1">Data do Evento</label>
-              <input type="date" required value={novoEvento.data_evento} onChange={e => setNovoEvento({...novoEvento, data_evento: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+              <input 
+                type="date" 
+                required 
+                min={dataMinima} // Impede datas com mais de 1 ano no passado
+                value={novoEvento.data_evento} 
+                onChange={e => setNovoEvento({...novoEvento, data_evento: e.target.value})} 
+                className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" 
+              />
             </div>
 
             <div>
@@ -166,7 +183,7 @@ export default function AdminAgenda({ onLogout }) {
           </button>
         </form>
 
-        {/* Listagem */}
+        {/* Listagem Ordenada Cronologicamente */}
         <div>
           <h3 className="font-bold text-lg text-[#005a8d] mb-4">Eventos Cadastrados ({agendaList.length})</h3>
           
