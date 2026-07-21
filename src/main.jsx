@@ -2,13 +2,15 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 
-// Injeção de estilo global direto para garantir que o site nunca perca as cores e o layout no GitHub Pages
+// Importação da fonte Montserrat e injeção de estilo global para o GitHub Pages
 const styleSheet = document.createElement("style");
-styleSheet.innerText = `
+styleSheet.innerHTML = `
+  @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
   body {
     background-color: #fcfbf9;
     color: #2d3748;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: 'Montserrat', sans-serif !important;
     margin: 0;
     padding: 0;
   }
