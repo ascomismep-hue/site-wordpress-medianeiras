@@ -18,7 +18,7 @@ export default function Navbar() {
           {/* Menu Desktop */}
           <nav className="hidden md:flex items-center gap-8 font-medium text-gray-700">
             <Link to="/" className="hover:text-[#005a8d] transition-colors">Início</Link>
-            <Link to="/quem-somos" className="hover:text-[#005a8d] transition-colors">Quem Somos</Link>
+            <Link to="/institucional" className="hover:text-[#005a8d] transition-colors">Institucional</Link>
             <Link to="/agenda" className="hover:text-[#005a8d] transition-colors">Agenda</Link>
             <Link to="/obras-e-missoes" className="hover:text-[#005a8d] transition-colors">Obras e Missões</Link>
             <Link to="/vocacional" className="hover:text-[#005a8d] transition-colors">Vocacional</Link>
@@ -40,7 +40,7 @@ export default function Navbar() {
       {isOpen && (
         <div className="md:hidden bg-white border-b border-gray-200 px-4 pt-2 pb-6 space-y-3">
           <Link to="/" onClick={() => setIsOpen(false)} className="block py-2 text-gray-700 font-medium">Início</Link>
-          <Link to="/quem-somos" onClick={() => setIsOpen(false)} className="block py-2 text-gray-700 font-medium">Quem Somos</Link>
+          <Link to="/institucional" onClick={() => setIsOpen(false)} className="block py-2 text-gray-700 font-medium">Quem Somos</Link>
           <Link to="/agenda" onClick={() => setIsOpen(false)} className="block py-2 text-gray-700 font-medium">Agenda</Link>
           <Link to="/obras-e-missoes" onClick={() => setIsOpen(false)} className="block py-2 text-gray-700 font-medium">Obras e Missões</Link>
           <Link to="/vocacional" onClick={() => setIsOpen(false)} className="block py-2 text-gray-700 font-medium">Vocacional</Link>
