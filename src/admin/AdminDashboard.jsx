@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User } from "lucide-react";
+import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User, Phone } from "lucide-react";
 
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("sobre");
@@ -408,7 +408,15 @@ export default function AdminDashboard() {
                         <div className="flex justify-between items-start">
                           <div>
                             <h3 className="font-bold text-[#005a8d]">{item.nome_devoto}</h3>
-                            <p className="text-xs text-gray-500">{item.cidade_estado} • {new Date(item.data_envio).toLocaleDateString()}</p>
+                            <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
+                              {item.telefone && (
+                                <span className="flex items-center gap-1 font-medium text-[#005a8d]">
+                                  <Phone className="w-3.5 h-3.5" /> {item.telefone}
+                                </span>
+                              )}
+                              <span>{item.cidade_estado}</span>
+                              <span>• {new Date(item.data_envio).toLocaleDateString()}</span>
+                            </div>
                           </div>
                           <button onClick={() => handleDelete("gracas_dom_campelo", item.id, "gracas")} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
                         </div>
