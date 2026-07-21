@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
-import { ChevronRight, Calendar, Heart, ArrowRight, Loader2, Sparkles, Church, Users, GraduationCap, Stethoscope, Clock, MapPin } from "lucide-react";
+import { ChevronRight, Calendar, Heart, ArrowRight, Loader2, Sparkles, Church, Users, GraduationCap, Stethoscope, Clock, MapPin, Phone, ChevronLeft } from "lucide-react";
 
 export default function Home() {
   const [banners, setBanners] = useState([]);
   const [eventosHome, setEventosHome] = useState([]);
+  const [casasMissao, setCasasMissao] = useState([]);
+  
   const [loadingBanners, setLoadingBanners] = useState(true);
   const [loadingEventos, setLoadingEventos] = useState(true);
+  const [loadingCasas, setLoadingCasas] = useState(true);
+
+  // Estado para controlar o carrossel de Casas de Missão
+  const [indiceCarrossel, setIndiceCarrossel] = useState(0);
 
   useEffect(() => {
     async function fetchBanners() {
@@ -18,9 +24,7 @@ export default function Home() {
           .eq("active", true)
           .order("order", { ascending: true });
         
-        if (data && !error) {
-          setBanners(data);
-        }
+        if (data && !error) setBanners(data);
       } catch (err) {
         console.error("Erro ao buscar banners:", err);
       } finally {
@@ -38,9 +42,7 @@ export default function Home() {
           .order("data_evento", { ascending: true })
           .limit(6);
 
-        if (data && !error) {
-          setEventosHome(data);
-        }
+        if (data && !error) setEventosHome(data);
       } catch (err) {
         console.error("Erro ao buscar eventos:", err);
       } finally {
@@ -48,8 +50,24 @@ export default function Home() {
       }
     }
 
+    async function fetchCasasMissao() {
+      try {
+        const { data, error } = await supabase
+          .from("casas_missao")
+          .select("*")
+          .order("ordem", { ascending: true });
+
+        if (data && !error) setCasasMissao(data);
+      } catch (err) {
+        console.error("Erro ao buscar casas de missão:", err);
+      } finally {
+        setLoadingCasas(false);
+      }
+    }
+
     fetchBanners();
     fetchEventosFuturos();
+    fetchCasasMissao();
   }, []);
 
   function isSemanaAtual(dataStr) {
@@ -66,6 +84,15 @@ export default function Home() {
 
     return dataEvento >= primeiroDia && dataEvento <= ultimoDia;
   }
+
+  // Controles do Carrossel de Casas de Missão
+  const proximaCasa = () => {
+    setIndiceCarrossel((prev) => (prev + 1) % casasMissao.length);
+  };
+
+  const casaAnterior = () => {
+    setIndiceCarrossel((prev) => (prev - 1 + casasMissao.length) % casasMissao.length);
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfbf9]">
@@ -213,6 +240,89 @@ export default function Home() {
               Quero saber mais <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
+        </div>
+      </section>
+
+      {/* Seção: Carrossel de Casas de Missão */}
+      <section className="bg-gradient-to-br from-[#002845] to-[#004068] text-white py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+            <div>
+              <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">Presença Missionária</span>
+              <h2 className="text-3xl font-serif font-bold text-white">Casas de Missão</h2>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link 
+                to="/obras-e-missoes" 
+                className="text-xs font-bold text-[#c5a059] hover:underline mr-4"
+              >
+                Ver Todas &rarr;
+              </Link>
+              {casasMissao.length > 1 && (
+                <div className="flex gap-2">
+                  <button 
+                    onClick={casaAnterior}
+                    className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-colors"
+                    title="Anterior"
+                  >
+                    <ChevronLeft className="w-5 h-5 text-white" />
+                  </button>
+                  <button 
+                    onClick={proximaCasa}
+                    className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-colors"
+                    title="Próxima"
+                  >
+                    <ChevronRight className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {loadingCasas ? (
+            <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-[#c5a059]" /></div>
+          ) : casasMissao.length === 0 ? (
+            <div className="text-center py-12 bg-white/5 rounded-3xl border border-white/10 text-white/70">
+              Nenhuma casa de missão cadastrada no momento.
+            </div>
+          ) : (
+            <div className="bg-white/10 border border-white/15 rounded-3xl p-6 sm:p-10 backdrop-blur-md shadow-xl grid md:grid-cols-2 gap-8 items-center animate-fadeIn">
+              {casasMissao[indiceCarrossel].foto_url && (
+                <div className="h-64 sm:h-80 rounded-2xl overflow-hidden bg-black/20 shadow-inner">
+                  <img 
+                    src={casasMissao[indiceCarrossel].foto_url} 
+                    alt={casasMissao[indiceCarrossel].nome_casa} 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              <div className="space-y-4">
+                <span className="text-xs font-bold text-[#c5a059] bg-[#c5a059]/20 px-3 py-1 rounded-full inline-block uppercase tracking-wider">
+                  {casasMissao[indiceCarrossel].cidade_estado}
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-serif font-bold text-white">
+                  {casasMissao[indiceCarrossel].nome_casa}
+                </h3>
+                {casasMissao[indiceCarrossel].descricao_breve && (
+                  <p className="text-white/80 text-sm leading-relaxed">
+                    {casasMissao[indiceCarrossel].descricao_breve}
+                  </p>
+                )}
+                <div className="pt-4 border-t border-white/10 space-y-2 text-xs text-white/90">
+                  <p className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-[#c5a059] shrink-0 mt-0.5" />
+                    <span>{casasMissao[indiceCarrossel].endereco}</span>
+                  </p>
+                  {casasMissao[indiceCarrossel].telefone && (
+                    <p className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-[#c5a059] shrink-0" />
+                      <span className="font-semibold">{casasMissao[indiceCarrossel].telefone}</span>
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
