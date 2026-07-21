@@ -20,7 +20,7 @@ export default function Footer() {
         <div>
           <h4 className="font-serif text-lg font-bold text-[#c5a059] mb-4">Navegação</h4>
           <ul className="space-y-2 text-sm text-white/80">
-            <li><Link to="/quem-somos" className="hover:text-[#c5a059] transition-colors">Quem Somos</Link></li>
+            <li><Link to="/institucional" className="hover:text-[#c5a059] transition-colors">institucional</Link></li>
             <li><Link to="/agenda" className="hover:text-[#c5a059] transition-colors">Agenda e Eventos</Link></li>
             <li><Link to="/obras-e-missoes" className="hover:text-[#c5a059] transition-colors">Obras e Missões</Link></li>
             <li><Link to="/vocacional" className="hover:text-[#c5a059] transition-colors">Caminho Vocacional</Link></li>
