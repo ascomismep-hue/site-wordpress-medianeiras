@@ -24,17 +24,19 @@ export default function SobreNos() {
         <div className="w-24 h-1 bg-[#c5a059] mx-auto rounded"></div>
       </div>
 
-      <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 mb-12 leading-relaxed text-gray-700">
+      <div className="bg-white p-8 sm:p-12 rounded-3xl shadow-sm border border-gray-100 mb-12 text-gray-700">
         <div className="flex items-center gap-3 mb-6">
           <Church className="w-8 h-8 text-[#005a8d]" />
           <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Nossa História</h2>
         </div>
-        <p className="whitespace-pre-line text-lg">{data?.historia || "História do instituto em breve."}</p>
+        <p className="whitespace-pre-line text-lg leading-relaxed text-justify">
+          {data?.historia || "História do instituto em breve."}
+        </p>
       </div>
 
       {data?.linha_do_tempo && data.linha_do_tempo.length > 0 && (
-        <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
-          <div className="flex items-center gap-3 mb-6">
+        <div className="bg-white p-8 sm:p-12 rounded-3xl shadow-sm border border-gray-100">
+          <div className="flex items-center gap-3 mb-8">
             <Calendar className="w-8 h-8 text-[#005a8d]" />
             <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Linha do Tempo</h2>
           </div>
@@ -42,9 +44,9 @@ export default function SobreNos() {
             {data.linha_do_tempo.map((item, index) => (
               <div key={index} className="relative">
                 <span className="absolute -left-[31px] top-1.5 w-4 h-4 bg-[#c5a059] rounded-full border-4 border-white"></span>
-                <span className="text-sm font-bold text-[#c5a059]">{item.ano}</span>
+                <span className="text-sm font-bold text-[#c5a059] uppercase tracking-wider">{item.ano}</span>
                 <h3 className="text-lg font-bold text-[#005a8d]">{item.titulo}</h3>
-                <p className="text-gray-600 text-sm mt-1">{item.descricao}</p>
+                <p className="text-gray-600 text-sm mt-1 leading-relaxed text-justify">{item.descricao}</p>
               </div>
             ))}
           </div>
