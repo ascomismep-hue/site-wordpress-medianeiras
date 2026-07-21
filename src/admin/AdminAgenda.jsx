@@ -65,13 +65,11 @@ export default function AdminAgenda({ onLogout }) {
     setCarregandoLogin(false);
   }
 
-  function handleLogoutApp() {
+  function handleSair() {
+    sessionStorage.removeItem("irimep_painel_logado");
     sessionStorage.removeItem("irimep_agenda_auth");
-    if (onLogout) {
-      onLogout();
-    } else {
-      setIsAuthenticated(false);
-    }
+    if (onLogout) onLogout();
+    window.location.reload(); // Força o reset completo da tela
   }
 
   async function fetchAgenda() {
@@ -196,11 +194,11 @@ export default function AdminAgenda({ onLogout }) {
           </div>
         </div>
         <button 
-          onClick={handleLogoutApp}
-          className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2.5 rounded-2xl font-bold text-sm transition-colors border border-red-100"
+           onClick={handleSair}
+           className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2.5 rounded-2xl font-bold text-sm transition-colors border border-red-100"
         >
           <LogOut className="w-4 h-4" /> Sair
-        </button>
+         </button>
       </div>
 
       <div className="bg-white p-6 sm:p-10 rounded-3xl shadow-sm border border-gray-100 space-y-8">
