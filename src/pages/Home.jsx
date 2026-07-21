@@ -32,6 +32,19 @@ export default function Home() {
       }
     }
 
+    // Efeito para o carrossel rodar automaticamente a cada 10 segundos
+  useEffect(() => {
+    if (casasMissao.length <= 1) return;
+
+    const intervalo = setInterval(() => {
+      setIndiceCarrossel((prev) => (prev + 1) % casasMissao.length);
+    }, 10000); // 10000 ms = 10 segundos
+
+    return () => clearInterval(intervalo); // Limpa o timer ao sair da página
+  }, [casasMissao.length]);
+      }
+    }
+
     async function fetchEventosFuturos() {
       try {
         const hoje = new Date().toISOString().split('T')[0];
