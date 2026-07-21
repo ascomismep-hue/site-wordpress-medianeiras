@@ -44,7 +44,7 @@ export default function Memorial() {
                   <div className="flex items-center gap-1.5 text-xs text-[#c5a059] font-medium mb-3">
                     <Heart className="w-4 h-4 fill-current" /> {irma.data_nascimento} - {irma.data_falecimento}
                   </div>
-                  <p className="text-gray-600 text-sm leading-relaxed">{irma.biografia_breve}</p>
+                  <p className="text-gray-600 text-sm leading-relaxed text-justify">{irma.biografia_breve}</p>
                 </div>
               </div>
             </div>
