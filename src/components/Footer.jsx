@@ -10,7 +10,6 @@ export default function Footer() {
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <img src="/icone.png" alt="Ícone IRIMEP" className="h-12 w-auto object-contain" />
-            <span className="font-serif font-bold text-xl text-[#c5a059]">IRIMEP</span>
           </div>
           <p className="text-sm text-white/80 leading-relaxed">
             Instituto Religioso das Irmãs Medianeiras da Paz. Consagradas à paz, à oração e ao serviço em prol da comunidade e da evangelização.
