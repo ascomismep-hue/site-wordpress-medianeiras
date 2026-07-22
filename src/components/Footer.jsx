@@ -15,7 +15,7 @@ export default function Footer() {
               <img 
                 src="/logo.png" 
                 alt="IRIMEP Logo" 
-                className="w-28 h-28 object-contain filter brightness-0 invert hover:opacity-90 transition-opacity" 
+                className="w-32 h-32 object-contain filter brightness-0 invert hover:opacity-90 transition-opacity" 
               />
             </RouterLink>
             <p className="text-white/75 text-xs leading-relaxed max-w-xs">
