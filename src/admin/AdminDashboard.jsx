@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User, Phone, LogOut, KeyRound } from "lucide-react";
+import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User, Phone, LogOut, KeyRound, Mail, MessageSquare } from "lucide-react";
 
 export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState("sobre");
@@ -29,6 +29,10 @@ export default function AdminDashboard({ onLogout }) {
 
   const [domCampeloData, setDomCampeloData] = useState({ id: 1, foto_url: "", historia_biografia: "", sobre_a_causa: "" });
   const [gracasList, setGracasList] = useState([]);
+
+  // Estado para as Mensagens de Contato
+  const [mensagensList, setMensagensList] = useState([]);
+  const [mensagemSelecionada, setMensagemSelecionada] = useState(null);
 
   useEffect(() => {
     if (activeTab !== "senha") {
@@ -63,6 +67,14 @@ export default function AdminDashboard({ onLogout }) {
       } else if (tab === "gracas") {
         const { data } = await supabase.from("gracas_dom_campelo").select("*").order("data_envio", { ascending: false });
         if (data) setGracasList(data);
+      } else if (tab === "contatos") {
+        const { data } = await supabase.from("mensagens_contato").select("*").order("data_envio", { ascending: false });
+        if (data) {
+          setMensagensList(data);
+          if (data.length > 0 && !mensagemSelecionada) {
+            setMensagemSelecionada(data[0]);
+          }
+        }
       }
     } catch (err) {
       console.error("Erro ao buscar dados:", err);
@@ -167,6 +179,9 @@ export default function AdminDashboard({ onLogout }) {
   async function handleDelete(table, id, reloadTab) {
     if (window.confirm("Deseja realmente excluir este registro?")) {
       await supabase.from(table).delete().eq("id", id);
+      if (table === "mensagens_contato") {
+        setMensagemSelecionada(null);
+      }
       fetchTabData(reloadTab);
     }
   }
@@ -213,6 +228,7 @@ export default function AdminDashboard({ onLogout }) {
     { id: "memorial", label: "Memorial" },
     { id: "domcampelo", label: "Causa Dom Campelo" },
     { id: "gracas", label: "Graças Alcançadas" },
+    { id: "contatos", label: "Mensagens de Contato" },
     { id: "senha", label: "Alterar Senha" },
   ];
 
@@ -223,7 +239,7 @@ export default function AdminDashboard({ onLogout }) {
           <Shield className="w-8 h-8 text-[#005a8d]" />
           <div>
             <h1 className="text-3xl font-serif font-bold text-[#005a8d]">Painel Administrativo Unificado</h1>
-            <p className="text-gray-600 text-sm">Gerencie todo o conteúdo, fotos e históricos das páginas institucionais.</p>
+            <p className="text-gray-600 text-sm">Gerencie todo o conteúdo, fotos e mensagens institucionais.</p>
           </div>
         </div>
         <button 
@@ -481,6 +497,95 @@ export default function AdminDashboard({ onLogout }) {
                       </div>
                     ))}
                     {gracasList.length === 0 && <p className="text-gray-500 text-center py-8">Nenhum relato enviado ainda.</p>}
+                  </div>
+                </div>
+              )}
+
+              {/* MENSAGENS DE CONTATO */}
+              {activeTab === "contatos" && (
+                <div className="space-y-6">
+                  <div className="border-b pb-4">
+                    <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Mensagens de Contato</h2>
+                    <p className="text-gray-600 text-sm">Visualize e gerencie os recados enviados pela página de contato do site.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    {/* Lista à esquerda (4 colunas) */}
+                    <div className="lg:col-span-5 space-y-2 max-h-[500px] overflow-y-auto pr-1">
+                      {mensagensList.length === 0 ? (
+                        <p className="text-gray-500 text-xs text-center py-12">Nenhuma mensagem recebida.</p>
+                      ) : (
+                        mensagensList.map(item => (
+                          <div
+                            key={item.id}
+                            onClick={() => setMensagemSelecionada(item)}
+                            className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                              mensagemSelecionada?.id === item.id
+                                ? "bg-[#005a8d] text-white border-[#005a8d] shadow-sm"
+                                : "bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-800"
+                            }`}
+                          >
+                            <div className="flex justify-between items-start">
+                              <h4 className="font-bold text-sm truncate">{item.nome}</h4>
+                              <span className={`text-[10px] ${mensagemSelecionada?.id === item.id ? "text-white/80" : "text-gray-400"}`}>
+                                {new Date(item.data_envio).toLocaleDateString('pt-BR')}
+                              </span>
+                            </div>
+                            <p className={`text-xs font-semibold mt-1 truncate ${mensagemSelecionada?.id === item.id ? "text-[#c5a059]" : "text-[#005a8d]"}`}>
+                              {item.assunto}
+                            </p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Detalhes à direita (7 colunas) */}
+                    <div className="lg:col-span-7 bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-6">
+                      {mensagemSelecionada ? (
+                        <div className="space-y-4 animate-fadeIn">
+                          <div className="flex justify-between items-start border-b border-gray-200 pb-3">
+                            <div>
+                              <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">{mensagemSelecionada.assunto}</span>
+                              <h3 className="text-xl font-serif font-bold text-[#005a8d] mt-0.5">{mensagemSelecionada.nome}</h3>
+                            </div>
+                            <button
+                              onClick={() => handleDelete("mensagens_contato", mensagemSelecionada.id, "contatos")}
+                              className="bg-red-50 text-red-600 hover:bg-red-100 p-2 rounded-xl transition-colors border border-red-100 flex items-center gap-1 text-xs font-bold"
+                              title="Excluir mensagem"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" /> Excluir
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-white p-4 rounded-2xl border border-gray-200 text-gray-700">
+                            <div className="flex items-center gap-2">
+                              <Mail className="w-3.5 h-3.5 text-[#005a8d]" />
+                              <span><strong>E-mail:</strong> {mensagemSelecionada.email}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Phone className="w-3.5 h-3.5 text-[#005a8d]" />
+                              <span><strong>Telefone:</strong> {mensagemSelecionada.telefone || "Não informado"}</span>
+                            </div>
+                            <div className="flex items-center gap-2 sm:col-span-2">
+                              <Calendar className="w-3.5 h-3.5 text-[#005a8d]" />
+                              <span><strong>Data:</strong> {new Date(mensagemSelecionada.data_envio).toLocaleString('pt-BR')}</span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <h4 className="font-bold text-xs text-gray-700 uppercase tracking-wider">Conteúdo da Mensagem:</h4>
+                            <div className="bg-white p-4 rounded-2xl border border-gray-200 text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
+                              {mensagemSelecionada.mensagem}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="text-center py-16 space-y-2 text-gray-400">
+                          <MessageSquare className="w-10 h-10 mx-auto opacity-40" />
+                          <p className="text-sm font-medium">Selecione uma mensagem na lista ao lado.</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
