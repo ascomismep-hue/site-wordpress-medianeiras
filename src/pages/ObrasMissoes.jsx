@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Heart, Building2, MapPin, Phone, GraduationCap, Stethoscope, Users, Sparkles, CheckCircle2 } from "lucide-react";
+import { Loader2, Heart, Building2, MapPin, Phone, GraduationCap, Stethoscope, Users, Sparkles, CheckCircle2, Church } from "lucide-react";
 
 export default function ObrasMissoes() {
   const [abaAtiva, setAbaAtiva] = useState("obras"); // "obras" ou "casas"
@@ -8,8 +8,11 @@ export default function ObrasMissoes() {
   const [casasList, setCasasList] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Estado para controlar qual item está expandido para exibição detalhada dinâmica
+  // Estado para controlar qual obra está expandida na aba Obras Sociais
   const [itemExpandido, setItemExpandido] = useState(null);
+
+  // Estado para controlar o estado selecionado no Mapa Interativo
+  const [estadoSelecionado, setEstadoSelecionado] = useState("PE");
 
   useEffect(() => {
     fetchDados();
@@ -30,6 +33,19 @@ export default function ObrasMissoes() {
   const educacao = obrasList.filter(o => o.categoria === "educacao");
   const saude = obrasList.filter(o => o.categoria === "saude");
   const social = obrasList.filter(o => o.categoria === "social");
+
+  // Filtra as casas de missão de acordo com o estado selecionado no mapa
+  const casasFiltradas = casasList.filter(casa => {
+    if (!casa.cidade_estado) return false;
+    return casa.cidade_estado.toUpperCase().includes(estadoSelecionado);
+  });
+
+  const estadosInfo = {
+    PE: { nome: "Pernambuco" },
+    CE: { nome: "Ceará" },
+    BA: { nome: "Bahia" },
+    SE: { nome: "Sergipe" }
+  };
 
   return (
     <div className="min-h-screen bg-[#fcfbf9] pb-24">
@@ -123,7 +139,6 @@ export default function ObrasMissoes() {
                             <p className="text-gray-600 text-sm mt-3 leading-relaxed">{item.descricao}</p>
                           </div>
 
-                          {/* Seção Dinâmica Expandida */}
                           {isOpen && (
                             <div className="pt-4 mt-4 border-t border-blue-100 space-y-3 bg-blue-50/40 p-4 rounded-2xl animate-fadeIn">
                               {item.unidades_escolas && (
@@ -316,35 +331,117 @@ export default function ObrasMissoes() {
 
           </div>
         ) : (
-          /* ABA: CASAS DE MISSÃO */
-          <div className="space-y-8">
-            <div className="max-w-xl">
-              <h2 className="text-2xl font-serif font-bold text-[#005a8d] mb-1">Casas de Missão</h2>
-              <p className="text-gray-600 text-sm">Conheça as comunidades religiosas e frentes missionárias instaladas em diferentes regiões.</p>
+          /* ABA: CASAS DE MISSÃO COM MAPA INTERATIVO */
+          <div className="space-y-12">
+            
+            <div className="text-center max-w-xl mx-auto space-y-2">
+              <h2 className="text-3xl font-serif font-bold text-[#005a8d]">Casas de Missão por Estado</h2>
+              <p className="text-gray-600 text-sm">Clique em um dos estados destacados no mapa abaixo para visualizar as casas missionárias correspondentes.</p>
             </div>
 
-            {casasList.length === 0 ? (
-              <div className="text-center py-20 bg-white rounded-3xl border border-gray-100">
-                <p className="text-gray-500">Nenhuma casa de missão cadastrada no momento.</p>
+            {/* MAPA INTERATIVO DO NORDESTE EM SVG */}
+            <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center justify-center max-w-xl mx-auto">
+              <div className="w-full max-w-xs h-72 relative flex items-center justify-center">
+                <svg viewBox="0 0 500 550" className="w-full h-full drop-shadow-sm">
+                  
+                  {/* MA = Maranhão (Cinza / Inativo) */}
+                  <path d="M 30,20 Q 60,10 90,30 Q 110,60 100,100 Q 90,140 110,180 Q 130,220 120,260 Q 110,300 80,340 Q 60,370 40,350 Q 20,300 30,240 Q 40,150 30,20 Z" fill="#e5e7eb" stroke="#d1d5db" strokeWidth="2" />
+
+                  {/* PI = Piauí (Cinza / Inativo) */}
+                  <path d="M 110,180 Q 150,150 180,180 Q 210,220 200,280 Q 180,330 160,380 Q 140,400 120,360 Q 130,300 120,260 Q 130,220 110,180 Z" fill="#e5e7eb" stroke="#d1d5db" strokeWidth="2" />
+
+                  {/* CE = Ceará (Azul ou Vermelho se selecionado) */}
+                  <path
+                    d="M 180,180 Q 240,160 280,190 Q 270,250 240,270 Q 200,280 200,220 Q 190,200 180,180 Z"
+                    fill={estadoSelecionado === "CE" ? "#e31e24" : "#005a8d"}
+                    stroke="#ffffff"
+                    strokeWidth="2.5"
+                    className="cursor-pointer hover:opacity-85 transition-all"
+                    onClick={() => setEstadoSelecionado("CE")}
+                  />
+
+                  {/* RN = Rio Grande do Norte (Cinza / Inativo) */}
+                  <path d="M 280,190 Q 320,180 350,210 Q 330,240 280,230 Q 270,210 280,190 Z" fill="#e5e7eb" stroke="#d1d5db" strokeWidth="2" />
+
+                  {/* PB = Paraíba (Cinza / Inativo) */}
+                  <path d="M 280,230 Q 330,240 360,260 Q 330,280 270,270 Q 275,250 280,230 Z" fill="#e5e7eb" stroke="#d1d5db" strokeWidth="2" />
+
+                  {/* PE = Pernambuco (Azul ou Vermelho se selecionado) */}
+                  <path
+                    d="M 240,270 Q 300,270 360,260 Q 340,310 260,300 Q 220,290 240,270 Z"
+                    fill={estadoSelecionado === "PE" ? "#e31e24" : "#005a8d"}
+                    stroke="#ffffff"
+                    strokeWidth="2.5"
+                    className="cursor-pointer hover:opacity-85 transition-all"
+                    onClick={() => setEstadoSelecionado("PE")}
+                  />
+
+                  {/* AL = Alagoas (Cinza / Inativo) */}
+                  <path d="M 320,310 Q 360,310 380,340 Q 340,360 320,310 Z" fill="#e5e7eb" stroke="#d1d5db" strokeWidth="2" />
+
+                  {/* SE = Sergipe (Azul ou Vermelho se selecionado) */}
+                  <path
+                    d="M 320,360 Q 350,370 340,400 Q 310,380 320,360 Z"
+                    fill={estadoSelecionado === "SE" ? "#e31e24" : "#005a8d"}
+                    stroke="#ffffff"
+                    strokeWidth="2.5"
+                    className="cursor-pointer hover:opacity-85 transition-all"
+                    onClick={() => setEstadoSelecionado("SE")}
+                  />
+
+                  {/* BA = Bahia (Azul ou Vermelho se selecionado) */}
+                  <path
+                    d="M 200,320 Q 270,310 320,360 Q 310,400 280,450 Q 240,510 220,480 Q 180,420 200,320 Z"
+                    fill={estadoSelecionado === "BA" ? "#e31e24" : "#005a8d"}
+                    stroke="#ffffff"
+                    strokeWidth="2.5"
+                    className="cursor-pointer hover:opacity-85 transition-all"
+                    onClick={() => setEstadoSelecionado("BA")}
+                  />
+                </svg>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {casasList.map(casa => {
-                  const isOpen = itemExpandido === `casa-${casa.id}`;
-                  return (
-                    <div 
-                      key={casa.id} 
-                      onClick={() => setItemExpandido(isOpen ? null : `casa-${casa.id}`)}
-                      className={`bg-white rounded-3xl shadow-sm border transition-all duration-300 overflow-hidden flex flex-col justify-between cursor-pointer ${
-                        isOpen ? "border-[#c5a059] ring-2 ring-[#c5a059]/20 shadow-md" : "border-gray-100 hover:border-amber-200"
-                      }`}
-                    >
+
+              {/* Botões rápidos de seleção por estado */}
+              <div className="flex flex-wrap justify-center gap-2 mt-6">
+                {Object.keys(estadosInfo).map(sigla => (
+                  <button
+                    key={sigla}
+                    onClick={() => setEstadoSelecionado(sigla)}
+                    className={`px-4 py-2 rounded-xl font-bold text-xs transition-all ${
+                      estadoSelecionado === sigla
+                        ? "bg-[#e31e24] text-white shadow"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    {estadosInfo[sigla].nome} ({sigla})
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Listagem das Casas do Estado Selecionado */}
+            <div className="space-y-6">
+              <div className="flex items-center justify-between border-b pb-4">
+                <h3 className="text-2xl font-serif font-bold text-[#005a8d]">
+                  Casas em {estadosInfo[estadoSelecionado]?.nome}
+                </h3>
+                <span className="bg-[#005a8d]/10 text-[#005a8d] font-bold text-xs px-3 py-1 rounded-full">
+                  {casasFiltradas.length} encontrada(s)
+                </span>
+              </div>
+
+              {casasFiltradas.length === 0 ? (
+                <div className="text-center py-16 bg-white rounded-3xl border border-gray-100 shadow-sm text-gray-500">
+                  <Church className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="font-medium">Nenhuma casa de missão cadastrada neste estado no momento.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {casasFiltradas.map(casa => (
+                    <div key={casa.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between hover:shadow-md transition-all">
                       {casa.foto_url && (
-                        <div className="h-52 overflow-hidden bg-gray-100 relative">
+                        <div className="h-52 overflow-hidden bg-gray-100">
                           <img src={casa.foto_url} alt={casa.nome_casa} className="w-full h-full object-cover" />
-                          <span className="absolute top-3 right-3 bg-[#c5a059] text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow">
-                            {isOpen ? "Recolher" : "Ver Contato"}
-                          </span>
                         </div>
                       )}
                       <div className="p-7 space-y-4 flex-1 flex flex-col justify-between">
@@ -370,10 +467,11 @@ export default function ObrasMissoes() {
                         </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
+
           </div>
         )}
       </div>
