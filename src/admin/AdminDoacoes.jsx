@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Plus, Trash2, Heart, Calendar, Phone, Mail, User, LogOut, Gift, Bell, CheckCircle, Filter, AlertCircle } from "lucide-react";
+import { Loader2, Plus, Trash2, Heart, Calendar, Phone, Mail, User, LogOut, Gift, Bell, CheckCircle2, Filter, AlertCircle, Check } from "lucide-react";
 
 export default function AdminDoacoes({ onLogout }) {
   const [causas, setCausas] = useState([]);
   const [doadores, setDoadores] = useState([]);
+  const [tarefasConcluidas, setTarefasConcluidas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [abaAdmin, setAbaAdmin] = useState("tarefas"); // "tarefas", "causas" ou "doadores"
 
@@ -26,13 +27,15 @@ export default function AdminDoacoes({ onLogout }) {
 
   async function fetchDadosAdmin() {
     setLoading(true);
-    const [{ data: cData }, { data: dData }] = await Promise.all([
+    const [{ data: cData }, { data: dData }, { data: tData }] = await Promise.all([
       supabase.from("causas_doacao").select("*").order("ordem"),
-      supabase.from("compromissos_doacao").select("*").order("data_registro", { ascending: false })
+      supabase.from("compromissos_doacao").select("*").order("data_registro", { ascending: false }),
+      supabase.from("tarefas_concluidas").select("*").eq("data_conclusao", new Date().toISOString().split('T')[0])
     ]);
 
     if (cData) setCausas(cData);
     if (dData) setDoadores(dData);
+    if (tData) setTarefasConcluidas(tData);
     setLoading(false);
   }
 
@@ -56,6 +59,27 @@ export default function AdminDoacoes({ onLogout }) {
     }
   }
 
+  async function handleDeleteDoador(id) {
+    if (window.confirm("Deseja realmente excluir este cadastro de doador/apoiador?")) {
+      const { error } = await supabase.from("compromissos_doacao").delete().eq("id", id);
+      if (!error) fetchDadosAdmin();
+      else alert("Erro ao excluir doador.");
+    }
+  }
+
+  async function handleConcluirTarefa(doadorId, tipoAlerta) {
+    const hojeStr = new Date().toISOString().split('T')[0];
+    const { error } = await supabase.from("tarefas_concluidas").insert([
+      { doador_id: doadorId, tipo_alerta: tipoAlerta, data_conclusao: hojeStr }
+    ]);
+
+    if (!error) {
+      fetchDadosAdmin();
+    } else {
+      alert("Erro ao concluir tarefa.");
+    }
+  }
+
   // Filtragem de doadores por causa
   const doadoresFiltrados = doadores.filter(d => {
     if (filtroCausa === "todas") return true;
@@ -63,7 +87,6 @@ export default function AdminDoacoes({ onLogout }) {
   });
 
   // GERAÇÃO DA CENTRAL DE TAREFAS AUTOMÁTICA
-  // Verifica aniversários próximos ou no dia e lembretes de doação mensal
   const hoje = new Date();
   const mesAtual = hoje.getMonth() + 1;
   const diaAtual = hoje.getDate();
@@ -76,24 +99,36 @@ export default function AdminDoacoes({ onLogout }) {
       const [anoNasc, mesNasc, diaNasc] = d.data_nascimento.split("-").map(Number);
       if (mesNasc === mesAtual) {
         if (diaNasc === diaAtual) {
-          alertas.push({ tipo: "aniversario_hoje", texto: `🎉 Hoje é aniversário de ${d.nome}! Enviar mensagem de felicitações.` });
+          // Verifica se já foi concluída hoje
+          const jaConcluida = tarefasConcluidas.some(t => t.doador_id === d.id && t.tipo_alerta === "aniversario");
+          if (!jaConcluida) {
+            alertas.push({ tipo: "aniversario", texto: `🎉 Hoje é aniversário de ${d.nome}! Enviar mensagem de felicitações.` });
+          }
         } else if (diaNasc === diaAtual + 1) {
-          alertas.push({ tipo: "aniversario_amanha", texto: `🎁 Amanhã é aniversário de ${d.nome}. Prepare o cartão!` });
+          const jaConcluida = tarefasConcluidas.some(t => t.doador_id === d.id && t.tipo_alerta === "aniversario_amanha");
+          if (!jaConcluida) {
+            alertas.push({ tipo: "aniversario_amanha", texto: `🎁 Amanhã é aniversário de ${d.nome}. Prepare o cartão!` });
+          }
         }
       }
     }
 
-    // Se for doador mensal, gera lembrete de renovação (simulando ciclo de 30 dias baseado na data de registro)
+    // Se for doador mensal, gera lembrete de renovação
     if (d.tipo === "mensal" && d.data_registro) {
       const dataReg = new Date(d.data_registro);
       const diffDias = Math.floor((hoje - dataReg) / (1000 * 60 * 60 * 24)) % 30;
       if (diffDias >= 28) {
-        alertas.push({ tipo: "renovacao_mensal", texto: `📞 Ligar ou enviar mensagem para ${d.nome}: ciclo mensal de doação (${d.causa_nome || 'Geral'}) vence em breve.` });
+        const jaConcluida = tarefasConcluidas.some(t => t.doador_id === d.id && t.tipo_alerta === "renovacao_mensal");
+        if (!jaConcluida) {
+          alertas.push({ tipo: "renovacao_mensal", texto: `📞 Ligar ou enviar mensagem para ${d.nome}: ciclo mensal de doação (${d.causa_nome || 'Geral'}) vence em breve.` });
+        }
       }
     }
 
     return { ...d, alertas };
   }).filter(d => d.alertas.length > 0);
+
+  const totalTarefas = tarefas.reduce((acc, t) => acc + t.alertas.length, 0);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-12">
@@ -109,7 +144,7 @@ export default function AdminDoacoes({ onLogout }) {
         )}
       </div>
 
-      {/* Abas internas com destaque para a Central de Tarefas */}
+      {/* Abas internas */}
       <div className="flex flex-wrap gap-3 mb-8">
         <button
           onClick={() => setAbaAdmin("tarefas")}
@@ -117,7 +152,7 @@ export default function AdminDoacoes({ onLogout }) {
             abaAdmin === "tarefas" ? "bg-[#e31e24] text-white shadow-sm" : "bg-white text-gray-700 border border-gray-200 hover:bg-gray-50"
           }`}
         >
-          <Bell className="w-4 h-4" /> Central de Tarefas ({tarefas.reduce((acc, t) => acc + t.alertas.length, 0)})
+          <Bell className="w-4 h-4" /> Central de Tarefas ({totalTarefas})
         </button>
         <button
           onClick={() => setAbaAdmin("causas")}
@@ -145,16 +180,16 @@ export default function AdminDoacoes({ onLogout }) {
           <div className="border-b pb-4 flex justify-between items-center">
             <div>
               <h3 className="font-serif text-xl font-bold text-[#005a8d]">Lembretes e Contatos Pendentes</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Gerado automaticamente com base em aniversários do mês e renovações de doações mensais.</p>
+              <p className="text-xs text-gray-500 mt-0.5">Clique em "Concluir" para remover a tarefa após realizar o contato.</p>
             </div>
             <span className="bg-red-50 text-[#e31e24] font-bold text-xs px-3 py-1 rounded-full border border-red-100">
-              {tarefas.reduce((acc, t) => acc + t.alertas.length, 0)} pendência(s)
+              {totalTarefas} pendência(s)
             </span>
           </div>
 
-          {tarefas.length === 0 ? (
+          {totalTarefas === 0 ? (
             <div className="text-center py-16 space-y-3 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-              <CheckCircle className="w-10 h-10 text-emerald-500 mx-auto" />
+              <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto" />
               <h4 className="font-bold text-gray-700 text-sm">Tudo em dia por aqui!</h4>
               <p className="text-xs text-gray-500">Nenhum aniversário ou renovação de doação pendente para hoje.</p>
             </div>
@@ -184,10 +219,16 @@ export default function AdminDoacoes({ onLogout }) {
                       href={`https://wa.me/55${d.telefone.replace(/\D/g, '')}?text=Olá%20${encodeURIComponent(d.nome)},%20passando%20para%20agradecer%20seu%20carinho...`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
                     >
-                      <Phone className="w-3.5 h-3.5" /> Enviar WhatsApp
+                      <Phone className="w-3.5 h-3.5" /> WhatsApp
                     </a>
+                    <button
+                      onClick={() => handleConcluirTarefa(d.id, d.alertas[0]?.tipo || "geral")}
+                      className="bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+                    >
+                      <Check className="w-3.5 h-3.5 text-emerald-600" /> Concluir
+                    </button>
                   </div>
                 </div>
               ))}
@@ -248,12 +289,12 @@ export default function AdminDoacoes({ onLogout }) {
           </div>
         </div>
       ) : (
-        /* LISTA DE DOADORES COM FILTRO POR CAUSA */
+        /* LISTA DE DOADORES COM FILTRO E EXCLUSÃO */
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-4">
             <div>
               <h3 className="font-serif text-xl font-bold text-[#005a8d]">Base de Apoiadores e Doadores</h3>
-              <p className="text-xs text-gray-500 mt-0.5">Filtre os apoiadores por causa para campanhas direcionadas.</p>
+              <p className="text-xs text-gray-500 mt-0.5">Filtre os apoiadores por causa ou exclua cadastros desatualizados.</p>
             </div>
 
             {/* Filtro por Causa */}
@@ -285,6 +326,7 @@ export default function AdminDoacoes({ onLogout }) {
                     <th className="p-3">Tipo</th>
                     <th className="p-3">Valor</th>
                     <th className="p-3">Aniversário</th>
+                    <th className="p-3 text-right">Ação</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -305,6 +347,15 @@ export default function AdminDoacoes({ onLogout }) {
                       <td className="p-3 flex items-center gap-1 text-gray-600">
                         <Gift className="w-3.5 h-3.5 text-amber-600" />
                         {d.data_nascimento ? new Date(d.data_nascimento + 'T00:00:00').toLocaleDateString('pt-BR') : "Não informada"}
+                      </td>
+                      <td className="p-3 text-right">
+                        <button
+                          onClick={() => handleDeleteDoador(d.id)}
+                          className="bg-red-50 text-red-600 hover:bg-red-100 p-2 rounded-xl transition-colors border border-red-100"
+                          title="Excluir cadastro"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
                       </td>
                     </tr>
                   ))}
