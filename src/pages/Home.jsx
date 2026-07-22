@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { ChevronRight, Calendar, Heart, ArrowRight, Loader2, Sparkles, Church, Users, GraduationCap, Stethoscope, Clock, MapPin, Phone, ChevronLeft } from "lucide-react";
+import LiturgiaDiariaCard from "../components/LiturgiaDiariaCard";
 
 export default function Home() {
   const [banners, setBanners] = useState([]);
@@ -359,6 +360,10 @@ export default function Home() {
             </div>
           )}
         </div>
+      </section>
+
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-12">
+           <LiturgiaDiariaCard />
       </section>
 
       {/* Seção de Próximos Eventos e Agenda da Semana */}
