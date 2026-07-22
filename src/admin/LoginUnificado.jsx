@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Shield, Lock, Calendar, Church, Heart, Loader2 } from "lucide-react";
+import { Shield, Lock, Calendar, Church, Heart, Loader2, Newspaper, Sparkles, Building2 } from "lucide-react";
 import AdminDashboard from "./AdminDashboard";
 import AdminAgenda from "./AdminAgenda";
 import AdminObrasMissoes from "./AdminObrasMissoes"; // Importa o painel de Obras e Missões
 import AdminNoticias from "./AdminNoticias";
 import AdminVocacional from "./AdminVocacional";
 import AdminDoacoes from "./AdminDoacoes";
-
 
 export default function LoginUnificado() {
   const [tipoPainel, setTipoPainel] = useState("institucional");
@@ -114,7 +113,7 @@ export default function LoginUnificado() {
                      : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
                 }`}
                >
-                 <Church className="w-4 h-4" /> Notícias
+                 <Newspaper className="w-4 h-4" /> Notícias
               </button>
               <button
                 type="button"
@@ -136,7 +135,7 @@ export default function LoginUnificado() {
                      : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
                 }`}
                >
-                  <Heart className="w-4 h-4" /> Vocacional
+                  <Sparkles className="w-4 h-4" /> Vocacional
               </button>
               <button
                 type="button"
@@ -158,7 +157,7 @@ export default function LoginUnificado() {
                     : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
                 }`}
               >
-                <Heart className="w-4 h-4" /> Obras & Missões
+                <Building2 className="w-4 h-4" /> Obras & Missões
               </button>
             </div>
           </div>
