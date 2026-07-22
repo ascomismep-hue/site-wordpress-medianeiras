@@ -41,7 +41,7 @@ export default function LiturgiaDiariaCard() {
   const estilo = corConfig[corDoDia] || corConfig.default;
 
   // Função para gerar uma reflexão inspirada nas pregações do Padre Paulo Ricardo com base no dia/celebração
-  function getReflexaoPadrePaulo(titulo) {
+  function getReflexao(titulo) {
     const nome = titulo?.toLowerCase() || "";
     if (nome.includes("madalena")) {
       return "Santa Maria Madalena nos recorda que nenhum passado impede a ação da graça. O verdadeiro santo é aquele que faz de Cristo o seu 'único necessário', buscando-o com um amor desapegado e sobrenatural.";
@@ -111,7 +111,7 @@ export default function LiturgiaDiariaCard() {
             <Sparkles className="w-3.5 h-3.5 text-[#c5a059]" /> Reflexão Diária (Pe. Paulo Ricardo)
           </h4>
           <p className="text-gray-700 text-xs sm:text-sm leading-relaxed italic">
-            "{getReflexaoPadrePaulo(liturgiaDia?.liturgia)}"
+            "{getReflexao(liturgiaDia?.liturgia)}"
           </p>
         </div>
 
