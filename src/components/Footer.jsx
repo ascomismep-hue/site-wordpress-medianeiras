@@ -35,7 +35,7 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Redes Sociais */}
+          {/* Redes Sociais com Ícones Oficiais */}
           <div>
             <h4 className="font-serif font-bold text-sm text-[#c5a059] mb-2 uppercase tracking-wider">Redes Sociais</h4>
             <div className="flex items-center gap-3">
@@ -70,10 +70,13 @@ export default function Footer() {
                 href="https://www.tiktok.com/@medianeiras.dapaz" 
                 target="_blank" 
                 rel="noopener noreferrer" 
-                className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#c5a059] hover:text-[#002845] flex items-center justify-center transition-all text-white font-bold text-xs"
+                className="w-9 h-9 rounded-full bg-white/10 hover:bg-[#c5a059] hover:text-[#002845] flex items-center justify-center transition-all text-white"
                 title="TikTok"
               >
-                TK
+                {/* Ícone Oficial Vetorial do TikTok */}
+                <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                  <path d="M19.589 6.686a4.793 4.793 0 0 1-3.77-4.245V2h-3.445v13.672a2.896 2.896 0 0 1-5.201 1.743l-.002-.001.002.001a2.895 2.895 0 0 1 3.164-3.52v-3.47c-3.498-.104-6.392 2.666-6.392 6.162 0 3.415 2.802 6.185 6.257 6.185 3.456 0 6.258-2.77 6.258-6.185v-6.07a8.211 8.211 0 0 0 4.887 1.56v-3.48a4.777 4.777 0 0 1-2.738-1.332z"/>
+                </svg>
               </a>
             </div>
           </div>
