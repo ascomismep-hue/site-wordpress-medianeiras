@@ -13,7 +13,7 @@ export default function Vocacional() {
     cidade_estado: "",
     telefone: "",
     email: "",
-    sexo: "", // Usado para garantir que apenas meninas preencham
+    sexo: "",
     testemunho: ""
   });
 
@@ -21,7 +21,6 @@ export default function Vocacional() {
     e.preventDefault();
     setErroSexo("");
 
-    // Validação restrita apenas para o público feminino
     if (form.sexo.toLowerCase() !== "feminino") {
       setErroSexo("O Instituto Religioso das Medianeiras da Paz é uma congregação religiosa feminina. O processo vocacional destina-se exclusivamente a candidatas do sexo feminino.");
       return;
@@ -30,7 +29,6 @@ export default function Vocacional() {
     setCarregando(true);
 
     try {
-      // Salva os dados do discernimento vocacional no Supabase (vamos criar a tabela abaixo)
       const { error } = await supabase.from("inscricoes_vocacionais").insert([
         {
           nome: form.nome,
@@ -57,6 +55,18 @@ export default function Vocacional() {
 
   return (
     <div className="min-h-screen bg-[#fcfbf9] pb-24">
+      {/* Estilo CSS customizado para a animação contínua de movimento da bússola */}
+      <style>{`
+        @keyframes floatCompass {
+          0% { transform: translateY(0px) rotate(0deg); }
+          50% { transform: translateY(-8px) rotate(4deg); }
+          100% { transform: translateY(0px) rotate(0deg); }
+        }
+        .animate-float-compass {
+          animation: floatCompass 4s ease-in-out infinite;
+        }
+      `}</style>
+
       {/* Hero Section Jovem e Inspiradora */}
       <section className="relative bg-gradient-to-br from-[#005a8d] via-[#004068] to-[#002845] text-white py-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-[#c5a059]/15 rounded-full blur-3xl pointer-events-none"></div>
@@ -75,20 +85,11 @@ export default function Vocacional() {
             <p className="text-lg text-white/90 leading-relaxed font-light">
               "Não tenhais medo!" Sente que Deus te chama para algo maior? Descubra a alegria de entregar sua vida, sua juventude e seus sonhos ao serviço do Reino de Deus.
             </p>
-
-            <div className="pt-2">
-              <a 
-                href="#formulario" 
-                className="bg-[#e31e24] hover:bg-[#c9181d] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg hover:shadow-red-600/30 inline-flex items-center gap-2"
-              >
-                Quero fazer parte <Flame className="w-5 h-5" />
-              </a>
-            </div>
           </div>
 
-          {/* Destaque Visual Jovem */}
+          {/* Destaque Visual com Bússola Movimentando-se */}
           <div className="bg-white/10 border border-white/20 p-8 rounded-3xl backdrop-blur-xl shadow-2xl relative text-center space-y-4">
-            <div className="w-20 h-20 bg-[#c5a059]/20 text-[#c5a059] rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+            <div className="w-20 h-20 bg-[#c5a059]/20 text-[#c5a059] rounded-3xl flex items-center justify-center mx-auto shadow-inner animate-float-compass">
               <Compass className="w-10 h-10" />
             </div>
             <h3 className="font-serif text-2xl font-bold text-white">O Chamado</h3>
