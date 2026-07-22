@@ -15,11 +15,11 @@ export default function Footer() {
               <img 
                 src="/logo.png" 
                 alt="IRIMEP Logo" 
-                className="w-16 h-16 object-contain filter brightness-0 invert hover:opacity-90 transition-opacity" 
+                className="w-28 h-28 object-contain filter brightness-0 invert hover:opacity-90 transition-opacity" 
               />
             </RouterLink>
             <p className="text-white/75 text-xs leading-relaxed max-w-xs">
-              Instituto Religioso das Irmãs Medianeiras da Paz. Consagradas à paz, à oração e ao serviço.
+              "Tudo farei pelos Eleitos" (2 Tm 2,10).
             </p>
           </div>
 
