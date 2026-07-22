@@ -8,6 +8,7 @@ import Agenda from "./pages/Agenda"; // Página pública de Agenda
 import ObrasMissoes from "./pages/ObrasMissoes"; // Importa a página de Obras e Missões
 import Noticias from "./pages/Noticias"
 import Vocacional from "./pages/Vocacional";
+import Contato from "./pages/Contato";
 
 // Import das subpáginas institucionais
 import SobreNos from "./pages/institucional/SobreNos";
@@ -50,6 +51,8 @@ export default function App() {
             <Route path="/noticias" element={<Noticias />} />
 
             <Route path="/vocacional" element={<Vocacional />} />
+
+            <Route path="/contato" element={<Contato />} />
 
             {/* Rota de Obras e Missões */}
             <Route path="/obras-e-missoes" element={<ObrasMissoes />} />
