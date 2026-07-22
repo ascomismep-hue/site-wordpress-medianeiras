@@ -6,6 +6,8 @@ import AdminAgenda from "./AdminAgenda";
 import AdminObrasMissoes from "./AdminObrasMissoes"; // Importa o painel de Obras e Missões
 import AdminNoticias from "./AdminNoticias";
 import AdminVocacional from "./AdminVocacional";
+import AdminDoacoes from "./AdminDoacoes";
+
 
 export default function LoginUnificado() {
   const [tipoPainel, setTipoPainel] = useState("institucional");
@@ -67,6 +69,8 @@ export default function LoginUnificado() {
       return <AdminNoticias onLogout={handleLogout} />;
     } else if (logado.tipo === "vocacional") {
       return <AdminVocacional onLogout={handleLogout} />;
+    } else if (logado.tipo === "doacoes") {
+      return <AdminDoacoes onLogout={handleLogout} />;
     }
   }
 
@@ -111,6 +115,17 @@ export default function LoginUnificado() {
                 }`}
                >
                  <Church className="w-4 h-4" /> Notícias
+              </button>
+              <button
+                type="button"
+                onClick={() => { setTipoPainel("doacoes"); setErro(false); }}
+                className={`py-3 px-2 rounded-xl font-bold text-[11px] flex flex-col items-center justify-center gap-1.5 border transition-all ${
+                   tipoPainel === "doacoes" 
+                     ? "bg-[#005a8d] text-white border-[#005a8d] shadow-sm" 
+                     : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+                }`}
+               >
+                 <Heart className="w-4 h-4" /> Doações
               </button>
               <button
                 type="button"
