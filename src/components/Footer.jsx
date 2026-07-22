@@ -6,21 +6,19 @@ export default function Footer() {
     <footer className="bg-[#002845] text-white py-10 border-t border-[#c5a059]/30 mt-auto">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Conteúdo Principal do Rodapé (Compacto e Estreito) */}
+        {/* Conteúdo Principal do Rodapé */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 items-center">
           
-          {/* Logo e Nome */}
+          {/* Logo Maior e Descrição (Sem o texto IRIMEP ao lado) */}
           <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              {/* Logo puxada diretamente da pasta public com filtro branco */}
+            <RouterLink to="/" className="inline-block">
               <img 
                 src="/logo.png" 
                 alt="IRIMEP Logo" 
-                className="w-10 h-10 object-contain filter brightness-0 invert" 
+                className="w-16 h-16 object-contain filter brightness-0 invert hover:opacity-90 transition-opacity" 
               />
-              <span className="font-serif font-bold text-lg text-[#c5a059] tracking-wider">IRIMEP</span>
-            </div>
-            <p className="text-white/70 text-xs leading-relaxed">
+            </RouterLink>
+            <p className="text-white/75 text-xs leading-relaxed max-w-xs">
               Instituto Religioso das Irmãs Medianeiras da Paz. Consagradas à paz, à oração e ao serviço.
             </p>
           </div>
@@ -95,7 +93,6 @@ export default function Footer() {
         <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-white/60">
           <p>© 2026 IRIMEP - Instituto Religioso das Irmãs Medianeiras da Paz. Todos os direitos reservados.</p>
           
-          {/* Link discreto para o Painel Administrativo */}
           <RouterLink 
             to="/admin" 
             className="flex items-center gap-1.5 hover:text-[#c5a059] transition-colors py-1 px-3 rounded-lg hover:bg-white/5"
