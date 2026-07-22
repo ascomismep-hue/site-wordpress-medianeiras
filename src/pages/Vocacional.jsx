@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Heart, Sparkles, CheckCircle2, Send, Users, Flame, BookOpen, Compass, ShieldCheck, Loader2 } from "lucide-react";
+import { Heart, Sparkles, CheckCircle2, Send, Users, Flame, BookOpen, ShieldCheck, Loader2 } from "lucide-react";
 
 export default function Vocacional() {
   const [enviado, setEnviado] = useState(false);
@@ -55,15 +55,16 @@ export default function Vocacional() {
 
   return (
     <div className="min-h-screen bg-[#fcfbf9] pb-24">
-      {/* Estilo CSS customizado para a animação contínua de movimento da bússola */}
+      {/* Estilo CSS customizado para o ponteiro balançar suavemente */}
       <style>{`
-        @keyframes floatCompass {
-          0% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-8px) rotate(4deg); }
-          100% { transform: translateY(0px) rotate(0deg); }
+        @keyframes needleSwing {
+          0% { transform: rotate(-15deg); }
+          50% { transform: rotate(20deg); }
+          100% { transform: rotate(-15deg); }
         }
-        .animate-float-compass {
-          animation: floatCompass 4s ease-in-out infinite;
+        .animate-needle {
+          animation: needleSwing 3s ease-in-out infinite;
+          transform-origin: center;
         }
       `}</style>
 
@@ -87,10 +88,17 @@ export default function Vocacional() {
             </p>
           </div>
 
-          {/* Destaque Visual com Bússola Movimentando-se */}
+          {/* Destaque Visual com Bússola e Ponteiro Animado */}
           <div className="bg-white/10 border border-white/20 p-8 rounded-3xl backdrop-blur-xl shadow-2xl relative text-center space-y-4">
-            <div className="w-20 h-20 bg-[#c5a059]/20 text-[#c5a059] rounded-3xl flex items-center justify-center mx-auto shadow-inner animate-float-compass">
-              <Compass className="w-10 h-10" />
+            <div className="w-20 h-20 bg-[#c5a059]/20 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+              {/* SVG da Bússola: carcaça fixa e agulha mexendo-se */}
+              <svg className="w-10 h-10 text-[#c5a059]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                {/* Agulha/Ponteiro interno com animação */}
+                <g className="animate-needle">
+                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor" fillOpacity="0.4" />
+                </g>
+              </svg>
             </div>
             <h3 className="font-serif text-2xl font-bold text-white">O Chamado</h3>
             <p className="text-sm text-white/80 leading-relaxed">
