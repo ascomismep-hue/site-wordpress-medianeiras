@@ -9,13 +9,13 @@ export default function Footer() {
         {/* Conteúdo Principal do Rodapé */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8 items-center">
           
-          {/* Logo Maior e Descrição (Sem o texto IRIMEP ao lado) */}
-          <div className="space-y-3">
+          {/* Logo Maior e Frase com espaçamento otimizado */}
+          <div className="space-y-1.5">
             <RouterLink to="/" className="inline-block">
               <img 
                 src="/logo.png" 
                 alt="IRIMEP Logo" 
-                className="w-32 h-32 object-contain filter brightness-0 invert hover:opacity-90 transition-opacity" 
+                className="w-40 h-40 object-contain filter brightness-0 invert hover:opacity-90 transition-opacity" 
               />
             </RouterLink>
             <p className="text-white/75 text-xs leading-relaxed max-w-xs">
