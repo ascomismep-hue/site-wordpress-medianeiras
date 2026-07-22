@@ -1,12 +1,13 @@
 import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import FloatingDonationButton from "./components/FloatingDonationButton"; // Importa o balão flutuante
 import Home from "./pages/Home";
 import InstitucionalSubNav from "./components/InstitucionalSubNav";
 import LoginUnificado from "./admin/LoginUnificado"; // Central de Login Unificada
 import Agenda from "./pages/Agenda"; // Página pública de Agenda
 import ObrasMissoes from "./pages/ObrasMissoes"; // Importa a página de Obras e Missões
-import Noticias from "./pages/Noticias"
+import Noticias from "./pages/Noticias";
 import Vocacional from "./pages/Vocacional";
 import Contato from "./pages/Contato";
 import Doacoes from "./pages/Doacoes";
@@ -64,6 +65,10 @@ export default function App() {
             <Route path="/admin" element={<LoginUnificado />} />
           </Routes>
         </main>
+
+        {/* Balão flutuante global em todas as telas */}
+        <FloatingDonationButton />
+
         <Footer />
       </div>
     </Router>
