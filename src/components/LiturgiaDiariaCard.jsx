@@ -7,14 +7,13 @@ export default function LiturgiaDiariaCard() {
   const [loading, setLoading] = useState(true);
   const [leituraAberta, setLeituraAberta] = useState(null);
 
-  // Mapeamento visual com evidência para cada Cor Litúrgica
   const corConfig = {
-    Verde: { bg: "bg-emerald-700", badgeBg: "bg-emerald-500 text-white border-emerald-600", border: "border-emerald-500" },
-    Vermelho: { bg: "bg-red-700", badgeBg: "bg-red-600 text-white border-red-700", border: "border-red-500" },
-    Roxo: { bg: "bg-purple-800", badgeBg: "bg-purple-700 text-white border-purple-800", border: "border-purple-600" },
-    Branco: { bg: "bg-amber-600", badgeBg: "bg-amber-500 text-white border-amber-600", border: "border-amber-400" },
-    Rosa: { bg: "bg-pink-600", badgeBg: "bg-pink-500 text-white border-pink-600", border: "border-pink-500" },
-    default: { bg: "bg-[#005a8d]", badgeBg: "bg-[#005a8d] text-white border-[#004068]", border: "border-[#005a8d]" }
+    Verde: { badgeBg: "bg-emerald-500 text-white border-emerald-600", border: "border-emerald-500" },
+    Vermelho: { badgeBg: "bg-red-600 text-white border-red-700", border: "border-red-500" },
+    Roxo: { badgeBg: "bg-purple-700 text-white border-purple-800", border: "border-purple-600" },
+    Branco: { badgeBg: "bg-amber-500 text-white border-amber-600", border: "border-amber-400" },
+    Rosa: { badgeBg: "bg-pink-500 text-white border-pink-600", border: "border-pink-500" },
+    default: { badgeBg: "bg-[#005a8d] text-white border-[#004068]", border: "border-[#005a8d]" }
   };
 
   useEffect(() => {
@@ -24,7 +23,6 @@ export default function LiturgiaDiariaCard() {
         const dia = hoje.getDate();
         const mes = hoje.getMonth() + 1;
 
-        // Busca simultânea da Liturgia e do Santo do Dia (Católico App)
         const [resLiturgia, resSanto] = await Promise.all([
           fetch("https://liturgia.up.railway.app/v3/"),
           fetch(`https://catolicoapp.com/wp-json/wp/v2/santos?dia=${dia}&mes=${mes}`).catch(() => null)
@@ -50,7 +48,7 @@ export default function LiturgiaDiariaCard() {
           }
         }
       } catch (err) {
-        console.error("Erro ao carregar dados litúrgicos:", err);
+        console.error("Erro ao carregar dados:", err);
       } finally {
         setLoading(false);
       }
@@ -62,7 +60,6 @@ export default function LiturgiaDiariaCard() {
   const estilo = corConfig[corDoDia] || corConfig.default;
 
   function getReflexao(titulo) {
-    const nome = titulo?.toLowerCase() || "";
     if (santoDoDia?.nome) {
       return `Celebrando a memória de ${santoDoDia.nome}, somos convidados a fazer de Cristo o nosso 'único necessário', buscando a santidade com um amor autêntico e entregue.`;
     }
@@ -80,19 +77,17 @@ export default function LiturgiaDiariaCard() {
   return (
     <div className={`bg-white rounded-3xl shadow-sm border-2 ${estilo.border} overflow-hidden grid grid-cols-1 lg:grid-cols-12 transition-all hover:shadow-md`}>
       
-      {/* COLUNA ESQUERDA: Vídeo de Fundo + Foto Real do Santo do Dia (Católico App) */}
-      <div className="lg:col-span-5 relative min-h-[360px] lg:min-h-full overflow-hidden bg-black flex items-center justify-center">
-        <video 
-          autoPlay 
-          loop 
-          muted 
-          playsInline 
-          className="absolute inset-0 w-full h-full object-cover opacity-50"
-        >
-          <source src="https://assets.mixkit.co/videos/preview/mixkit-priest-holding-a-chalice-in-a-church-41584-large.mp4" type="video/mp4" />
-        </video>
+      {/* COLUNA ESQUERDA: Foto do Santo do Dia cobrindo TODO O FUNDO do bloco */}
+      <div className="lg:col-span-5 relative min-h-[380px] lg:min-h-full overflow-hidden bg-black flex items-center justify-center">
+        {/* Imagem do Santo do Dia como plano de fundo completo */}
+        <img 
+          src={santoDoDia?.imagem || "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"} 
+          alt={santoDoDia?.nome || "Santo do Dia"} 
+          className="absolute inset-0 w-full h-full object-cover filter brightness-90"
+        />
 
-        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-between p-8 text-white z-10">
+        {/* Película escura em gradiente para garantir leitura perfeita dos textos sobre a imagem */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-black/30 flex flex-col justify-between p-8 text-white z-10">
           <div className="flex justify-between items-center">
             <span className="bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-xs">
               Liturgia & Santo do Dia
@@ -102,24 +97,18 @@ export default function LiturgiaDiariaCard() {
             </span>
           </div>
 
-          <div className="space-y-4">
-            {/* Imagem oficial do Santo do Dia obtida da API */}
-            <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white/60 shadow-2xl bg-white/10 backdrop-blur-md">
-              <img 
-                src={santoDoDia?.imagem || "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"} 
-                alt={santoDoDia?.nome || "Santo do Dia"} 
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div>
-              <p className="text-xs text-white/80 font-medium">{liturgiaDia?.data || "Hoje"}</p>
-              <h3 className="text-xl font-serif font-bold leading-snug">{liturgiaDia?.liturgia || "Celebração do Dia"}</h3>
-              {santoDoDia?.nome && (
-                <p className="text-xs text-[#c5a059] font-bold mt-1 flex items-center gap-1">
-                  <UserCheck className="w-3.5 h-3.5" /> Santo do Dia: {santoDoDia.nome}
+          <div className="space-y-3">
+            <p className="text-xs text-white/80 font-medium">{liturgiaDia?.data || "Hoje"}</p>
+            <h3 className="text-xl font-serif font-bold leading-snug">{liturgiaDia?.liturgia || "Celebração do Dia"}</h3>
+            
+            {santoDoDia?.nome && (
+              <div className="pt-2 border-t border-white/20">
+                <p className="text-xs text-[#c5a059] font-bold flex items-center gap-1.5 leading-relaxed">
+                  <UserCheck className="w-4 h-4 shrink-0 text-[#c5a059]" /> 
+                  <span>Santo do Dia: {santoDoDia.nome}</span>
                 </p>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
