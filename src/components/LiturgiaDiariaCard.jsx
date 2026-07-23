@@ -1,47 +1,40 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Calendar, Loader2, Bookmark, X, ChevronRight, BookOpen } from "lucide-react";
+import { Sparkles, Calendar, Loader2, Bookmark, X, ChevronRight } from "lucide-react";
 
 export default function LiturgiaDiariaCard() {
   const [liturgiaDia, setLiturgiaDia] = useState(null);
   const [loading, setLoading] = useState(true);
   const [leituraAberta, setLeituraAberta] = useState(null);
 
-  // Mapeamento visual com forte evidência para cada Cor Litúrgica
   const corConfig = {
     Verde: { 
       bg: "bg-emerald-700", 
       badgeBg: "bg-emerald-500 text-white border-emerald-600", 
-      dot: "bg-emerald-500",
       border: "border-emerald-500" 
     },
     Vermelho: { 
       bg: "bg-red-700", 
       badgeBg: "bg-red-600 text-white border-red-700", 
-      dot: "bg-red-500",
       border: "border-red-500" 
     },
     Roxo: { 
       bg: "bg-purple-800", 
       badgeBg: "bg-purple-700 text-white border-purple-800", 
-      dot: "bg-purple-600",
       border: "border-purple-600" 
     },
     Branco: { 
       bg: "bg-amber-600", 
       badgeBg: "bg-amber-500 text-white border-amber-600", 
-      dot: "bg-amber-400",
       border: "border-amber-400" 
     },
     Rosa: { 
       bg: "bg-pink-600", 
       badgeBg: "bg-pink-500 text-white border-pink-600", 
-      dot: "bg-pink-400",
-      border: "border-pink-400" 
+      border: "border-pink-500" 
     },
     default: { 
       bg: "bg-[#005a8d]", 
       badgeBg: "bg-[#005a8d] text-white border-[#004068]", 
-      dot: "bg-blue-500",
       border: "border-[#005a8d]" 
     }
   };
@@ -71,7 +64,6 @@ export default function LiturgiaDiariaCard() {
   const corDoDia = liturgiaDia?.cor || "Verde";
   const estilo = corConfig[corDoDia] || corConfig.default;
 
-  // Banco de imagens sacras altamente representativas para Santos, Solenidades e Festas
   function getImagemLiturgica(titulo) {
     const nome = titulo?.toLowerCase() || "";
     if (nome.includes("madalena") || nome.includes("maria") || nome.includes("senhora")) {
@@ -91,12 +83,6 @@ export default function LiturgiaDiariaCard() {
       return "Santa Maria Madalena nos recorda que nenhum passado impede a ação da graça. O verdadeiro discípulo é aquele que faz de Cristo o seu 'único necessário', buscando-o com amor autêntico.";
     }
     return "A liturgia de hoje nos convida a silenciar o coração e escutar com atenção a Palavra de Deus, permitindo que ela seja luz viva para orientar nossos passos e transformar nossas atitudes.";
-  }
-
-  // Função limpa e segura para remover marcadores de citação ou tags
-  function limparTexto(texto) {
-    if (!texto) return "";
-    return texto.replace(/\/g, "").trim();
   }
 
   if (loading) {
@@ -127,14 +113,12 @@ export default function LiturgiaDiariaCard() {
             <span className="bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-xs">
               Liturgia Viva
             </span>
-            {/* Evidência clara da Cor Litúrgica no Badge */}
             <span className={`text-xs font-bold px-4 py-1.5 rounded-xl shadow-md border ${estilo.badgeBg}`}>
               Cor: {corDoDia}
             </span>
           </div>
 
           <div className="space-y-4">
-            {/* Imagem temática do Santo ou Solenidade */}
             <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white/60 shadow-2xl bg-white/10 backdrop-blur-md">
               <img 
                 src={getImagemLiturgica(liturgiaDia?.liturgia)} 
@@ -160,14 +144,12 @@ export default function LiturgiaDiariaCard() {
               <h4 className="font-serif font-bold text-xl text-[#005a8d]">Leituras e Palavra de Deus</h4>
             </div>
             
-            {/* Evidência visual marcante da Cor Litúrgica no topo */}
             <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl border font-bold text-xs shadow-xs ${estilo.badgeBg}`}>
               <span className={`w-3.5 h-3.5 rounded-full ${liturgiaDia?.cor === 'Branco' ? 'bg-amber-300' : 'bg-white'} inline-block shadow-xs`}></span>
               Cor Litúrgica: {corDoDia}
             </div>
           </div>
 
-          {/* Cards das Leituras (Clicáveis para expandir o texto completo) */}
           <div className="space-y-3">
             <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Clique em uma leitura para ver o texto completo:</span>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -181,12 +163,12 @@ export default function LiturgiaDiariaCard() {
                   >
                     <div className="flex justify-between items-center">
                       <span className="font-bold text-gray-400 group-hover:text-[#005a8d] block text-[10px] tracking-wider uppercase">
-                        {item.rotulo || "Leitura"}
+                        {item.rotulo}
                       </span>
                       <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#005a8d] group-hover:translate-x-0.5 transition-transform" />
                     </div>
                     <span className="font-bold text-gray-800 block truncate">
-                      {limparTexto(opcaoPrincipal?.referencia) || "Ver texto"}
+                      {opcaoPrincipal?.referencia || "Ver texto"}
                     </span>
                   </div>
                 );
@@ -195,7 +177,6 @@ export default function LiturgiaDiariaCard() {
           </div>
         </div>
 
-        {/* Reflexão Diária limpa */}
         <div className="space-y-2 bg-blue-50/50 p-5 rounded-2xl border border-blue-100/60">
           <h4 className="text-xs font-bold uppercase tracking-wider text-[#005a8d] flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-[#c5a059]" /> Reflexão Diária
@@ -216,7 +197,7 @@ export default function LiturgiaDiariaCard() {
               <div>
                 <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">{leituraAberta.rotulo}</span>
                 <h3 className="text-xl font-serif font-bold text-[#005a8d] mt-0.5">
-                  {limparTexto(leituraAberta.opcoes?.[0]?.referencia) || "Texto Litúrgico"}
+                  {leituraAberta.opcoes?.[0]?.referencia || "Texto Litúrgico"}
                 </h3>
               </div>
               <button
@@ -228,20 +209,19 @@ export default function LiturgiaDiariaCard() {
               </button>
             </div>
 
-            {/* Conteúdo completo da leitura organizado e sem resquícios */}
             <div className="space-y-4 overflow-y-auto pr-2 flex-1 text-gray-700 text-sm leading-relaxed">
               {leituraAberta.opcoes?.[0]?.titulo && (
                 <p className="font-serif italic font-bold text-[#005a8d]">
-                  {limparTexto(leituraAberta.opcoes[0].titulo)}
+                  {leituraAberta.opcoes[0].titulo}
                 </p>
               )}
               {leituraAberta.opcoes?.[0]?.refrao && (
                 <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-amber-900 font-semibold">
-                  <span>R. </span>{limparTexto(leituraAberta.opcoes[0].refrao)}
+                  <span>R. </span>{leituraAberta.opcoes[0].refrao}
                 </div>
               )}
               <div className="whitespace-pre-wrap font-sans">
-                {limparTexto(leituraAberta.opcoes?.[0]?.texto) || "Texto não disponível para esta opção."}
+                {leituraAberta.opcoes?.[0]?.texto || "Texto não disponível para esta opção."}
               </div>
             </div>
 
