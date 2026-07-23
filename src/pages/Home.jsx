@@ -200,13 +200,8 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SEÇÃO DA LITURGIA DIÁRIA (Carregada de forma independente e fluida) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-12 w-full">
-        <LiturgiaDiariaCard />
-      </section>
-
-      {/* Seção de Pilares e Obras com Cores Temáticas */}
-      <section className="py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+      {/* SEÇÃO DE PILARES DA NOSSA MISSÃO (Agora posicionada logo acima) */}
+      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#005a8d]">Pilares da nossa Missão</h2>
           <div className="w-24 h-1 bg-[#c5a059] mx-auto rounded-full"></div>
@@ -282,6 +277,11 @@ export default function Home() {
             </Link>
           </div>
         </div>
+      </section>
+
+      {/* SEÇÃO DA LITURGIA DIÁRIA (Logo abaixo dos Pilares) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-6 w-full">
+        <LiturgiaDiariaCard />
       </section>
 
       {/* Seção: Carrossel de Casas de Missão */}
@@ -411,7 +411,7 @@ export default function Home() {
                         <span className={`text-xs font-bold px-3 py-1 rounded-full ${
                           eDaSemana ? "bg-[#c5a059] text-white" : "bg-[#005a8d]/10 text-[#005a8d]"
                         }`}>
-                          {eDaSemana ? "⚠️ Esta Semana" : dataFormatada}
+                          {eDaSemana ? "✨ Esta Semana" : dataFormatada}
                         </span>
                         <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
                           {evento.tipo === 'madre' ? 'Agenda da Madre' : 'Geral'}
