@@ -68,25 +68,23 @@ export default function LiturgiaDiariaCard() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex items-center justify-center min-h-[320px]">
+      <div className="w-full bg-white rounded-3xl p-8 border border-gray-100 shadow-sm flex items-center justify-center min-h-[320px]">
         <Loader2 className="w-8 h-8 animate-spin text-[#005a8d]" />
       </div>
     );
   }
 
   return (
-    <div className={`bg-white rounded-3xl shadow-sm border-2 ${estilo.border} overflow-hidden grid grid-cols-1 lg:grid-cols-12 transition-all hover:shadow-md`}>
+    <div className={`w-full bg-white rounded-3xl shadow-sm border-2 ${estilo.border} overflow-hidden grid grid-cols-1 lg:grid-cols-12 transition-all hover:shadow-md`}>
       
-      {/* COLUNA ESQUERDA: Foto do Santo do Dia cobrindo TODO O FUNDO do bloco */}
+      {/* COLUNA ESQUERDA: Foto do Santo do Dia preenchendo o bloco */}
       <div className="lg:col-span-5 relative min-h-[380px] lg:min-h-full overflow-hidden bg-black flex items-center justify-center">
-        {/* Imagem do Santo do Dia como plano de fundo completo */}
         <img 
           src={santoDoDia?.imagem || "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"} 
           alt={santoDoDia?.nome || "Santo do Dia"} 
           className="absolute inset-0 w-full h-full object-cover filter brightness-90"
         />
 
-        {/* Película escura em gradiente para garantir leitura perfeita dos textos sobre a imagem */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-black/30 flex flex-col justify-between p-8 text-white z-10">
           <div className="flex justify-between items-center">
             <span className="bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-xs">
@@ -99,7 +97,7 @@ export default function LiturgiaDiariaCard() {
 
           <div className="space-y-3">
             <p className="text-xs text-white/80 font-medium">{liturgiaDia?.data || "Hoje"}</p>
-            <h3 className="text-xl font-serif font-bold leading-snug">{liturgiaDia?.liturgia || "Celebração do Dia"}</h3>
+            <h3 className="text-xl sm:text-2xl font-serif font-bold leading-snug">{liturgiaDia?.liturgia || "Celebração do Dia"}</h3>
             
             {santoDoDia?.nome && (
               <div className="pt-2 border-t border-white/20">
