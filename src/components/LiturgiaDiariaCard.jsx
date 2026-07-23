@@ -1,86 +1,70 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Calendar, Loader2, Bookmark, X, ChevronRight } from "lucide-react";
+import { Sparkles, Calendar, Loader2, Bookmark, X, ChevronRight, UserCheck } from "lucide-react";
 
 export default function LiturgiaDiariaCard() {
   const [liturgiaDia, setLiturgiaDia] = useState(null);
+  const [santoDoDia, setSantoDoDia] = useState(null);
   const [loading, setLoading] = useState(true);
   const [leituraAberta, setLeituraAberta] = useState(null);
 
+  // Mapeamento visual com evidência para cada Cor Litúrgica
   const corConfig = {
-    Verde: { 
-      bg: "bg-emerald-700", 
-      badgeBg: "bg-emerald-500 text-white border-emerald-600", 
-      border: "border-emerald-500" 
-    },
-    Vermelho: { 
-      bg: "bg-red-700", 
-      badgeBg: "bg-red-600 text-white border-red-700", 
-      border: "border-red-500" 
-    },
-    Roxo: { 
-      bg: "bg-purple-800", 
-      badgeBg: "bg-purple-700 text-white border-purple-800", 
-      border: "border-purple-600" 
-    },
-    Branco: { 
-      bg: "bg-amber-600", 
-      badgeBg: "bg-amber-500 text-white border-amber-600", 
-      border: "border-amber-400" 
-    },
-    Rosa: { 
-      bg: "bg-pink-600", 
-      badgeBg: "bg-pink-500 text-white border-pink-600", 
-      border: "border-pink-500" 
-    },
-    default: { 
-      bg: "bg-[#005a8d]", 
-      badgeBg: "bg-[#005a8d] text-white border-[#004068]", 
-      border: "border-[#005a8d]" 
-    }
+    Verde: { bg: "bg-emerald-700", badgeBg: "bg-emerald-500 text-white border-emerald-600", border: "border-emerald-500" },
+    Vermelho: { bg: "bg-red-700", badgeBg: "bg-red-600 text-white border-red-700", border: "border-red-500" },
+    Roxo: { bg: "bg-purple-800", badgeBg: "bg-purple-700 text-white border-purple-800", border: "border-purple-600" },
+    Branco: { bg: "bg-amber-600", badgeBg: "bg-amber-500 text-white border-amber-600", border: "border-amber-400" },
+    Rosa: { bg: "bg-pink-600", badgeBg: "bg-pink-500 text-white border-pink-600", border: "border-pink-500" },
+    default: { bg: "bg-[#005a8d]", badgeBg: "bg-[#005a8d] text-white border-[#004068]", border: "border-[#005a8d]" }
   };
 
   useEffect(() => {
-    async function fetchLiturgia() {
+    async function fetchData() {
       try {
-        const res = await fetch("https://liturgia.up.railway.app/v3/");
-        const data = await res.json();
-        
-        if (data && data.celebracoes) {
-          const principal = data.celebracoes.find(c => c.principal) || data.celebracoes[0];
+        const hoje = new Date();
+        const dia = hoje.getDate();
+        const mes = hoje.getMonth() + 1;
+
+        // Busca simultânea da Liturgia e do Santo do Dia (Católico App)
+        const [resLiturgia, resSanto] = await Promise.all([
+          fetch("https://liturgia.up.railway.app/v3/"),
+          fetch(`https://catolicoapp.com/wp-json/wp/v2/santos?dia=${dia}&mes=${mes}`).catch(() => null)
+        ]);
+
+        const dataLiturgia = await resLiturgia.json();
+        if (dataLiturgia && dataLiturgia.celebracoes) {
+          const principal = dataLiturgia.celebracoes.find(c => c.principal) || dataLiturgia.celebracoes[0];
           setLiturgiaDia({
-            data: data.data,
+            data: dataLiturgia.data,
             ...principal
           });
         }
+
+        if (resSanto && resSanto.ok) {
+          const dataSanto = await resSanto.json();
+          if (Array.isArray(dataSanto) && dataSanto.length > 0) {
+            setSantoDoDia({
+              nome: dataSanto[0].title?.rendered || "Santo do Dia",
+              imagem: dataSanto[0].imagem_destacada || "",
+              url: dataSanto[0].link || "https://catolicoapp.com/santo-do-dia"
+            });
+          }
+        }
       } catch (err) {
-        console.error("Erro ao buscar liturgia v3:", err);
+        console.error("Erro ao carregar dados litúrgicos:", err);
       } finally {
         setLoading(false);
       }
     }
-    fetchLiturgia();
+    fetchData();
   }, []);
 
   const corDoDia = liturgiaDia?.cor || "Verde";
   const estilo = corConfig[corDoDia] || corConfig.default;
 
-  function getImagemLiturgica(titulo) {
-    const nome = titulo?.toLowerCase() || "";
-    if (nome.includes("madalena") || nome.includes("maria") || nome.includes("senhora")) {
-      return "https://images.unsplash.com/photo-1548625361-168c14d9b626?auto=format&fit=crop&w=800&q=80";
-    } else if (nome.includes("são") || nome.includes("santa") || nome.includes("apóstolo") || nome.includes("mártir")) {
-      return "https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=800&q=80";
-    } else if (nome.includes("senhor") || nome.includes("natal") || nome.includes("pascoa") || nome.includes("eucaristia")) {
-      return "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=800&q=80";
-    } else {
-      return "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80";
-    }
-  }
-
   function getReflexao(titulo) {
     const nome = titulo?.toLowerCase() || "";
-    if (nome.includes("madalena")) {
-      return "Santa Maria Madalena nos recorda que nenhum passado impede a ação da graça. O verdadeiro discípulo é aquele que faz de Cristo o seu 'único necessário', buscando-o com amor autêntico.";
+    if (santoDoDia?.nome) {
+      return `Celebrando a memória de ${santoDoDia.nome}, somos convidados a fazer de Cristo o nosso 'único necessário', buscando a santidade com um amor autêntico e entregue.`;
     }
     return "A liturgia de hoje nos convida a silenciar o coração e escutar com atenção a Palavra de Deus, permitindo que ela seja luz viva para orientar nossos passos e transformar nossas atitudes.";
   }
@@ -96,8 +80,8 @@ export default function LiturgiaDiariaCard() {
   return (
     <div className={`bg-white rounded-3xl shadow-sm border-2 ${estilo.border} overflow-hidden grid grid-cols-1 lg:grid-cols-12 transition-all hover:shadow-md`}>
       
-      {/* COLUNA ESQUERDA: Vídeo de Fundo + Imagem Temática do Santo/Solenidade */}
-      <div className="lg:col-span-5 relative min-h-[340px] lg:min-h-full overflow-hidden bg-black flex items-center justify-center">
+      {/* COLUNA ESQUERDA: Vídeo de Fundo + Foto Real do Santo do Dia (Católico App) */}
+      <div className="lg:col-span-5 relative min-h-[360px] lg:min-h-full overflow-hidden bg-black flex items-center justify-center">
         <video 
           autoPlay 
           loop 
@@ -111,7 +95,7 @@ export default function LiturgiaDiariaCard() {
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-between p-8 text-white z-10">
           <div className="flex justify-between items-center">
             <span className="bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-xs">
-              Liturgia Viva
+              Liturgia & Santo do Dia
             </span>
             <span className={`text-xs font-bold px-4 py-1.5 rounded-xl shadow-md border ${estilo.badgeBg}`}>
               Cor: {corDoDia}
@@ -119,16 +103,22 @@ export default function LiturgiaDiariaCard() {
           </div>
 
           <div className="space-y-4">
+            {/* Imagem oficial do Santo do Dia obtida da API */}
             <div className="w-20 h-20 rounded-2xl overflow-hidden border-2 border-white/60 shadow-2xl bg-white/10 backdrop-blur-md">
               <img 
-                src={getImagemLiturgica(liturgiaDia?.liturgia)} 
-                alt="Santo ou Solenidade do dia" 
+                src={santoDoDia?.imagem || "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"} 
+                alt={santoDoDia?.nome || "Santo do Dia"} 
                 className="w-full h-full object-cover"
               />
             </div>
             <div>
               <p className="text-xs text-white/80 font-medium">{liturgiaDia?.data || "Hoje"}</p>
               <h3 className="text-xl font-serif font-bold leading-snug">{liturgiaDia?.liturgia || "Celebração do Dia"}</h3>
+              {santoDoDia?.nome && (
+                <p className="text-xs text-[#c5a059] font-bold mt-1 flex items-center gap-1">
+                  <UserCheck className="w-3.5 h-3.5" /> Santo do Dia: {santoDoDia.nome}
+                </p>
+              )}
             </div>
           </div>
         </div>
