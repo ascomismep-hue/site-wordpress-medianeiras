@@ -93,7 +93,7 @@ export default function LiturgiaDiariaCard() {
     return "A liturgia de hoje nos convida a silenciar o coração e escutar com atenção a Palavra de Deus, permitindo que ela seja luz viva para orientar nossos passos e transformar nossas atitudes.";
   }
 
-  // Função para limpar indesejados e formatações brutas do texto da API
+  // Função limpa e segura para remover marcadores de citação ou tags
   function limparTexto(texto) {
     if (!texto) return "";
     return texto.replace(/\/g, "").trim();
@@ -228,7 +228,7 @@ export default function LiturgiaDiariaCard() {
               </button>
             </div>
 
-            {/* Conteúdo completo da leitura organizado e sem resquícios de tags */}
+            {/* Conteúdo completo da leitura organizado e sem resquícios */}
             <div className="space-y-4 overflow-y-auto pr-2 flex-1 text-gray-700 text-sm leading-relaxed">
               {leituraAberta.opcoes?.[0]?.titulo && (
                 <p className="font-serif italic font-bold text-[#005a8d]">
