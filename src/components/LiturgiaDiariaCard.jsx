@@ -94,30 +94,30 @@ export default function LiturgiaDiariaCard() {
   return (
     <>
       <style>{`
-        @keyframes waveMove {
+        @keyframes waveDeepMove {
           0% { transform: translateX(0); }
-          50% { transform: translateX(-25%); }
+          50% { transform: translateX(-35%); }
           100% { transform: translateX(0); }
         }
-        .animate-wave-slow {
-          animation: waveMove 18s ease-in-out infinite;
+        .animate-wave-deep {
+          animation: waveDeepMove 14s ease-in-out infinite;
         }
-        .animate-wave-reverse {
-          animation: waveMove 22s ease-in-out infinite reverse;
+        .animate-wave-deep-reverse {
+          animation: waveDeepMove 18s ease-in-out infinite reverse;
         }
       `}</style>
 
       {/* Faixa de ponta a ponta na largura da tela (w-screen) */}
-      <div className={`w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-24 px-4 sm:px-8 my-8 overflow-hidden transition-all duration-700 ${estilo.sectionBg}`}>
+      <div className={`w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-28 px-4 sm:px-8 my-8 overflow-hidden transition-all duration-700 ${estilo.sectionBg}`}>
         
-        {/* Onda superior animada em movimento lento */}
-        <div className="absolute top-0 left-0 w-[200%] overflow-hidden leading-none pointer-events-none animate-wave-slow opacity-90">
-          <svg className="relative block w-full h-12 sm:h-20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="#fcfbf9"></path>
+        {/* Onda superior bem visível e acentuada com movimento lento */}
+        <div className="absolute top-0 left-0 w-[200%] overflow-hidden leading-none pointer-events-none animate-wave-deep opacity-95">
+          <svg className="relative block w-full h-16 sm:h-24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M0,0 C150,90 350,-40 500,50 C650,140 900,-30 1200,40 L1200,0 L0,0 Z" fill="#fcfbf9"></path>
           </svg>
         </div>
 
-        {/* Container centralizado do Card para manter o alinhamento com o site */}
+        {/* Container centralizado do Card */}
         <div className="max-w-7xl mx-auto bg-white rounded-[2.5rem] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10 text-gray-950">
           
           {/* COLUNA ESQUERDA: Santo do Dia */}
@@ -210,10 +210,10 @@ export default function LiturgiaDiariaCard() {
 
         </div>
 
-        {/* Onda inferior animada em movimento lento e reverso */}
-        <div className="absolute bottom-0 left-0 w-[200%] overflow-hidden leading-none pointer-events-none animate-wave-reverse rotate-180 opacity-90">
-          <svg className="relative block w-full h-12 sm:h-20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="#fcfbf9"></path>
+        {/* Onda inferior bem visível e acentuada com movimento lento */}
+        <div className="absolute bottom-0 left-0 w-[200%] overflow-hidden leading-none pointer-events-none animate-wave-deep-reverse opacity-95">
+          <svg className="relative block w-full h-16 sm:h-24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M0,120 C150,30 350,160 500,70 C650,-20 900,150 1200,80 L1200,120 L0,120 Z" fill="#fcfbf9"></path>
           </svg>
         </div>
 
