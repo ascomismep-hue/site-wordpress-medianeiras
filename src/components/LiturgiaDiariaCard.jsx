@@ -12,7 +12,7 @@ export default function LiturgiaDiariaCard() {
 
   const imagemFundoPadrao = "https://previews.123rf.com/images/karakotsya/karakotsya1411/karakotsya141100256/33261436-st-peter-s-cathedral-rome-vatican-italy-hand-drawing-on-grunge-paper-background-saint-pietro.jpg";
 
-  // Mapeamento dinâmico de cores vindo da sua API Flask
+  // Mapeamento exato das cores litúrgicas para os estilos do Tailwind
   const corConfig = {
     Verde: { 
       sectionBg: "bg-emerald-800 text-white", 
@@ -49,9 +49,11 @@ export default function LiturgiaDiariaCard() {
         const dia = String(date.getDate()).padStart(2, '0');
         const dataFormatadaQuery = `${ano}-${mes}-${dia}`;
 
-        // Chamada para a sua API Flask
+        // ⚠️ ATENÇÃO: Altere para a URL correta onde sua API Flask está rodando (ex: 'http://localhost:5000' ou URL de produção)
+        const apiBaseUrl = "http://localhost:5000"; 
+
         const [resLiturgia, resSanto] = await Promise.all([
-          fetch(`https://sua-api-flask.com/?date=${dataFormatadaQuery}`).catch(() => null), // Substitua pela URL da sua API se necessário, ou use rota relativa se estiver no mesmo servidor
+          fetch(`${apiBaseUrl}/?date=${dataFormatadaQuery}`).catch(() => null),
           fetch(`https://catolicoapp.com/wp-json/wp/v2/santos?dia=${date.getDate()}&mes=${date.getMonth() + 1}`).catch(() => null)
         ]);
 
@@ -67,6 +69,14 @@ export default function LiturgiaDiariaCard() {
               leituras: data.leituras || []
             });
           }
+        } else {
+          // Fallback caso a API local esteja desligada ou inacessível no momento
+          setLiturgiaData({
+            data: `${dia}/${mes}/${ano}`,
+            cor: "Verde",
+            liturgia: "Celebração do Dia",
+            leituras: []
+          });
         }
 
         if (resSanto && resSanto.ok) {
@@ -90,7 +100,6 @@ export default function LiturgiaDiariaCard() {
     fetchLiturgiaDaAPI(dataSelecionada);
   }, [dataSelecionada]);
 
-  // Normaliza o nome da cor para bater com o objeto de configuração (ex: "verde" virando "Verde")
   const corBruta = liturgiaData?.cor || "Verde";
   const corDoDia = corBruta.charAt(0).toUpperCase() + corBruta.slice(1).toLowerCase();
   const estilo = corConfig[corDoDia] || corConfig.default;
