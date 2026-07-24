@@ -48,31 +48,31 @@ export default function LiturgiaDiariaCard() {
         const mes = String(date.getMonth() + 1).padStart(2, '0');
         const dia = String(date.getDate()).padStart(2, '0');
         const dataFormatadaQuery = `${ano}-${mes}-${dia}`;
+        const dataFormatadaExibicao = `${dia}/${mes}/${ano}`;
 
-        // ⚠️ ATENÇÃO: Altere para a URL correta onde sua API Flask está rodando (ex: 'http://localhost:5000' ou URL de produção)
-        const apiBaseUrl = "http://localhost:5000"; 
-
+        // Consumindo a sua API da Vercel
         const [resLiturgia, resSanto] = await Promise.all([
-          fetch(`${apiBaseUrl}/?date=${dataFormatadaQuery}`).catch(() => null),
+          fetch(`https://api-liturgia-diaria.vercel.app/?date=${dataFormatadaQuery}`).catch(() => null),
           fetch(`https://catolicoapp.com/wp-json/wp/v2/santos?dia=${date.getDate()}&mes=${date.getMonth() + 1}`).catch(() => null)
         ]);
 
+        let dadosLiturgia = null;
         if (resLiturgia && resLiturgia.ok) {
           const json = await resLiturgia.json();
-          const data = json.today; // Sua API retorna os dados dentro de 'today'
-          
-          if (data) {
-            setLiturgiaData({
-              data: data.data || `${dia}/${mes}/${ano}`,
-              cor: data.cor || "Verde",
-              liturgia: data.liturgia || "Celebração do Dia",
-              leituras: data.leituras || []
-            });
-          }
-        } else {
-          // Fallback caso a API local esteja desligada ou inacessível no momento
+          dadosLiturgia = json.today;
+        }
+
+        if (dadosLiturgia) {
           setLiturgiaData({
-            data: `${dia}/${mes}/${ano}`,
+            data: dataFormatadaExibicao,
+            cor: dadosLiturgia.cor || "Verde",
+            liturgia: dadosLiturgia.liturgia || dadosLiturgia.titulo || "Celebração do Dia",
+            leituras: dadosLiturgia.leituras || []
+          });
+        } else {
+          // Fallback caso ocorra falha na API principal
+          setLiturgiaData({
+            data: dataFormatadaExibicao,
             cor: "Verde",
             liturgia: "Celebração do Dia",
             leituras: []
@@ -89,6 +89,8 @@ export default function LiturgiaDiariaCard() {
           } else {
             setSantoDoDia(null);
           }
+        } else {
+          setSantoDoDia(null);
         }
       } catch (err) {
         console.error("Erro ao carregar dados da API:", err);
@@ -100,6 +102,7 @@ export default function LiturgiaDiariaCard() {
     fetchLiturgiaDaAPI(dataSelecionada);
   }, [dataSelecionada]);
 
+  // Normaliza o nome da cor retornada pela API (ex: "verde" vira "Verde")
   const corBruta = liturgiaData?.cor || "Verde";
   const corDoDia = corBruta.charAt(0).toUpperCase() + corBruta.slice(1).toLowerCase();
   const estilo = corConfig[corDoDia] || corConfig.default;
@@ -138,6 +141,7 @@ export default function LiturgiaDiariaCard() {
 
       <div className="max-w-7xl mx-auto relative z-10 space-y-6">
         
+        {/* Botões de Navegação entre Abas */}
         <div className="flex justify-center items-center gap-3 flex-wrap">
           <button
             onClick={() => setAbaAtiva("liturgia")}
@@ -166,6 +170,7 @@ export default function LiturgiaDiariaCard() {
           )}
         </div>
 
+        {/* CONTEÚDO 1: LITURGIA DO DIA */}
         {abaAtiva === "liturgia" && (
           loading ? (
             <div className="bg-white rounded-[2.5rem] p-12 shadow-2xl flex items-center justify-center min-h-[380px]">
@@ -174,6 +179,7 @@ export default function LiturgiaDiariaCard() {
           ) : (
             <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 text-gray-950 animate-fadeIn">
               
+              {/* Coluna Esquerda: Imagem, Data e Título da Liturgia */}
               <div className="lg:col-span-5 relative min-h-[380px] lg:min-h-full overflow-hidden bg-black flex items-center justify-center">
                 <img 
                   src={santoDoDia?.imagem || imagemFundoPadrao} 
@@ -192,8 +198,8 @@ export default function LiturgiaDiariaCard() {
                   </div>
 
                   <div className="space-y-3">
-                    <p className="text-xs text-white/80 font-medium">{liturgiaData?.data || "Data"}</p>
-                    <h3 className="text-xl sm:text-2xl font-serif font-bold leading-snug">{liturgiaData?.liturgia || "Celebração do Dia"}</h3>
+                    <p className="text-xs text-white/80 font-medium">{liturgiaData?.data}</p>
+                    <h3 className="text-xl sm:text-2xl font-serif font-bold leading-snug">{liturgiaData?.liturgia}</h3>
                     
                     {santoDoDia?.nome && (
                       <div className="pt-2 border-t border-white/20">
@@ -207,6 +213,7 @@ export default function LiturgiaDiariaCard() {
                 </div>
               </div>
 
+              {/* Coluna Direita: Leituras e Reflexão */}
               <div className="lg:col-span-7 p-8 sm:p-10 flex flex-col justify-between space-y-6 bg-white">
                 <div className="space-y-6">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-4">
@@ -263,6 +270,7 @@ export default function LiturgiaDiariaCard() {
           )
         )}
 
+        {/* CONTEÚDO 2: CALENDÁRIO */}
         {abaAtiva === "calendario" && (
           <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 shadow-2xl text-gray-950 animate-fadeIn space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-center border-b pb-6 gap-4">
@@ -315,6 +323,7 @@ export default function LiturgiaDiariaCard() {
 
       </div>
 
+      {/* MODAL DE LEITURA COMPLETA */}
       {leituraAberta && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white max-w-2xl w-full p-8 rounded-3xl shadow-2xl space-y-6 relative animate-fadeIn my-8 max-h-[85vh] flex flex-col text-gray-950">
