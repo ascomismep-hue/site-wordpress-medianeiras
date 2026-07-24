@@ -1,73 +1,80 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Calendar as CalendarIcon, Loader2, X, ChevronRight, UserCheck, ChevronLeft } from "lucide-react";
+import { Sparkles, Calendar as CalendarIcon, Loader2, X, ChevronRight, UserCheck, ChevronLeft, RotateCcw } from "lucide-react";
 
 export default function LiturgiaDiariaCard() {
-  const [liturgiaDia, setLiturgiaDia] = useState(null);
+  const [liturgiaData, setLiturgiaData] = useState(null);
   const [santoDoDia, setSantoDoDia] = useState(null);
   const [loading, setLoading] = useState(true);
   const [leituraAberta, setLeituraAberta] = useState(null);
-  const [abaAtiva, setAbaAtiva] = useState("liturgia"); // "liturgia" ou "calendario"
+  const [abaAtiva, setAbaAtiva] = useState("liturgia");
 
-  // Estado para o calendário mensal
   const [dataSelecionada, setDataSelecionada] = useState(new Date());
-  const [calendarioDados, setCalendarioDados] = useState({});
-  const [loadingCalendario, setLoadingCalendario] = useState(false);
 
-  // Mapeamento de cores sólidas e imagens de fundo com opacidade para a faixa
+  // URL da imagem solicitada para todas as cores da faixa sólida
+  const imagemFundoPadrao = "https://previews.123rf.com/images/karakotsya/karakotsya1411/karakotsya141100256/33261436-st-peter-s-cathedral-rome-vatican-italy-hand-drawing-on-grunge-paper-background-saint-pietro.jpg";
+
   const corConfig = {
     Verde: { 
       sectionBg: "bg-emerald-800 text-white", 
       badgeBg: "bg-emerald-600 text-white border-emerald-500", 
-      bgImage: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=1600&q=80"
+      dot: "bg-emerald-400"
     },
     Vermelho: { 
       sectionBg: "bg-red-900 text-white", 
       badgeBg: "bg-red-700 text-white border-red-600", 
-      bgImage: "https://images.unsplash.com/photo-1548625361-168c14d9b626?auto=format&fit=crop&w=1600&q=80"
+      dot: "bg-red-400"
     },
     Roxo: { 
       sectionBg: "bg-purple-950 text-white", 
       badgeBg: "bg-purple-800 text-white border-purple-700", 
-      bgImage: "https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=1600&q=80"
+      dot: "bg-purple-400"
     },
     Branco: { 
       sectionBg: "bg-amber-700 text-white", 
       badgeBg: "bg-amber-600 text-white border-amber-500", 
-      bgImage: "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=1600&q=80"
+      dot: "bg-amber-300"
     },
     Rosa: { 
       sectionBg: "bg-pink-800 text-white", 
       badgeBg: "bg-pink-600 text-white border-pink-500", 
-      bgImage: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=1600&q=80"
+      dot: "bg-pink-300"
     },
     default: { 
       sectionBg: "bg-[#005a8d] text-white", 
       badgeBg: "bg-[#004068] text-white border-[#003050]", 
-      bgImage: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=1600&q=80"
+      dot: "bg-blue-400"
     }
   };
 
-  // Carrega a liturgia do dia atual ou da data selecionada no calendário
   useEffect(() => {
-    async function fetchLiturgiaData(dateObj) {
+    async function fetchLiturgia(date) {
       setLoading(true);
       try {
-        const ano = dateObj.getFullYear();
-        const mes = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const dia = String(dateObj.getDate()).padStart(2, '0');
+        const ano = date.getFullYear();
+        const mes = String(date.getMonth() + 1).padStart(2, '0');
+        const dia = String(date.getDate()).padStart(2, '0');
 
         const [resLiturgia, resSanto] = await Promise.all([
           fetch(`https://liturgia.up.railway.app/v3/${ano}/${mes}/${dia}`).catch(() => null),
-          fetch(`https://catolicoapp.com/wp-json/wp/v2/santos?dia=${dateObj.getDate()}&mes=${dateObj.getMonth() + 1}`).catch(() => null)
+          fetch(`https://catolicoapp.com/wp-json/wp/v2/santos?dia=${date.getDate()}&mes=${date.getMonth() + 1}`).catch(() => null)
         ]);
 
         if (resLiturgia && resLiturgia.ok) {
           const data = await resLiturgia.json();
-          if (data && data.celebracoes) {
+          if (data && data.celebracoes && data.celebracoes.length > 0) {
             const principal = data.celebracoes.find(c => c.principal) || data.celebracoes[0];
-            setLiturgiaDia({
+            setLiturgiaData({
               data: data.data || `${dia}/${mes}/${ano}`,
-              ...principal
+              cor: principal.cor || data.cor || "Verde",
+              liturgia: principal.liturgia || principal.titulo || "Celebração do Dia",
+              leituras: principal.leituras || []
+            });
+          } else {
+            setLiturgiaData({
+              data: `${dia}/${mes}/${ano}`,
+              cor: "Verde",
+              liturgia: "Celebração do Dia",
+              leituras: []
             });
           }
         }
@@ -84,16 +91,16 @@ export default function LiturgiaDiariaCard() {
           }
         }
       } catch (err) {
-        console.error("Erro ao buscar liturgia:", err);
+        console.error("Erro ao buscar dados litúrgicos:", err);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchLiturgiaData(dataSelecionada);
+    fetchLiturgia(dataSelecionada);
   }, [dataSelecionada]);
 
-  const corDoDia = liturgiaDia?.cor || "Verde";
+  const corDoDia = liturgiaData?.cor || "Verde";
   const estilo = corConfig[corDoDia] || corConfig.default;
 
   function getReflexao(titulo) {
@@ -103,7 +110,6 @@ export default function LiturgiaDiariaCard() {
     return "A liturgia de hoje nos convida a silenciar o coração e escutar com atenção a Palavra de Deus, permitindo que ela seja luz viva para orientar nossos passos e transformar nossas atitudes.";
   }
 
-  // Funções para navegar no mês do calendário
   const avancarMes = () => {
     setDataSelecionada(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   };
@@ -112,24 +118,34 @@ export default function LiturgiaDiariaCard() {
     setDataSelecionada(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
   };
 
+  const voltarParaHoje = () => {
+    setDataSelecionada(new Date());
+    setAbaAtiva("liturgia");
+  };
+
   const diasNoMes = new Date(dataSelecionada.getFullYear(), dataSelecionada.getMonth() + 1, 0).getDate();
   const primeiroDiaSemana = new Date(dataSelecionada.getFullYear(), dataSelecionada.getMonth(), 1).getDay();
-
   const nomesMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+
+  const hoje = new Date();
+  const ehHoje = 
+    dataSelecionada.getDate() === hoje.getDate() &&
+    dataSelecionada.getMonth() === hoje.getMonth() &&
+    dataSelecionada.getFullYear() === hoje.getFullYear();
 
   return (
     <div className={`w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-20 px-4 sm:px-8 my-8 overflow-hidden transition-all duration-700 ${estilo.sectionBg}`}>
       
-      {/* Imagem sacra de fundo com opacidade sutil sobre a cor sólida */}
+      {/* Imagem de fundo solicitada com opacidade sutil */}
       <div 
         className="absolute inset-0 bg-cover bg-center opacity-15 pointer-events-none mix-blend-overlay"
-        style={{ backgroundImage: `url(${estilo.bgImage})` }}
+        style={{ backgroundImage: `url(${imagemFundoPadrao})` }}
       ></div>
 
       <div className="max-w-7xl mx-auto relative z-10 space-y-6">
         
-        {/* Abas de Navegação (Liturgia do Dia / Calendário & Santos) */}
-        <div className="flex justify-center gap-3">
+        {/* Abas de Navegação */}
+        <div className="flex justify-center items-center gap-3 flex-wrap">
           <button
             onClick={() => setAbaAtiva("liturgia")}
             className={`px-6 py-2.5 rounded-2xl font-bold text-xs transition-all shadow-md ${
@@ -146,6 +162,15 @@ export default function LiturgiaDiariaCard() {
           >
             <CalendarIcon className="w-4 h-4" /> Calendário e Santos do Mês
           </button>
+
+          {!ehHoje && (
+            <button
+              onClick={voltarParaHoje}
+              className="px-4 py-2.5 rounded-2xl font-bold text-xs bg-amber-500 hover:bg-amber-600 text-white transition-all shadow-md flex items-center gap-1.5"
+            >
+              <RotateCcw className="w-3.5 h-3.5" /> Voltar para Hoje
+            </button>
+          )}
         </div>
 
         {/* CONTEÚDO 1: LITURGIA DO DIA SELECIONADO */}
@@ -160,7 +185,7 @@ export default function LiturgiaDiariaCard() {
               {/* Coluna Esquerda: Santo / Celebração */}
               <div className="lg:col-span-5 relative min-h-[380px] lg:min-h-full overflow-hidden bg-black flex items-center justify-center">
                 <img 
-                  src={santoDoDia?.imagem || estilo.bgImage} 
+                  src={santoDoDia?.imagem || imagemFundoPadrao} 
                   alt={santoDoDia?.nome || "Celebração"} 
                   className="absolute inset-0 w-full h-full object-cover filter brightness-90"
                 />
@@ -168,7 +193,7 @@ export default function LiturgiaDiariaCard() {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-black/30 flex flex-col justify-between p-8 text-white z-10">
                   <div className="flex justify-between items-center">
                     <span className="bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-xs">
-                      Liturgia & Santo do Dia
+                      {ehHoje ? "Liturgia de Hoje" : "Liturgia Selecionada"}
                     </span>
                     <span className={`text-xs font-bold px-4 py-1.5 rounded-xl shadow-md border ${estilo.badgeBg}`}>
                       Cor: {corDoDia}
@@ -176,8 +201,8 @@ export default function LiturgiaDiariaCard() {
                   </div>
 
                   <div className="space-y-3">
-                    <p className="text-xs text-white/80 font-medium">{liturgiaDia?.data || "Data"}</p>
-                    <h3 className="text-xl sm:text-2xl font-serif font-bold leading-snug">{liturgiaDia?.liturgia || "Celebração do Dia"}</h3>
+                    <p className="text-xs text-white/80 font-medium">{liturgiaData?.data || "Data"}</p>
+                    <h3 className="text-xl sm:text-2xl font-serif font-bold leading-snug">{liturgiaData?.liturgia || "Celebração do Dia"}</h3>
                     
                     {santoDoDia?.nome && (
                       <div className="pt-2 border-t border-white/20">
@@ -209,26 +234,30 @@ export default function LiturgiaDiariaCard() {
                   <div className="space-y-3">
                     <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Clique em uma leitura para ver o texto completo:</span>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {liturgiaDia?.leituras?.map((item, idx) => {
-                        const opcaoPrincipal = item.opcoes?.[0];
-                        return (
-                          <div 
-                            key={idx}
-                            onClick={() => setLeituraAberta(item)}
-                            className="bg-gray-50 hover:bg-blue-50/60 p-3.5 rounded-2xl border border-gray-200 hover:border-[#005a8d] text-xs space-y-1 cursor-pointer transition-all group shadow-xs"
-                          >
-                            <div className="flex justify-between items-center">
-                              <span className="font-bold text-gray-400 group-hover:text-[#005a8d] block text-[10px] tracking-wider uppercase">
-                                {item.rotulo}
+                      {liturgiaData?.leituras && liturgiaData.leituras.length > 0 ? (
+                        liturgiaData.leituras.map((item, idx) => {
+                          const opcaoPrincipal = item.opcoes?.[0];
+                          return (
+                            <div 
+                              key={idx}
+                              onClick={() => setLeituraAberta(item)}
+                              className="bg-gray-50 hover:bg-blue-50/60 p-3.5 rounded-2xl border border-gray-200 hover:border-[#005a8d] text-xs space-y-1 cursor-pointer transition-all group shadow-xs"
+                            >
+                              <div className="flex justify-between items-center">
+                                <span className="font-bold text-gray-400 group-hover:text-[#005a8d] block text-[10px] tracking-wider uppercase">
+                                  {item.rotulo || "Leitura"}
+                                </span>
+                                <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#005a8d] group-hover:translate-x-0.5 transition-transform" />
+                              </div>
+                              <span className="font-bold text-gray-800 block truncate">
+                                {opcaoPrincipal?.referencia || "Ver texto"}
                               </span>
-                              <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#005a8d] group-hover:translate-x-0.5 transition-transform" />
                             </div>
-                            <span className="font-bold text-gray-800 block truncate">
-                              {opcaoPrincipal?.referencia || "Ver texto"}
-                            </span>
-                          </div>
-                        );
-                      })}
+                          );
+                        })
+                      ) : (
+                        <p className="text-xs text-gray-500 italic col-span-3">Nenhuma leitura cadastrada para esta data específica.</p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -238,7 +267,7 @@ export default function LiturgiaDiariaCard() {
                     <Sparkles className="w-3.5 h-3.5 text-[#c5a059]" /> Reflexão Diária
                   </h4>
                   <p className="text-gray-700 text-xs sm:text-sm leading-relaxed italic">
-                    "{getReflexao(liturgiaDia?.liturgia)}"
+                    "{getReflexao(liturgiaData?.liturgia)}"
                   </p>
                 </div>
               </div>
@@ -247,7 +276,7 @@ export default function LiturgiaDiariaCard() {
           )
         )}
 
-        {/* CONTEÚDO 2: CALENDÁRIO MENSAL (Navegação por mês atual e seguinte) */}
+        {/* CONTEÚDO 2: CALENDÁRIO MENSAL */}
         {abaAtiva === "calendario" && (
           <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 shadow-2xl text-gray-950 animate-fadeIn space-y-6">
             
@@ -282,18 +311,16 @@ export default function LiturgiaDiariaCard() {
                 </div>
               ))}
 
-              {/* Espaços vazios iniciais */}
               {Array.from({ length: primeiroDiaSemana }).map((_, idx) => (
                 <div key={`empty-${idx}`} className="p-4"></div>
               ))}
 
-              {/* Dias do mês */}
               {Array.from({ length: diasNoMes }).map((_, idx) => {
                 const diaNum = idx + 1;
                 const isHoje = 
-                  diaNum === new Date().getDate() && 
-                  dataSelecionada.getMonth() === new Date().getMonth() && 
-                  dataSelecionada.getFullYear() === new Date().getFullYear();
+                  diaNum === hoje.getDate() && 
+                  dataSelecionada.getMonth() === hoje.getMonth() && 
+                  dataSelecionada.getFullYear() === hoje.getFullYear();
 
                 const isSelecionado = diaNum === dataSelecionada.getDate();
 
@@ -319,7 +346,7 @@ export default function LiturgiaDiariaCard() {
             </div>
 
             <p className="text-center text-xs text-gray-500 italic pt-4 border-t">
-              💡 Clique em qualquer dia do calendário para carregar instantaneamente a Liturgia e o Santo correspondente daquela data.
+              💡 Clique em qualquer dia para carregar instantaneamente a Liturgia, a cor litúrgica e o Santo correspondente daquela data no mesmo card principal.
             </p>
 
           </div>
