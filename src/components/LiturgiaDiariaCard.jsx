@@ -12,7 +12,7 @@ export default function LiturgiaDiariaCard() {
 
   const imagemFundoPadrao = "https://previews.123rf.com/images/karakotsya/karakotsya1411/karakotsya141100256/33261436-st-peter-s-cathedral-rome-vatican-italy-hand-drawing-on-grunge-paper-background-saint-pietro.jpg";
 
-  // Mapeamento dinâmico de cores litúrgicas para o Tailwind
+  // Mapeamento exato das cores litúrgicas para o Tailwind
   const corConfig = {
     Verde: { 
       sectionBg: "bg-emerald-800 text-white", 
@@ -41,7 +41,7 @@ export default function LiturgiaDiariaCard() {
   };
 
   useEffect(() => {
-    async function fetchLiturgia(date) {
+    async function fetchLiturgiaCompleta(date) {
       setLoading(true);
       try {
         const ano = date.getFullYear();
@@ -50,36 +50,34 @@ export default function LiturgiaDiariaCard() {
         const dataFormatadaQuery = `${ano}-${mes}-${dia}`;
         const dataFormatadaExibicao = `${dia}/${mes}/${ano}`;
 
-        // Consome a rota interna do Next.js criada acima
-        const [resLiturgia, resSanto] = await Promise.all([
-          fetch(`/api/liturgia?date=${dataFormatadaQuery}`).catch(() => null),
-          fetch(`https://catolicoapp.com/wp-json/wp/v2/santos?dia=${date.getDate()}&mes=${date.getMonth() + 1}`).catch(() => null)
-        ]);
+        let dadosLiturgia = null;
 
-        let dadosApi = null;
-        if (resLiturgia && resLiturgia.ok) {
-          const json = await resLiturgia.json();
-          if (json.success) {
-            dadosApi = json.data;
+        // 1ª Tentativa: API da Vercel com a data específica
+        try {
+          const res = await fetch(`https://api-liturgia-diaria.vercel.app/?date=${dataFormatadaQuery}`);
+          if (res.ok) {
+            const json = await res.json();
+            dadosLiturgia = json.today || json;
+          }
+        } catch (e) {
+          console.warn("Falha na API Principal.");
+        }
+
+        // 2ª Tentativa (Fallback): Canção Nova caso a principal falhe
+        if (!dadosLiturgia || !dadosLiturgia.leituras || dadosLiturgia.leituras.length === 0) {
+          try {
+            const resCN = await fetch(`https://api-liturgia-diaria.vercel.app/cn`);
+            if (resCN.ok) {
+              const jsonCN = await resCN.json();
+              dadosLiturgia = jsonCN.today || jsonCN;
+            }
+          } catch (e) {
+            console.warn("Falha no fallback.");
           }
         }
 
-        if (dadosApi) {
-          setLiturgiaData({
-            data: dadosApi.data || dataFormatadaExibicao,
-            cor: dadosApi.cor || dadosApi.color || "Verde",
-            liturgia: dadosApi.liturgia || dadosApi.titulo || dadosApi.title || "Celebração do Dia",
-            leituras: dadosApi.leituras || dadosApi.readings || []
-          });
-        } else {
-          setLiturgiaData({
-            data: dataFormatadaExibicao,
-            cor: "Verde",
-            liturgia: "Celebração do Dia",
-            leituras: []
-          });
-        }
-
+        // Busca o Santo do Dia
+        const resSanto = await fetch(`https://catolicoapp.com/wp-json/wp/v2/santos?dia=${date.getDate()}&mes=${date.getMonth() + 1}`).catch(() => null);
         if (resSanto && resSanto.ok) {
           const dataSanto = await resSanto.json();
           if (Array.isArray(dataSanto) && dataSanto.length > 0) {
@@ -94,17 +92,32 @@ export default function LiturgiaDiariaCard() {
           setSantoDoDia(null);
         }
 
+        if (dadosLiturgia) {
+          setLiturgiaData({
+            data: dataFormatadaExibicao,
+            cor: dadosLiturgia.cor || dadosLiturgia.color || "Verde",
+            liturgia: dadosLiturgia.liturgia || dadosLiturgia.titulo || dadosLiturgia.title || "Celebração do Dia",
+            leituras: dadosLiturgia.leituras || dadosLiturgia.readings || []
+          });
+        } else {
+          setLiturgiaData({
+            data: dataFormatadaExibicao,
+            cor: "Verde",
+            liturgia: "Celebração do Dia",
+            leituras: []
+          });
+        }
+
       } catch (err) {
-        console.error("Erro ao carregar dados:", err);
+        console.error("Erro ao buscar dados:", err);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchLiturgia(dataSelecionada);
+    fetchLiturgiaCompleta(dataSelecionada);
   }, [dataSelecionada]);
 
-  // Normalização correta da cor para acionar o estilo correspondente
   const corBruta = liturgiaData?.cor || "Verde";
   const corDoDia = corBruta.charAt(0).toUpperCase() + corBruta.slice(1).toLowerCase();
   const estilo = corConfig[corDoDia] || corConfig.default;
