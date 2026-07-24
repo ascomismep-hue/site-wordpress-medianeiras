@@ -12,7 +12,7 @@ export default function LiturgiaDiariaCard() {
 
   const imagemFundoPadrao = "https://previews.123rf.com/images/karakotsya/karakotsya1411/karakotsya141100256/33261436-st-peter-s-cathedral-rome-vatican-italy-hand-drawing-on-grunge-paper-background-saint-pietro.jpg";
 
-  // Mapeamento exato das cores litúrgicas para os estilos do Tailwind
+  // Mapeamento dinâmico das cores litúrgicas para o Tailwind
   const corConfig = {
     Verde: { 
       sectionBg: "bg-emerald-800 text-white", 
@@ -41,7 +41,7 @@ export default function LiturgiaDiariaCard() {
   };
 
   useEffect(() => {
-    async function fetchLiturgiaDaAPI(date) {
+    async function fetchLiturgiaCompleta(date) {
       setLoading(true);
       try {
         const ano = date.getFullYear();
@@ -50,35 +50,34 @@ export default function LiturgiaDiariaCard() {
         const dataFormatadaQuery = `${ano}-${mes}-${dia}`;
         const dataFormatadaExibicao = `${dia}/${mes}/${ano}`;
 
-        // Consumindo a sua API da Vercel
-        const [resLiturgia, resSanto] = await Promise.all([
-          fetch(`https://api-liturgia-diaria.vercel.app/?date=${dataFormatadaQuery}`).catch(() => null),
-          fetch(`https://catolicoapp.com/wp-json/wp/v2/santos?dia=${date.getDate()}&mes=${date.getMonth() + 1}`).catch(() => null)
-        ]);
-
         let dadosLiturgia = null;
-        if (resLiturgia && resLiturgia.ok) {
-          const json = await resLiturgia.json();
-          dadosLiturgia = json.today;
+
+        // 1ª Tentativa: API principal Vercel com data específica
+        try {
+          const res = await fetch(`https://api-liturgia-diaria.vercel.app/?date=${dataFormatadaQuery}`);
+          if (res.ok) {
+            const json = await res.json();
+            dadosLiturgia = json.today || json;
+          }
+        } catch (e) {
+          console.warn("Falha na API Principal, tentando Canção Nova...");
         }
 
-        if (dadosLiturgia) {
-          setLiturgiaData({
-            data: dataFormatadaExibicao,
-            cor: dadosLiturgia.cor || "Verde",
-            liturgia: dadosLiturgia.liturgia || dadosLiturgia.titulo || "Celebração do Dia",
-            leituras: dadosLiturgia.leituras || []
-          });
-        } else {
-          // Fallback caso ocorra falha na API principal
-          setLiturgiaData({
-            data: dataFormatadaExibicao,
-            cor: "Verde",
-            liturgia: "Celebração do Dia",
-            leituras: []
-          });
+        // 2ª Tentativa (Fallback): Se a principal falhar ou não retornar dados, tenta a Canção Nova
+        if (!dadosLiturgia || !dadosLiturgia.leituras || dadosLiturgia.leituras.length === 0) {
+          try {
+            const resCN = await fetch(`https://api-liturgia-diaria.vercel.app/cn`);
+            if (resCN.ok) {
+              const jsonCN = await resCN.json();
+              dadosLiturgia = jsonCN.today || jsonCN;
+            }
+          } catch (e) {
+            console.warn("Falha no fallback da Canção Nova.");
+          }
         }
 
+        // Busca o Santo do Dia correspondente
+        const resSanto = await fetch(`https://catolicoapp.com/wp-json/wp/v2/santos?dia=${date.getDate()}&mes=${date.getMonth() + 1}`).catch(() => null);
         if (resSanto && resSanto.ok) {
           const dataSanto = await resSanto.json();
           if (Array.isArray(dataSanto) && dataSanto.length > 0) {
@@ -92,17 +91,34 @@ export default function LiturgiaDiariaCard() {
         } else {
           setSantoDoDia(null);
         }
+
+        if (dadosLiturgia) {
+          setLiturgiaData({
+            data: dataFormatadaExibicao,
+            cor: dadosLiturgia.cor || dadosLiturgia.color || "Verde",
+            liturgia: dadosLiturgia.liturgia || dadosLiturgia.titulo || dadosLiturgia.title || "Celebração do Dia",
+            leituras: dadosLiturgia.leituras || dadosLiturgia.readings || []
+          });
+        } else {
+          setLiturgiaData({
+            data: dataFormatadaExibicao,
+            cor: "Verde",
+            liturgia: "Celebração do Dia",
+            leituras: []
+          });
+        }
+
       } catch (err) {
-        console.error("Erro ao carregar dados da API:", err);
+        console.error("Erro ao buscar liturgia:", err);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchLiturgiaDaAPI(dataSelecionada);
+    fetchLiturgiaCompleta(dataSelecionada);
   }, [dataSelecionada]);
 
-  // Normaliza o nome da cor retornada pela API (ex: "verde" vira "Verde")
+  // Normaliza a cor para garantir correspondência no objeto de estilo
   const corBruta = liturgiaData?.cor || "Verde";
   const corDoDia = corBruta.charAt(0).toUpperCase() + corBruta.slice(1).toLowerCase();
   const estilo = corConfig[corDoDia] || corConfig.default;
@@ -141,7 +157,7 @@ export default function LiturgiaDiariaCard() {
 
       <div className="max-w-7xl mx-auto relative z-10 space-y-6">
         
-        {/* Botões de Navegação entre Abas */}
+        {/* Botões de Alternância */}
         <div className="flex justify-center items-center gap-3 flex-wrap">
           <button
             onClick={() => setAbaAtiva("liturgia")}
@@ -170,7 +186,7 @@ export default function LiturgiaDiariaCard() {
           )}
         </div>
 
-        {/* CONTEÚDO 1: LITURGIA DO DIA */}
+        {/* ABA 1: CARD DA LITURGIA */}
         {abaAtiva === "liturgia" && (
           loading ? (
             <div className="bg-white rounded-[2.5rem] p-12 shadow-2xl flex items-center justify-center min-h-[380px]">
@@ -179,7 +195,7 @@ export default function LiturgiaDiariaCard() {
           ) : (
             <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 text-gray-950 animate-fadeIn">
               
-              {/* Coluna Esquerda: Imagem, Data e Título da Liturgia */}
+              {/* Coluna Esquerda: Imagem, Data e Título da Celebração */}
               <div className="lg:col-span-5 relative min-h-[380px] lg:min-h-full overflow-hidden bg-black flex items-center justify-center">
                 <img 
                   src={santoDoDia?.imagem || imagemFundoPadrao} 
@@ -245,7 +261,7 @@ export default function LiturgiaDiariaCard() {
                               <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#005a8d] group-hover:translate-x-0.5 transition-transform" />
                             </div>
                             <span className="font-bold text-gray-800 block truncate">
-                              {item.referencia || "Ver texto"}
+                              {item.referencia || item.ref || "Ver texto"}
                             </span>
                           </div>
                         ))
@@ -270,7 +286,7 @@ export default function LiturgiaDiariaCard() {
           )
         )}
 
-        {/* CONTEÚDO 2: CALENDÁRIO */}
+        {/* ABA 2: CALENDÁRIO */}
         {abaAtiva === "calendario" && (
           <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 shadow-2xl text-gray-950 animate-fadeIn space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-center border-b pb-6 gap-4">
@@ -323,14 +339,14 @@ export default function LiturgiaDiariaCard() {
 
       </div>
 
-      {/* MODAL DE LEITURA COMPLETA */}
+      {/* MODAL DE TEXTO DA LEITURA */}
       {leituraAberta && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white max-w-2xl w-full p-8 rounded-3xl shadow-2xl space-y-6 relative animate-fadeIn my-8 max-h-[85vh] flex flex-col text-gray-950">
             <div className="flex justify-between items-start border-b pb-4">
               <div>
                 <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">{leituraAberta.titulo || leituraAberta.rotulo}</span>
-                <h3 className="text-xl font-serif font-bold text-[#005a8d] mt-0.5">{leituraAberta.referencia}</h3>
+                <h3 className="text-xl font-serif font-bold text-[#005a8d] mt-0.5">{leituraAberta.referencia || leituraAberta.ref}</h3>
               </div>
               <button onClick={() => setLeituraAberta(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2.5 rounded-xl transition-colors font-bold flex items-center gap-1 text-xs">
                 <X className="w-4 h-4" /> Fechar
@@ -338,7 +354,7 @@ export default function LiturgiaDiariaCard() {
             </div>
 
             <div className="space-y-4 overflow-y-auto pr-2 flex-1 text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-sans">
-              {leituraAberta.texto || "Texto não disponível."}
+              {leituraAberta.texto || leituraAberta.text || "Texto não disponível."}
             </div>
 
             <div className="pt-4 border-t flex justify-end">
