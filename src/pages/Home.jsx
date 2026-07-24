@@ -1,414 +1,503 @@
-import { useState, useEffect } from "react";
-import { Sparkles, Calendar as CalendarIcon, Loader2, X, ChevronRight, UserCheck, ChevronLeft, RotateCcw } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { supabase } from "@/api/supabaseClient";
+import { ChevronRight, Calendar, Heart, ArrowRight, Loader2, Sparkles, Church, Users, GraduationCap, Stethoscope, Clock, MapPin, Phone, ChevronLeft, Gift } from "lucide-react";
+import LiturgiaDiariaCard from "../components/LiturgiaDiariaCard";
 
-export default function LiturgiaDiariaCard() {
-  const [liturgiaData, setLiturgiaData] = useState(null);
-  const [santoDoDia, setSantoDoDia] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [leituraAberta, setLeituraAberta] = useState(null);
-  const [abaAtiva, setAbaAtiva] = useState("liturgia"); // "liturgia" ou "calendario"
+export default function Home() {
+  const [banners, setBanners] = useState([]);
+  const [eventosHome, setEventosHome] = useState([]);
+  const [casasMissao, setCasasMissao] = useState([]);
+  const [noticiasHome, setNoticiasHome] = useState([]);
+  const [aniversariantes, setAniversariantes] = useState([]);
+  
+  const [loadingBanners, setLoadingBanners] = useState(true);
+  const [loadingEventos, setLoadingEventos] = useState(true);
+  const [loadingCasas, setLoadingCasas] = useState(true);
+  const [loadingNoticias, setLoadingNoticias] = useState(true);
+  const [loadingAniversariantes, setLoadingAniversariantes] = useState(true);
 
-  // Data atualmente selecionada (inicialmente hoje)
-  const [dataSelecionada, setDataSelecionada] = useState(new Date());
-
-  // Mapeamento de cores da faixa sólida de fundo e badges
-  const corConfig = {
-    Verde: { 
-      sectionBg: "bg-emerald-800 text-white", 
-      badgeBg: "bg-emerald-600 text-white border-emerald-500", 
-      dot: "bg-emerald-400",
-      bgImage: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=1600&q=80"
-    },
-    Vermelho: { 
-      sectionBg: "bg-red-900 text-white", 
-      badgeBg: "bg-red-700 text-white border-red-600", 
-      dot: "bg-red-400",
-      bgImage: "https://images.unsplash.com/photo-1548625361-168c14d9b626?auto=format&fit=crop&w=1600&q=80"
-    },
-    Roxo: { 
-      sectionBg: "bg-purple-950 text-white", 
-      badgeBg: "bg-purple-800 text-white border-purple-700", 
-      dot: "bg-purple-400",
-      bgImage: "https://images.unsplash.com/photo-1543852786-1cf6624b9987?auto=format&fit=crop&w=1600&q=80"
-    },
-    Branco: { 
-      sectionBg: "bg-amber-700 text-white", 
-      badgeBg: "bg-amber-600 text-white border-amber-500", 
-      dot: "bg-amber-300",
-      bgImage: "https://images.unsplash.com/photo-1519817650390-64a93db51149?auto=format&fit=crop&w=1600&q=80"
-    },
-    Rosa: { 
-      sectionBg: "bg-pink-800 text-white", 
-      badgeBg: "bg-pink-600 text-white border-pink-500", 
-      dot: "bg-pink-300",
-      bgImage: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=1600&q=80"
-    },
-    default: { 
-      sectionBg: "bg-[#005a8d] text-white", 
-      badgeBg: "bg-[#004068] text-white border-[#003050]", 
-      dot: "bg-blue-400",
-      bgImage: "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=1600&q=80"
-    }
-  };
+  // Estado para controlar o carrossel de Casas de Missão
+  const [indiceCarrossel, setIndiceCarrossel] = useState(0);
 
   useEffect(() => {
-    async function fetchLiturgia(date) {
-      setLoading(true);
+    async function fetchBanners() {
       try {
-        const ano = date.getFullYear();
-        const mes = String(date.getMonth() + 1).padStart(2, '0');
-        const dia = String(date.getDate()).padStart(2, '0');
-
-        const [resLiturgia, resSanto] = await Promise.all([
-          fetch(`https://liturgia.up.railway.app/v3/${ano}/${mes}/${dia}`).catch(() => null),
-          fetch(`https://catolicoapp.com/wp-json/wp/v2/santos?dia=${date.getDate()}&mes=${date.getMonth() + 1}`).catch(() => null)
-        ]);
-
-        if (resLiturgia && resLiturgia.ok) {
-          const data = await resLiturgia.json();
-          if (data && data.celebracoes && data.celebracoes.length > 0) {
-            const principal = data.celebracoes.find(c => c.principal) || data.celebracoes[0];
-            setLiturgiaData({
-              data: data.data || `${dia}/${mes}/${ano}`,
-              cor: principal.cor || data.cor || "Verde",
-              liturgia: principal.liturgia || principal.titulo || "Celebração do Dia",
-              leituras: principal.leituras || []
-            });
-          } else {
-            setLiturgiaData({
-              data: `${dia}/${mes}/${ano}`,
-              cor: "Verde",
-              liturgia: "Celebração do Dia",
-              leituras: []
-            });
-          }
-        }
-
-        if (resSanto && resSanto.ok) {
-          const dataSanto = await resSanto.json();
-          if (Array.isArray(dataSanto) && dataSanto.length > 0) {
-            setSantoDoDia({
-              nome: dataSanto[0].title?.rendered || "Santo do Dia",
-              imagem: dataSanto[0].imagem_destacada || ""
-            });
-          } else {
-            setSantoDoDia(null);
-          }
-        }
+        const { data, error } = await supabase
+          .from("banners")
+          .select("*")
+          .eq("active", true)
+          .order("order", { ascending: true });
+        
+        if (data && !error) setBanners(data);
       } catch (err) {
-        console.error("Erro ao buscar dados litúrgicos:", err);
+        console.error("Erro ao buscar banners:", err);
       } finally {
-        setLoading(false);
+        setLoadingBanners(false);
       }
     }
 
-    fetchLiturgia(dataSelecionada);
-  }, [dataSelecionada]);
+    async function fetchEventosFuturos() {
+      try {
+        const hoje = new Date().toISOString().split('T')[0];
+        const { data, error } = await supabase
+          .from("agenda_eventos")
+          .select("*")
+          .gte("data_evento", hoje)
+          .order("data_evento", { ascending: true })
+          .limit(6);
 
-  const corDoDia = liturgiaData?.cor || "Verde";
-  const estilo = corConfig[corDoDia] || corConfig.default;
-
-  function getReflexao(titulo) {
-    if (santoDoDia?.nome) {
-      return `Celebrando a memória de ${santoDoDia.nome}, somos convidados a fazer de Cristo o nosso 'único necessário', buscando a santidade com um amor autêntico e entregue.`;
+        if (data && !error) setEventosHome(data);
+      } catch (err) {
+        console.error("Erro ao buscar eventos:", err);
+      } finally {
+        setLoadingEventos(false);
+      }
     }
-    return "A liturgia de hoje nos convida a silenciar o coração e escutar com atenção a Palavra de Deus, permitindo que ela seja luz viva para orientar nossos passos e transformar nossas atitudes.";
+
+    async function fetchCasasMissao() {
+      try {
+        const { data, error } = await supabase
+          .from("casas_missao")
+          .select("*")
+          .order("ordem", { ascending: true });
+
+        if (data && !error) setCasasMissao(data);
+      } catch (err) {
+        console.error("Erro ao buscar casas de missão:", err);
+      } finally {
+        setLoadingCasas(false);
+      }
+    }
+
+    async function fetchNoticiasHome() {
+      try {
+        const { data, error } = await supabase
+          .from("noticias")
+          .select("*")
+          .eq("active", true)
+          .order("data_publicacao", { ascending: false })
+          .limit(3);
+
+        if (data && !error) setNoticiasHome(data);
+      } catch (err) {
+        console.error("Erro ao buscar notícias:", err);
+      } finally {
+        setLoadingNoticias(false);
+      }
+    }
+
+    async function fetchAniversariantesHoje() {
+      try {
+        const hoje = new Date();
+        const mesAtual = String(hoje.getMonth() + 1).padStart(2, '0');
+        const diaAtual = String(hoje.getDate()).padStart(2, '0');
+
+        // Busca todas as irmãs para filtrar por dia e mês de nascimento no cliente
+        const { data, error } = await supabase
+          .from("irmas")
+          .select("*");
+
+        if (data && !error) {
+          const aniversariantesHoje = data.filter(irma => {
+            if (!irma.data_nascimento) return false;
+            const partes = irma.data_nascimento.split('-'); // Esperado formato YYYY-MM-DD
+            if (partes.length === 3) {
+              const [, mes, dia] = partes;
+              return mes === mesAtual && dia === diaAtual;
+            }
+            return false;
+          });
+          setAniversariantes(aniversariantesHoje);
+        }
+      } catch (err) {
+        console.error("Erro ao buscar aniversariantes:", err);
+      } finally {
+        setLoadingAniversariantes(false);
+      }
+    }
+
+    fetchBanners();
+    fetchEventosFuturos();
+    fetchCasasMissao();
+    fetchNoticiasHome();
+    fetchAniversariantesHoje();
+  }, []);
+
+  // Efeito para o carrossel rodar automaticamente a cada 10 segundos
+  useEffect(() => {
+    if (casasMissao.length <= 1) return;
+
+    const intervalo = setInterval(() => {
+      setIndiceCarrossel((prev) => (prev + 1) % casasMissao.length);
+    }, 10000);
+
+    return () => clearInterval(intervalo);
+  }, [casasMissao.length]);
+
+  function isSemanaAtual(dataStr) {
+    const hoje = new Date();
+    const dataEvento = new Date(dataStr + 'T00:00:00');
+    
+    const primeiroDia = new Date(hoje);
+    primeiroDia.setDate(hoje.getDate() - hoje.getDay());
+    primeiroDia.setHours(0, 0, 0, 0);
+
+    const ultimoDia = new Date(primeiroDia);
+    ultimoDia.setDate(primeiroDia.getDate() + 6);
+    ultimoDia.setHours(23, 59, 59, 999);
+
+    return dataEvento >= primeiroDia && dataEvento <= ultimoDia;
   }
 
-  const avancarMes = () => {
-    setDataSelecionada(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  const proximaCasa = () => {
+    setIndiceCarrossel((prev) => (prev + 1) % casasMissao.length);
   };
 
-  const voltarMes = () => {
-    setDataSelecionada(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  const casaAnterior = () => {
+    setIndiceCarrossel((prev) => (prev - 1 + casasMissao.length) % casasMissao.length);
   };
-
-  const voltarParaHoje = () => {
-    setDataSelecionada(new Date());
-    setAbaAtiva("liturgia");
-  };
-
-  const diasNoMes = new Date(dataSelecionada.getFullYear(), dataSelecionada.getMonth() + 1, 0).getDate();
-  const primeiroDiaSemana = new Date(dataSelecionada.getFullYear(), dataSelecionada.getMonth(), 1).getDay();
-  const nomesMeses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
-
-  const hoje = new Date();
-  const ehHoje = 
-    dataSelecionada.getDate() === hoje.getDate() &&
-    dataSelecionada.getMonth() === hoje.getMonth() &&
-    dataSelecionada.getFullYear() === hoje.getFullYear();
 
   return (
-    <div className={`w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-20 px-4 sm:px-8 my-8 overflow-hidden transition-all duration-700 ${estilo.sectionBg}`}>
-      
-      {/* Imagem sacra de fundo com opacidade sutil */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center opacity-15 pointer-events-none mix-blend-overlay"
-        style={{ backgroundImage: `url(${estilo.bgImage})` }}
-      ></div>
+    <div className="flex flex-col min-h-screen bg-[#fcfbf9]">
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-[#005a8d] via-[#004068] to-[#002845] text-white py-24 px-4 sm:px-6 lg:px-8 overflow-hidden shadow-xl">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#c5a059]/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[#e31e24]/15 rounded-full blur-3xl pointer-events-none"></div>
 
-      <div className="max-w-7xl mx-auto relative z-10 space-y-6">
-        
-        {/* Abas de Navegação */}
-        <div className="flex justify-center items-center gap-3 flex-wrap">
-          <button
-            onClick={() => setAbaAtiva("liturgia")}
-            className={`px-6 py-2.5 rounded-2xl font-bold text-xs transition-all shadow-md ${
-              abaAtiva === "liturgia" ? "bg-white text-gray-900 shadow-lg scale-105" : "bg-black/30 text-white/80 hover:bg-black/50"
-            }`}
-          >
-            Liturgia de Hoje
-          </button>
-          <button
-            onClick={() => setAbaAtiva("calendario")}
-            className={`px-6 py-2.5 rounded-2xl font-bold text-xs transition-all shadow-md flex items-center gap-1.5 ${
-              abaAtiva === "calendario" ? "bg-white text-gray-900 shadow-lg scale-105" : "bg-black/30 text-white/80 hover:bg-black/50"
-            }`}
-          >
-            <CalendarIcon className="w-4 h-4" /> Calendário e Santos do Mês
-          </button>
+        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center relative z-10">
+          <div className="space-y-6">
+            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider text-[#c5a059] shadow-inner backdrop-blur-md">
+              <Sparkles className="w-4 h-4 text-[#c5a059]" />
+              Instituto Religioso das Medianeiras da Paz
+            </div>
 
-          {!ehHoje && (
-            <button
-              onClick={voltarParaHoje}
-              className="px-4 py-2.5 rounded-2xl font-bold text-xs bg-amber-500 hover:bg-amber-600 text-white transition-all shadow-md flex items-center gap-1.5"
-            >
-              <RotateCcw className="w-3.5 h-3.5" /> Voltar para Hoje
-            </button>
-          )}
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-wide drop-shadow-sm">
+              Consagradas à paz, à <span className="text-[#c5a059]">oração</span> e ao <span className="text-[#ff4d53]">serviço</span>.
+            </h1>
+
+            <p className="text-lg text-white/90 leading-relaxed font-light">
+              Bem-vindo ao portal oficial do IRIMEP. Um espaço de comunhão, fé e esperança onde compartilhamos nossa missão de amor ao próximo e edificação espiritual.
+            </p>
+
+            <div className="flex flex-wrap gap-4 pt-4">
+              <Link
+                to="/institucional"
+                className="bg-[#e31e24] hover:bg-[#c9181d] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg hover:shadow-red-600/30 flex items-center gap-2 group"
+              >
+                Conheça Nossa História 
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <Link
+                to="/agenda"
+                className="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-8 py-4 rounded-2xl font-bold transition-all backdrop-blur-md hover:border-[#c5a059]"
+              >
+                Ver Agenda
+              </Link>
+            </div>
+          </div>
+
+          <div className="bg-white/10 border border-white/20 p-8 rounded-3xl backdrop-blur-xl shadow-2xl relative">
+            <div className="absolute -top-3 -right-3 bg-[#c5a059] text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow">
+              Destaques
+            </div>
+
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-serif text-2xl font-bold text-[#c5a059] flex items-center gap-2">
+                <Church className="w-6 h-6" /> Avisos e Notícias
+              </h3>
+              <Link to="/noticias" className="text-xs font-bold text-white/80 hover:text-white underline">
+                Ver Todas &rarr;
+              </Link>
+            </div>
+
+            {loadingNoticias ? (
+              <div className="flex justify-center py-10">
+                <Loader2 className="w-6 h-6 animate-spin text-[#c5a059]" />
+              </div>
+            ) : noticiasHome.length > 0 ? (
+              <div className="space-y-3">
+                {noticiasHome.map((item) => (
+                  <div key={item.id} className="bg-white/10 p-4 rounded-2xl border border-white/15 hover:bg-white/20 transition-all shadow-sm">
+                    <h4 className="font-bold text-white text-sm mb-1">{item.titulo}</h4>
+                    <p className="text-xs text-white/80 line-clamp-1">{item.subtitulo || item.conteudo}</p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 bg-black/10 rounded-2xl border border-white/5">
+                <p className="text-sm text-white/80">Acompanhe nossas próximas programações e avisos oficiais.</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* SEÇÃO DE ANIVERSARIANTES DO DIA (Só aparece se houver aniversariantes hoje) */}
+      {!loadingAniversariantes && aniversariantes.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 w-full">
+          <div className="bg-gradient-to-r from-amber-500 via-[#c5a059] to-amber-600 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div className="space-y-2 text-center md:text-left relative z-10">
+              <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-xs">
+                <Gift className="w-4 h-4 text-white animate-bounce" /> Celebração Especial
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-serif font-bold">Os parabéns de hoje são para...</h2>
+              <p className="text-white/90 text-xs sm:text-sm">Unimo-nos em oração e ação de graças pela vida de nossas queridas irmãs aniversariantes!</p>
+            </div>
+
+            <div className="flex flex-wrap justify-center gap-4 relative z-10">
+              {aniversariantes.map((irma) => (
+                <div key={irma.id} className="bg-white/15 backdrop-blur-md border border-white/30 rounded-2xl p-4 flex items-center gap-4 shadow-md">
+                  <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-white/80 shrink-0 shadow-inner bg-black/20">
+                    <img 
+                      src={irma.foto_url || "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=400&q=80"} 
+                      alt={irma.nome} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-amber-200 block">Aniversariante</span>
+                    <h3 className="font-serif font-bold text-base sm:text-lg text-white leading-tight">{irma.nome}</h3>
+                    <p className="text-[11px] text-white/80 mt-0.5">Parabéns e muitas bênçãos!</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* SEÇÃO DE PILARES DA NOSSA MISSÃO */}
+      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
+        <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#005a8d]">Pilares da nossa Missão</h2>
+          <div className="w-24 h-1 bg-[#c5a059] mx-auto rounded-full"></div>
+          <p className="text-gray-600">Conheça as frentes de atuação e o impacto social e espiritual da congregação.</p>
         </div>
 
-        {/* CONTEÚDO 1: LITURGIA DO DIA SELECIONADO */}
-        {abaAtiva === "liturgia" && (
-          loading ? (
-            <div className="bg-white rounded-[2.5rem] p-12 shadow-2xl flex items-center justify-center min-h-[380px]">
-              <Loader2 className="w-8 h-8 animate-spin text-[#005a8d]" />
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="bg-white p-7 rounded-3xl shadow-sm border border-blue-100 hover:shadow-md transition-all group flex flex-col justify-between">
+            <div>
+              <div className="w-14 h-14 bg-blue-50 text-[#005a8d] rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                <GraduationCap className="w-7 h-7" />
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#005a8d] px-2.5 py-1 rounded-full">Obras Sociais</span>
+              <h3 className="font-serif text-xl font-bold text-[#005a8d] mt-2 mb-2">Educação</h3>
+              <p className="text-gray-600 text-xs leading-relaxed mb-6">
+                Formação integral de crianças e jovens através de escolas e projetos pedagógicos humanizados.
+              </p>
+            </div>
+            <Link to="/obras-e-missoes" className="text-[#005a8d] font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+              Ver unidades de educação <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="bg-white p-7 rounded-3xl shadow-sm border border-emerald-100 hover:shadow-md transition-all group flex flex-col justify-between">
+            <div>
+              <div className="w-14 h-14 bg-emerald-50 text-emerald-700 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                <Stethoscope className="w-7 h-7" />
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">Obras Sociais</span>
+              <h3 className="font-serif text-xl font-bold text-emerald-900 mt-2 mb-2">Saúde</h3>
+              <p className="text-gray-600 text-xs leading-relaxed mb-6">
+                Atendimento e amparo à saúde com dedicação, postos de apoio e assistência comunitária.
+              </p>
+            </div>
+            <Link to="/obras-e-missoes" className="text-emerald-700 font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+              Ver frentes de saúde <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="bg-white p-7 rounded-3xl shadow-sm border border-red-100 hover:shadow-md transition-all group flex flex-col justify-between">
+            <div>
+              <div className="w-14 h-14 bg-red-50 text-[#e31e24] rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                <Users className="w-7 h-7" />
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-red-50 text-[#e31e24] px-2.5 py-1 rounded-full">Obras Sociais</span>
+              <h3 className="font-serif text-xl font-bold text-red-950 mt-2 mb-2">Social & Missão</h3>
+              <p className="text-gray-600 text-xs leading-relaxed mb-6">
+                Apoio a famílias carentes, abrigos e casas missionárias espalhadas em diferentes regiões.
+              </p>
+            </div>
+            <Link to="/obras-e-missoes" className="text-[#e31e24] font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+              Conhecer casas de missão <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="bg-white p-7 rounded-3xl shadow-sm border border-amber-100 hover:shadow-md transition-all group flex flex-col justify-between">
+            <div>
+              <div className="w-14 h-14 bg-amber-50 text-[#c5a059] rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
+                <Heart className="w-7 h-7" />
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-[#c5a059] px-2.5 py-1 rounded-full">Espiritualidade</span>
+              <h3 className="font-serif text-xl font-bold text-[#005a8d] mt-2 mb-2">Caminho Vocacional</h3>
+              <p className="text-gray-600 text-xs leading-relaxed mb-6">
+                Sente o chamado divino para a vida consagrada? Descubra os passos para trilhar este caminho conosco.
+              </p>
+            </div>
+            <Link to="/institucional/sobre-nos" className="text-[#c5a059] font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+              Quero saber mais <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* SEÇÃO DA LITURGIA DIÁRIA COM COR SÓLIDA E CALENDÁRIO */}
+      <LiturgiaDiariaCard />
+
+      {/* Seção: Carrossel de Casas de Missão */}
+      <section className="bg-gradient-to-br from-[#002845] to-[#004068] text-white py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="max-w-5xl mx-auto">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
+            <div>
+              <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">Presença Missionária</span>
+              <h2 className="text-3xl font-serif font-bold text-white">Casas de Missão</h2>
+            </div>
+            <div className="flex items-center gap-3">
+              <Link 
+                to="/obras-e-missoes" 
+                className="text-xs font-bold text-[#c5a059] hover:underline mr-4"
+              >
+                Ver Todas &rarr;
+              </Link>
+              {casasMissao.length > 1 && (
+                <div className="flex gap-2">
+                  <button 
+                    onClick={casaAnterior}
+                    className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-colors"
+                    title="Anterior"
+                  >
+                    <ChevronLeft className="w-5 h-5 text-white" />
+                  </button>
+                  <button 
+                    onClick={proximaCasa}
+                    className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center transition-colors"
+                    title="Próxima"
+                  >
+                    <ChevronRight className="w-5 h-5 text-white" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {loadingCasas ? (
+            <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 animate-spin text-[#c5a059]" /></div>
+          ) : casasMissao.length === 0 ? (
+            <div className="text-center py-12 bg-white/5 rounded-3xl border border-white/10 text-white/70">
+              Nenhuma casa de missão cadastrada no momento.
             </div>
           ) : (
-            <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 text-gray-950 animate-fadeIn">
-              
-              {/* Coluna Esquerda: Santo / Celebração */}
-              <div className="lg:col-span-5 relative min-h-[380px] lg:min-h-full overflow-hidden bg-black flex items-center justify-center">
-                <img 
-                  src={santoDoDia?.imagem || estilo.bgImage} 
-                  alt={santoDoDia?.nome || "Celebração"} 
-                  className="absolute inset-0 w-full h-full object-cover filter brightness-90"
-                />
-
-                <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-black/30 flex flex-col justify-between p-8 text-white z-10">
-                  <div className="flex justify-between items-center">
-                    <span className="bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-xs">
-                      {ehHoje ? "Liturgia de Hoje" : "Liturgia Selecionada"}
-                    </span>
-                    <span className={`text-xs font-bold px-4 py-1.5 rounded-xl shadow-md border ${estilo.badgeBg}`}>
-                      Cor: {corDoDia}
-                    </span>
-                  </div>
-
-                  <div className="space-y-3">
-                    <p className="text-xs text-white/80 font-medium">{liturgiaData?.data || "Data"}</p>
-                    <h3 className="text-xl sm:text-2xl font-serif font-bold leading-snug">{liturgiaData?.liturgia || "Celebração do Dia"}</h3>
-                    
-                    {santoDoDia?.nome && (
-                      <div className="pt-2 border-t border-white/20">
-                        <p className="text-xs text-[#c5a059] font-bold flex items-center gap-1.5 leading-relaxed">
-                          <UserCheck className="w-4 h-4 shrink-0 text-[#c5a059]" /> 
-                          <span>Santo do Dia: {santoDoDia.nome}</span>
-                        </p>
-                      </div>
-                    )}
-                  </div>
+            <div className="bg-white/10 border border-white/15 rounded-3xl p-6 sm:p-10 backdrop-blur-md shadow-xl grid md:grid-cols-2 gap-8 items-center animate-fadeIn">
+              {casasMissao[indiceCarrossel].foto_url && (
+                <div className="h-64 sm:h-80 rounded-2xl overflow-hidden bg-black/20 shadow-inner">
+                  <img 
+                    src={casasMissao[indiceCarrossel].foto_url} 
+                    alt={casasMissao[indiceCarrossel].nome_casa} 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-              </div>
-
-              {/* Coluna Direita: Leituras e Reflexão */}
-              <div className="lg:col-span-7 p-8 sm:p-10 flex flex-col justify-between space-y-6 bg-white">
-                <div className="space-y-6">
-                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-4">
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#c5a059]">Missas e Orações</span>
-                      <h4 className="font-serif font-bold text-xl text-[#005a8d]">Leituras e Palavra de Deus</h4>
-                    </div>
-                    
-                    <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl border font-bold text-xs shadow-xs ${estilo.badgeBg}`}>
-                      <span className={`w-3.5 h-3.5 rounded-full ${corDoDia === 'Branco' ? 'bg-amber-300' : 'bg-white'} inline-block shadow-xs`}></span>
-                      Cor Litúrgica: {corDoDia}
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Clique em uma leitura para ver o texto completo:</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {liturgiaData?.leituras && liturgiaData.leituras.length > 0 ? (
-                        liturgiaData.leituras.map((item, idx) => {
-                          const opcaoPrincipal = item.opcoes?.[0];
-                          return (
-                            <div 
-                              key={idx}
-                              onClick={() => setLeituraAberta(item)}
-                              className="bg-gray-50 hover:bg-blue-50/60 p-3.5 rounded-2xl border border-gray-200 hover:border-[#005a8d] text-xs space-y-1 cursor-pointer transition-all group shadow-xs"
-                            >
-                              <div className="flex justify-between items-center">
-                                <span className="font-bold text-gray-400 group-hover:text-[#005a8d] block text-[10px] tracking-wider uppercase">
-                                  {item.rotulo || "Leitura"}
-                                </span>
-                                <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#005a8d] group-hover:translate-x-0.5 transition-transform" />
-                              </div>
-                              <span className="font-bold text-gray-800 block truncate">
-                                {opcaoPrincipal?.referencia || "Ver texto"}
-                              </span>
-                            </div>
-                          );
-                        })
-                      ) : (
-                        <p className="text-xs text-gray-500 italic col-span-3">Nenhuma leitura cadastrada para esta data específica.</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-2 bg-blue-50/50 p-5 rounded-2xl border border-blue-100/60">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#005a8d] flex items-center gap-1.5">
-                    <Sparkles className="w-3.5 h-3.5 text-[#c5a059]" /> Reflexão Diária
-                  </h4>
-                  <p className="text-gray-700 text-xs sm:text-sm leading-relaxed italic">
-                    "{getReflexao(liturgiaData?.liturgia)}"
-                  </p>
-                </div>
-              </div>
-
-            </div>
-          )
-        )}
-
-        {/* CONTEÚDO 2: CALENDÁRIO MENSAL */}
-        {abaAtiva === "calendario" && (
-          <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 shadow-2xl text-gray-950 animate-fadeIn space-y-6">
-            
-            <div className="flex flex-col sm:flex-row justify-between items-center border-b pb-6 gap-4">
-              <div>
-                <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">Selecione uma data</span>
-                <h3 className="text-2xl font-serif font-bold text-[#005a8d] capitalize">
-                  {nomesMeses[dataSelecionada.getMonth()]} de {dataSelecionada.getFullYear()}
+              )}
+              <div className="space-y-4">
+                <span className="text-xs font-bold text-[#c5a059] bg-[#c5a059]/20 px-3 py-1 rounded-full inline-block uppercase tracking-wider">
+                  {casasMissao[indiceCarrossel].cidade_estado}
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-serif font-bold text-white">
+                  {casasMissao[indiceCarrossel].nome_casa}
                 </h3>
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={voltarMes}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-3 rounded-2xl transition-colors font-bold flex items-center gap-1 text-xs"
-                >
-                  <ChevronLeft className="w-4 h-4" /> Mês Anterior
-                </button>
-                <button
-                  onClick={avancarMes}
-                  className="bg-[#005a8d] hover:bg-[#004068] text-white p-3 rounded-2xl transition-colors font-bold flex items-center gap-1 text-xs"
-                >
-                  Próximo Mês <ChevronRight className="w-4 h-4" />
-                </button>
+                {casasMissao[indiceCarrossel].descricao_breve && (
+                  <p className="text-white/80 text-sm leading-relaxed">
+                    {casasMissao[indiceCarrossel].descricao_breve}
+                  </p>
+                )}
+                <div className="pt-4 border-t border-white/10 space-y-2 text-xs text-white/90">
+                  <p className="flex items-start gap-2">
+                    <MapPin className="w-4 h-4 text-[#c5a059] shrink-0 mt-0.5" />
+                    <span>{casasMissao[indiceCarrossel].endereco}</span>
+                  </p>
+                  {casasMissao[indiceCarrossel].telefone && (
+                    <p className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-[#c5a059] shrink-0" />
+                      <span className="font-semibold">{casasMissao[indiceCarrossel].telefone}</span>
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
+          )}
+        </div>
+      </section>
 
-            {/* Grid dos dias do mês */}
-            <div className="grid grid-cols-7 gap-2 text-center">
-              {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((diaSemana, idx) => (
-                <div key={idx} className="font-bold text-xs text-gray-400 uppercase py-2">
-                  {diaSemana}
-                </div>
-              ))}
+      {/* Seção de Próximos Eventos e Agenda da Semana */}
+      <section className="bg-white py-20 border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-12">
+            <div>
+              <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">Acompanhe a Congregação</span>
+              <h2 className="text-3xl font-serif font-bold text-[#005a8d]">Próximos Eventos e Agenda</h2>
+            </div>
+            <Link 
+              to="/agenda" 
+              className="flex items-center gap-2 bg-[#005a8d]/10 text-[#005a8d] hover:bg-[#005a8d] hover:text-white px-6 py-3 rounded-2xl font-bold text-sm transition-all"
+            >
+              Ver Agenda Completa <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
 
-              {Array.from({ length: primeiroDiaSemana }).map((_, idx) => (
-                <div key={`empty-${idx}`} className="p-4"></div>
-              ))}
-
-              {Array.from({ length: diasNoMes }).map((_, idx) => {
-                const diaNum = idx + 1;
-                const isHoje = 
-                  diaNum === hoje.getDate() && 
-                  dataSelecionada.getMonth() === hoje.getMonth() && 
-                  dataSelecionada.getFullYear() === hoje.getFullYear();
-
-                const isSelecionado = diaNum === dataSelecionada.getDate();
+          {loadingEventos ? (
+            <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-[#005a8d]" /></div>
+          ) : eventosHome.length === 0 ? (
+            <div className="bg-gray-50 p-8 rounded-3xl border border-gray-100 text-center text-gray-500 shadow-sm">
+              Nenhum evento futuro cadastrado no momento.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {eventosHome.map((evento) => {
+                const eDaSemana = isSemanaAtual(evento.data_evento);
+                const dataFormatada = new Date(evento.data_evento + 'T00:00:00').toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric'
+                });
 
                 return (
-                  <button
-                    key={diaNum}
-                    onClick={() => {
-                      setDataSelecionada(new Date(dataSelecionada.getFullYear(), dataSelecionada.getMonth(), diaNum));
-                      setAbaAtiva("liturgia");
-                    }}
-                    className={`p-3 rounded-2xl flex flex-col items-center justify-center transition-all border ${
-                      isSelecionado 
-                        ? "bg-[#005a8d] text-white border-[#005a8d] shadow-md font-bold scale-105" 
-                        : isHoje 
-                        ? "border-[#c5a059] bg-amber-50 text-amber-900 font-bold" 
-                        : "bg-gray-50 hover:bg-gray-100 border-gray-100 text-gray-700"
+                  <div 
+                    key={evento.id} 
+                    className={`bg-gray-50 p-7 rounded-3xl shadow-sm border transition-all flex flex-col justify-between ${
+                      eDaSemana ? "border-[#c5a059] ring-2 ring-[#c5a059]/20 bg-white" : "border-gray-200"
                     }`}
                   >
-                    <span className="text-sm">{diaNum}</span>
-                  </button>
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+                          eDaSemana ? "bg-[#c5a059] text-white" : "bg-[#005a8d]/10 text-[#005a8d]"
+                        }`}>
+                          {eDaSemana ? "✨ Esta Semana" : dataFormatada}
+                        </span>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400">
+                          {evento.tipo === 'madre' ? 'Agenda da Madre' : 'Geral'}
+                        </span>
+                      </div>
+
+                      <h3 className="text-xl font-serif font-bold text-[#005a8d] mb-2">{evento.titulo}</h3>
+                      
+                      <div className="space-y-1 mb-4 text-xs text-gray-500 font-medium">
+                        <p className="flex items-center gap-1.5"><Calendar className="w-3.5 h-3.5 text-[#c5a059]" /> {dataFormatada}</p>
+                        {evento.horario && <p className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-[#c5a059]" /> {evento.horario}</p>}
+                        {evento.local && <p className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5 text-[#c5a059]" /> {evento.local}</p>}
+                      </div>
+
+                      <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">{evento.descricao}</p>
+                    </div>
+                  </div>
                 );
               })}
             </div>
-
-            <p className="text-center text-xs text-gray-500 italic pt-4 border-t">
-              💡 Clique em qualquer dia para carregar instantaneamente a Liturgia, a cor litúrgica e o Santo correspondente daquela data no mesmo card principal.
-            </p>
-
-          </div>
-        )}
-
-      </div>
-
-      {/* MODAL / QUADRO EXPANSÍVEL DA LEITURA SELECIONADA */}
-      {leituraAberta && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white max-w-2xl w-full p-8 rounded-3xl shadow-2xl space-y-6 relative animate-fadeIn my-8 max-h-[85vh] flex flex-col text-gray-950">
-            
-            <div className="flex justify-between items-start border-b pb-4">
-              <div>
-                <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">{leituraAberta.rotulo}</span>
-                <h3 className="text-xl font-serif font-bold text-[#005a8d] mt-0.5">
-                  {leituraAberta.opcoes?.[0]?.referencia || "Texto Litúrgico"}
-                </h3>
-              </div>
-              <button
-                onClick={() => setLeituraAberta(null)}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2.5 rounded-xl transition-colors font-bold flex items-center gap-1 text-xs"
-                title="Fechar quadro"
-              >
-                <X className="w-4 h-4" /> Fechar
-              </button>
-            </div>
-
-            <div className="space-y-4 overflow-y-auto pr-2 flex-1 text-gray-700 text-sm leading-relaxed">
-              {leituraAberta.opcoes?.[0]?.titulo && (
-                <p className="font-serif italic font-bold text-[#005a8d]">
-                  {leituraAberta.opcoes[0].titulo}
-                </p>
-              )}
-              {leituraAberta.opcoes?.[0]?.refrao && (
-                <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-amber-900 font-semibold">
-                  <span>R. </span>{leituraAberta.opcoes[0].refrao}
-                </div>
-              )}
-              <div className="whitespace-pre-wrap font-sans">
-                {leituraAberta.opcoes?.[0]?.texto || "Texto não disponível para esta opção."}
-              </div>
-            </div>
-
-            <div className="pt-4 border-t flex justify-end">
-              <button
-                onClick={() => setLeituraAberta(null)}
-                className="bg-[#005a8d] hover:bg-[#004068] text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-colors"
-              >
-                Recolher / Fechar
-              </button>
-            </div>
-
-          </div>
+          )}
         </div>
-      )}
-
+      </section>
     </div>
   );
 }
