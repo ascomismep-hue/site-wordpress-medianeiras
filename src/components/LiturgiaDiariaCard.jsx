@@ -10,71 +10,61 @@ export default function LiturgiaDiariaCard() {
 
   const [dataSelecionada, setDataSelecionada] = useState(new Date());
 
-  // URL da imagem solicitada para todas as cores da faixa sólida
   const imagemFundoPadrao = "https://previews.123rf.com/images/karakotsya/karakotsya1411/karakotsya141100256/33261436-st-peter-s-cathedral-rome-vatican-italy-hand-drawing-on-grunge-paper-background-saint-pietro.jpg";
 
+  // Mapeamento dinâmico de cores vindo da sua API Flask
   const corConfig = {
     Verde: { 
       sectionBg: "bg-emerald-800 text-white", 
-      badgeBg: "bg-emerald-600 text-white border-emerald-500", 
-      dot: "bg-emerald-400"
+      badgeBg: "bg-emerald-600 text-white border-emerald-500" 
     },
     Vermelho: { 
       sectionBg: "bg-red-900 text-white", 
-      badgeBg: "bg-red-700 text-white border-red-600", 
-      dot: "bg-red-400"
+      badgeBg: "bg-red-700 text-white border-red-600" 
     },
     Roxo: { 
       sectionBg: "bg-purple-950 text-white", 
-      badgeBg: "bg-purple-800 text-white border-purple-700", 
-      dot: "bg-purple-400"
+      badgeBg: "bg-purple-800 text-white border-purple-700" 
     },
     Branco: { 
       sectionBg: "bg-amber-700 text-white", 
-      badgeBg: "bg-amber-600 text-white border-amber-500", 
-      dot: "bg-amber-300"
+      badgeBg: "bg-amber-600 text-white border-amber-500" 
     },
     Rosa: { 
       sectionBg: "bg-pink-800 text-white", 
-      badgeBg: "bg-pink-600 text-white border-pink-500", 
-      dot: "bg-pink-300"
+      badgeBg: "bg-pink-600 text-white border-pink-500" 
     },
     default: { 
       sectionBg: "bg-[#005a8d] text-white", 
-      badgeBg: "bg-[#004068] text-white border-[#003050]", 
-      dot: "bg-blue-400"
+      badgeBg: "bg-[#004068] text-white border-[#003050]" 
     }
   };
 
   useEffect(() => {
-    async function fetchLiturgia(date) {
+    async function fetchLiturgiaDaAPI(date) {
       setLoading(true);
       try {
         const ano = date.getFullYear();
         const mes = String(date.getMonth() + 1).padStart(2, '0');
         const dia = String(date.getDate()).padStart(2, '0');
+        const dataFormatadaQuery = `${ano}-${mes}-${dia}`;
 
+        // Chamada para a sua API Flask
         const [resLiturgia, resSanto] = await Promise.all([
-          fetch(`https://liturgia.up.railway.app/v3/${ano}/${mes}/${dia}`).catch(() => null),
+          fetch(`https://sua-api-flask.com/?date=${dataFormatadaQuery}`).catch(() => null), // Substitua pela URL da sua API se necessário, ou use rota relativa se estiver no mesmo servidor
           fetch(`https://catolicoapp.com/wp-json/wp/v2/santos?dia=${date.getDate()}&mes=${date.getMonth() + 1}`).catch(() => null)
         ]);
 
         if (resLiturgia && resLiturgia.ok) {
-          const data = await resLiturgia.json();
-          if (data && data.celebracoes && data.celebracoes.length > 0) {
-            const principal = data.celebracoes.find(c => c.principal) || data.celebracoes[0];
+          const json = await resLiturgia.json();
+          const data = json.today; // Sua API retorna os dados dentro de 'today'
+          
+          if (data) {
             setLiturgiaData({
               data: data.data || `${dia}/${mes}/${ano}`,
-              cor: principal.cor || data.cor || "Verde",
-              liturgia: principal.liturgia || principal.titulo || "Celebração do Dia",
-              leituras: principal.leituras || []
-            });
-          } else {
-            setLiturgiaData({
-              data: `${dia}/${mes}/${ano}`,
-              cor: "Verde",
-              liturgia: "Celebração do Dia",
-              leituras: []
+              cor: data.cor || "Verde",
+              liturgia: data.liturgia || "Celebração do Dia",
+              leituras: data.leituras || []
             });
           }
         }
@@ -91,33 +81,29 @@ export default function LiturgiaDiariaCard() {
           }
         }
       } catch (err) {
-        console.error("Erro ao buscar dados litúrgicos:", err);
+        console.error("Erro ao carregar dados da API:", err);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchLiturgia(dataSelecionada);
+    fetchLiturgiaDaAPI(dataSelecionada);
   }, [dataSelecionada]);
 
-  const corDoDia = liturgiaData?.cor || "Verde";
+  // Normaliza o nome da cor para bater com o objeto de configuração (ex: "verde" virando "Verde")
+  const corBruta = liturgiaData?.cor || "Verde";
+  const corDoDia = corBruta.charAt(0).toUpperCase() + corBruta.slice(1).toLowerCase();
   const estilo = corConfig[corDoDia] || corConfig.default;
 
-  function getReflexao(titulo) {
+  function getReflexao() {
     if (santoDoDia?.nome) {
       return `Celebrando a memória de ${santoDoDia.nome}, somos convidados a fazer de Cristo o nosso 'único necessário', buscando a santidade com um amor autêntico e entregue.`;
     }
     return "A liturgia de hoje nos convida a silenciar o coração e escutar com atenção a Palavra de Deus, permitindo que ela seja luz viva para orientar nossos passos e transformar nossas atitudes.";
   }
 
-  const avancarMes = () => {
-    setDataSelecionada(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
-  };
-
-  const voltarMes = () => {
-    setDataSelecionada(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
-  };
-
+  const avancarMes = () => setDataSelecionada(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  const voltarMes = () => setDataSelecionada(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
   const voltarParaHoje = () => {
     setDataSelecionada(new Date());
     setAbaAtiva("liturgia");
@@ -136,7 +122,6 @@ export default function LiturgiaDiariaCard() {
   return (
     <div className={`w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-20 px-4 sm:px-8 my-8 overflow-hidden transition-all duration-700 ${estilo.sectionBg}`}>
       
-      {/* Imagem de fundo solicitada com opacidade sutil */}
       <div 
         className="absolute inset-0 bg-cover bg-center opacity-15 pointer-events-none mix-blend-overlay"
         style={{ backgroundImage: `url(${imagemFundoPadrao})` }}
@@ -144,7 +129,6 @@ export default function LiturgiaDiariaCard() {
 
       <div className="max-w-7xl mx-auto relative z-10 space-y-6">
         
-        {/* Abas de Navegação */}
         <div className="flex justify-center items-center gap-3 flex-wrap">
           <button
             onClick={() => setAbaAtiva("liturgia")}
@@ -173,7 +157,6 @@ export default function LiturgiaDiariaCard() {
           )}
         </div>
 
-        {/* CONTEÚDO 1: LITURGIA DO DIA SELECIONADO */}
         {abaAtiva === "liturgia" && (
           loading ? (
             <div className="bg-white rounded-[2.5rem] p-12 shadow-2xl flex items-center justify-center min-h-[380px]">
@@ -182,7 +165,6 @@ export default function LiturgiaDiariaCard() {
           ) : (
             <div className="bg-white rounded-[2.5rem] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 text-gray-950 animate-fadeIn">
               
-              {/* Coluna Esquerda: Santo / Celebração */}
               <div className="lg:col-span-5 relative min-h-[380px] lg:min-h-full overflow-hidden bg-black flex items-center justify-center">
                 <img 
                   src={santoDoDia?.imagem || imagemFundoPadrao} 
@@ -216,7 +198,6 @@ export default function LiturgiaDiariaCard() {
                 </div>
               </div>
 
-              {/* Coluna Direita: Leituras e Reflexão */}
               <div className="lg:col-span-7 p-8 sm:p-10 flex flex-col justify-between space-y-6 bg-white">
                 <div className="space-y-6">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-4">
@@ -234,29 +215,26 @@ export default function LiturgiaDiariaCard() {
                   <div className="space-y-3">
                     <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Clique em uma leitura para ver o texto completo:</span>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      {liturgiaData?.leituras && liturgiaData.leituras.length > 0 ? (
-                        liturgiaData.leituras.map((item, idx) => {
-                          const opcaoPrincipal = item.opcoes?.[0];
-                          return (
-                            <div 
-                              key={idx}
-                              onClick={() => setLeituraAberta(item)}
-                              className="bg-gray-50 hover:bg-blue-50/60 p-3.5 rounded-2xl border border-gray-200 hover:border-[#005a8d] text-xs space-y-1 cursor-pointer transition-all group shadow-xs"
-                            >
-                              <div className="flex justify-between items-center">
-                                <span className="font-bold text-gray-400 group-hover:text-[#005a8d] block text-[10px] tracking-wider uppercase">
-                                  {item.rotulo || "Leitura"}
-                                </span>
-                                <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#005a8d] group-hover:translate-x-0.5 transition-transform" />
-                              </div>
-                              <span className="font-bold text-gray-800 block truncate">
-                                {opcaoPrincipal?.referencia || "Ver texto"}
+                      {liturgiaData?.leituras && Array.isArray(liturgiaData.leituras) && liturgiaData.leituras.length > 0 ? (
+                        liturgiaData.leituras.map((item, idx) => (
+                          <div 
+                            key={idx}
+                            onClick={() => setLeituraAberta(item)}
+                            className="bg-gray-50 hover:bg-blue-50/60 p-3.5 rounded-2xl border border-gray-200 hover:border-[#005a8d] text-xs space-y-1 cursor-pointer transition-all group shadow-xs"
+                          >
+                            <div className="flex justify-between items-center">
+                              <span className="font-bold text-gray-400 group-hover:text-[#005a8d] block text-[10px] tracking-wider uppercase">
+                                {item.titulo || item.rotulo || "Leitura"}
                               </span>
+                              <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#005a8d] group-hover:translate-x-0.5 transition-transform" />
                             </div>
-                          );
-                        })
+                            <span className="font-bold text-gray-800 block truncate">
+                              {item.referencia || "Ver texto"}
+                            </span>
+                          </div>
+                        ))
                       ) : (
-                        <p className="text-xs text-gray-500 italic col-span-3">Nenhuma leitura cadastrada para esta data específica.</p>
+                        <p className="text-xs text-gray-500 italic col-span-3">Nenhuma leitura encontrada para esta data.</p>
                       )}
                     </div>
                   </div>
@@ -267,7 +245,7 @@ export default function LiturgiaDiariaCard() {
                     <Sparkles className="w-3.5 h-3.5 text-[#c5a059]" /> Reflexão Diária
                   </h4>
                   <p className="text-gray-700 text-xs sm:text-sm leading-relaxed italic">
-                    "{getReflexao(liturgiaData?.liturgia)}"
+                    "{getReflexao()}"
                   </p>
                 </div>
               </div>
@@ -276,10 +254,8 @@ export default function LiturgiaDiariaCard() {
           )
         )}
 
-        {/* CONTEÚDO 2: CALENDÁRIO MENSAL */}
         {abaAtiva === "calendario" && (
           <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 shadow-2xl text-gray-950 animate-fadeIn space-y-6">
-            
             <div className="flex flex-col sm:flex-row justify-between items-center border-b pb-6 gap-4">
               <div>
                 <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">Selecione uma data</span>
@@ -288,40 +264,25 @@ export default function LiturgiaDiariaCard() {
                 </h3>
               </div>
               <div className="flex items-center gap-3">
-                <button
-                  onClick={voltarMes}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-3 rounded-2xl transition-colors font-bold flex items-center gap-1 text-xs"
-                >
+                <button onClick={voltarMes} className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-3 rounded-2xl transition-colors font-bold flex items-center gap-1 text-xs">
                   <ChevronLeft className="w-4 h-4" /> Mês Anterior
                 </button>
-                <button
-                  onClick={avancarMes}
-                  className="bg-[#005a8d] hover:bg-[#004068] text-white p-3 rounded-2xl transition-colors font-bold flex items-center gap-1 text-xs"
-                >
+                <button onClick={avancarMes} className="bg-[#005a8d] hover:bg-[#004068] text-white p-3 rounded-2xl transition-colors font-bold flex items-center gap-1 text-xs">
                   Próximo Mês <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
             </div>
 
-            {/* Grid dos dias do mês */}
             <div className="grid grid-cols-7 gap-2 text-center">
               {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((diaSemana, idx) => (
-                <div key={idx} className="font-bold text-xs text-gray-400 uppercase py-2">
-                  {diaSemana}
-                </div>
+                <div key={idx} className="font-bold text-xs text-gray-400 uppercase py-2">{diaSemana}</div>
               ))}
-
               {Array.from({ length: primeiroDiaSemana }).map((_, idx) => (
                 <div key={`empty-${idx}`} className="p-4"></div>
               ))}
-
               {Array.from({ length: diasNoMes }).map((_, idx) => {
                 const diaNum = idx + 1;
-                const isHoje = 
-                  diaNum === hoje.getDate() && 
-                  dataSelecionada.getMonth() === hoje.getMonth() && 
-                  dataSelecionada.getFullYear() === hoje.getFullYear();
-
+                const isHoje = diaNum === hoje.getDate() && dataSelecionada.getMonth() === hoje.getMonth() && dataSelecionada.getFullYear() === hoje.getFullYear();
                 const isSelecionado = diaNum === dataSelecionada.getDate();
 
                 return (
@@ -332,11 +293,7 @@ export default function LiturgiaDiariaCard() {
                       setAbaAtiva("liturgia");
                     }}
                     className={`p-3 rounded-2xl flex flex-col items-center justify-center transition-all border ${
-                      isSelecionado 
-                        ? "bg-[#005a8d] text-white border-[#005a8d] shadow-md font-bold scale-105" 
-                        : isHoje 
-                        ? "border-[#c5a059] bg-amber-50 text-amber-900 font-bold" 
-                        : "bg-gray-50 hover:bg-gray-100 border-gray-100 text-gray-700"
+                      isSelecionado ? "bg-[#005a8d] text-white border-[#005a8d] shadow-md font-bold scale-105" : isHoje ? "border-[#c5a059] bg-amber-50 text-amber-900 font-bold" : "bg-gray-50 hover:bg-gray-100 border-gray-100 text-gray-700"
                     }`}
                   >
                     <span className="text-sm">{diaNum}</span>
@@ -344,62 +301,33 @@ export default function LiturgiaDiariaCard() {
                 );
               })}
             </div>
-
-            <p className="text-center text-xs text-gray-500 italic pt-4 border-t">
-              💡 Clique em qualquer dia para carregar instantaneamente a Liturgia, a cor litúrgica e o Santo correspondente daquela data no mesmo card principal.
-            </p>
-
           </div>
         )}
 
       </div>
 
-      {/* MODAL / QUADRO EXPANSÍVEL DA LEITURA SELECIONADA */}
       {leituraAberta && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white max-w-2xl w-full p-8 rounded-3xl shadow-2xl space-y-6 relative animate-fadeIn my-8 max-h-[85vh] flex flex-col text-gray-950">
-            
             <div className="flex justify-between items-start border-b pb-4">
               <div>
-                <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">{leituraAberta.rotulo}</span>
-                <h3 className="text-xl font-serif font-bold text-[#005a8d] mt-0.5">
-                  {leituraAberta.opcoes?.[0]?.referencia || "Texto Litúrgico"}
-                </h3>
+                <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">{leituraAberta.titulo || leituraAberta.rotulo}</span>
+                <h3 className="text-xl font-serif font-bold text-[#005a8d] mt-0.5">{leituraAberta.referencia}</h3>
               </div>
-              <button
-                onClick={() => setLeituraAberta(null)}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2.5 rounded-xl transition-colors font-bold flex items-center gap-1 text-xs"
-                title="Fechar quadro"
-              >
+              <button onClick={() => setLeituraAberta(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2.5 rounded-xl transition-colors font-bold flex items-center gap-1 text-xs">
                 <X className="w-4 h-4" /> Fechar
               </button>
             </div>
 
-            <div className="space-y-4 overflow-y-auto pr-2 flex-1 text-gray-700 text-sm leading-relaxed">
-              {leituraAberta.opcoes?.[0]?.titulo && (
-                <p className="font-serif italic font-bold text-[#005a8d]">
-                  {leituraAberta.opcoes[0].titulo}
-                </p>
-              )}
-              {leituraAberta.opcoes?.[0]?.refrao && (
-                <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-amber-900 font-semibold">
-                  <span>R. </span>{leituraAberta.opcoes[0].refrao}
-                </div>
-              )}
-              <div className="whitespace-pre-wrap font-sans">
-                {leituraAberta.opcoes?.[0]?.texto || "Texto não disponível para esta opção."}
-              </div>
+            <div className="space-y-4 overflow-y-auto pr-2 flex-1 text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-sans">
+              {leituraAberta.texto || "Texto não disponível."}
             </div>
 
             <div className="pt-4 border-t flex justify-end">
-              <button
-                onClick={() => setLeituraAberta(null)}
-                className="bg-[#005a8d] hover:bg-[#004068] text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-colors"
-              >
+              <button onClick={() => setLeituraAberta(null)} className="bg-[#005a8d] hover:bg-[#004068] text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-colors">
                 Recolher / Fechar
               </button>
             </div>
-
           </div>
         </div>
       )}
