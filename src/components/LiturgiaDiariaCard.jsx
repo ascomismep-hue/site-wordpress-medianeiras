@@ -7,37 +7,30 @@ export default function LiturgiaDiariaCard() {
   const [loading, setLoading] = useState(true);
   const [leituraAberta, setLeituraAberta] = useState(null);
 
-  // Mapeamento completo para preencher a faixa inteira com a cor litúrgica do dia
   const corConfig = {
     Verde: { 
       sectionBg: "bg-emerald-800 text-white", 
-      badgeBg: "bg-emerald-600 text-white border-emerald-500", 
-      waveFill: "#065f46"
+      badgeBg: "bg-emerald-600 text-white border-emerald-500" 
     },
     Vermelho: { 
       sectionBg: "bg-red-900 text-white", 
-      badgeBg: "bg-red-700 text-white border-red-600", 
-      waveFill: "#7f1d1d"
+      badgeBg: "bg-red-700 text-white border-red-600" 
     },
     Roxo: { 
       sectionBg: "bg-purple-950 text-white", 
-      badgeBg: "bg-purple-800 text-white border-purple-700", 
-      waveFill: "#3b0764"
+      badgeBg: "bg-purple-800 text-white border-purple-700" 
     },
     Branco: { 
       sectionBg: "bg-amber-700 text-white", 
-      badgeBg: "bg-amber-600 text-white border-amber-500", 
-      waveFill: "#b45309"
+      badgeBg: "bg-amber-600 text-white border-amber-500" 
     },
     Rosa: { 
       sectionBg: "bg-pink-800 text-white", 
-      badgeBg: "bg-pink-600 text-white border-pink-500", 
-      waveFill: "#9d174d"
+      badgeBg: "bg-pink-600 text-white border-pink-500" 
     },
     default: { 
       sectionBg: "bg-[#005a8d] text-white", 
-      badgeBg: "bg-[#004068] text-white border-[#003050]", 
-      waveFill: "#004068"
+      badgeBg: "bg-[#004068] text-white border-[#003050]" 
     }
   };
 
@@ -99,165 +92,182 @@ export default function LiturgiaDiariaCard() {
   }
 
   return (
-    <div className={`w-full py-20 px-4 sm:px-6 lg:px-8 my-8 relative overflow-hidden transition-all duration-700 ${estilo.sectionBg}`}>
-      
-      {/* Onda orgânica superior */}
-      <div className="absolute top-0 left-0 w-full overflow-hidden leading-none pointer-events-none">
-        <svg className="relative block w-full h-10 sm:h-16" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="#fcfbf9"></path>
-        </svg>
-      </div>
+    <>
+      <style>{`
+        @keyframes waveMove {
+          0% { transform: translateX(0); }
+          50% { transform: translateX(-25%); }
+          100% { transform: translateX(0); }
+        }
+        .animate-wave-slow {
+          animation: waveMove 18s ease-in-out infinite;
+        }
+        .animate-wave-reverse {
+          animation: waveMove 22s ease-in-out infinite reverse;
+        }
+      `}</style>
 
-      {/* Container Principal do Card no centro da faixa */}
-      <div className="max-w-7xl mx-auto bg-white rounded-[2.5rem] shadow-xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10 text-gray-900">
+      {/* Faixa de ponta a ponta na largura da tela (w-screen) */}
+      <div className={`w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-24 px-4 sm:px-8 my-8 overflow-hidden transition-all duration-700 ${estilo.sectionBg}`}>
         
-        {/* COLUNA ESQUERDA: Santo do Dia */}
-        <div className="lg:col-span-5 relative min-h-[380px] lg:min-h-full overflow-hidden bg-black flex items-center justify-center">
-          <img 
-            src={santoDoDia?.imagem || "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"} 
-            alt={santoDoDia?.nome || "Santo do Dia"} 
-            className="absolute inset-0 w-full h-full object-cover filter brightness-90"
-          />
-
-          <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-black/30 flex flex-col justify-between p-8 text-white z-10">
-            <div className="flex justify-between items-center">
-              <span className="bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-xs">
-                Liturgia & Santo do Dia
-              </span>
-              <span className={`text-xs font-bold px-4 py-1.5 rounded-xl shadow-md border ${estilo.badgeBg}`}>
-                Cor: {corDoDia}
-              </span>
-            </div>
-
-            <div className="space-y-3">
-              <p className="text-xs text-white/80 font-medium">{liturgiaDia?.data || "Hoje"}</p>
-              <h3 className="text-xl sm:text-2xl font-serif font-bold leading-snug">{liturgiaDia?.liturgia || "Celebração do Dia"}</h3>
-              
-              {santoDoDia?.nome && (
-                <div className="pt-2 border-t border-white/20">
-                  <p className="text-xs text-[#c5a059] font-bold flex items-center gap-1.5 leading-relaxed">
-                    <UserCheck className="w-4 h-4 shrink-0 text-[#c5a059]" /> 
-                    <span>Santo do Dia: {santoDoDia.nome}</span>
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
+        {/* Onda superior animada em movimento lento */}
+        <div className="absolute top-0 left-0 w-[200%] overflow-hidden leading-none pointer-events-none animate-wave-slow opacity-90">
+          <svg className="relative block w-full h-12 sm:h-20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="#fcfbf9"></path>
+          </svg>
         </div>
 
-        {/* COLUNA DIREITA: Leituras e Reflexão */}
-        <div className="lg:col-span-7 p-8 sm:p-10 flex flex-col justify-between space-y-6 bg-white">
+        {/* Container centralizado do Card para manter o alinhamento com o site */}
+        <div className="max-w-7xl mx-auto bg-white rounded-[2.5rem] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10 text-gray-950">
           
-          <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-4">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#c5a059]">Missas e Orações</span>
-                <h4 className="font-serif font-bold text-xl text-[#005a8d]">Leituras e Palavra de Deus</h4>
-              </div>
-              
-              <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl border font-bold text-xs shadow-xs ${estilo.badgeBg}`}>
-                <span className={`w-3.5 h-3.5 rounded-full ${corDoDia === 'Branco' ? 'bg-amber-300' : 'bg-white'} inline-block shadow-xs`}></span>
-                Cor Litúrgica: {corDoDia}
-              </div>
-            </div>
+          {/* COLUNA ESQUERDA: Santo do Dia */}
+          <div className="lg:col-span-5 relative min-h-[380px] lg:min-h-full overflow-hidden bg-black flex items-center justify-center">
+            <img 
+              src={santoDoDia?.imagem || "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"} 
+              alt={santoDoDia?.nome || "Santo do Dia"} 
+              className="absolute inset-0 w-full h-full object-cover filter brightness-90"
+            />
 
-            <div className="space-y-3">
-              <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Clique em uma leitura para ver o texto completo:</span>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {liturgiaDia?.leituras?.map((item, idx) => {
-                  const opcaoPrincipal = item.opcoes?.[0];
-                  return (
-                    <div 
-                      key={idx}
-                      onClick={() => setLeituraAberta(item)}
-                      className="bg-gray-50 hover:bg-blue-50/60 p-3.5 rounded-2xl border border-gray-200 hover:border-[#005a8d] text-xs space-y-1 cursor-pointer transition-all group shadow-xs"
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className="font-bold text-gray-400 group-hover:text-[#005a8d] block text-[10px] tracking-wider uppercase">
-                          {item.rotulo}
-                        </span>
-                        <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#005a8d] group-hover:translate-x-0.5 transition-transform" />
-                      </div>
-                      <span className="font-bold text-gray-800 block truncate">
-                        {opcaoPrincipal?.referencia || "Ver texto"}
-                      </span>
-                    </div>
-                  );
-                })}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-black/30 flex flex-col justify-between p-8 text-white z-10">
+              <div className="flex justify-between items-center">
+                <span className="bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-xs">
+                  Liturgia & Santo do Dia
+                </span>
+                <span className={`text-xs font-bold px-4 py-1.5 rounded-xl shadow-md border ${estilo.badgeBg}`}>
+                  Cor: {corDoDia}
+                </span>
+              </div>
+
+              <div className="space-y-3">
+                <p className="text-xs text-white/80 font-medium">{liturgiaDia?.data || "Hoje"}</p>
+                <h3 className="text-xl sm:text-2xl font-serif font-bold leading-snug">{liturgiaDia?.liturgia || "Celebração do Dia"}</h3>
+                
+                {santoDoDia?.nome && (
+                  <div className="pt-2 border-t border-white/20">
+                    <p className="text-xs text-[#c5a059] font-bold flex items-center gap-1.5 leading-relaxed">
+                      <UserCheck className="w-4 h-4 shrink-0 text-[#c5a059]" /> 
+                      <span>Santo do Dia: {santoDoDia.nome}</span>
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
-          <div className="space-y-2 bg-blue-50/50 p-5 rounded-2xl border border-blue-100/60">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#005a8d] flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#c5a059]" /> Reflexão Diária
-            </h4>
-            <p className="text-gray-700 text-xs sm:text-sm leading-relaxed italic">
-              "{getReflexao(liturgiaDia?.liturgia)}"
-            </p>
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* Onda orgânica inferior */}
-      <div className="absolute bottom-0 left-0 w-full overflow-hidden leading-none pointer-events-none rotate-180">
-        <svg className="relative block w-full h-10 sm:h-16" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
-          <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="#fcfbf9"></path>
-        </svg>
-      </div>
-
-      {/* MODAL / QUADRO EXPANSÍVEL DA LEITURA SELECIONADA */}
-      {leituraAberta && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="bg-white max-w-2xl w-full p-8 rounded-3xl shadow-2xl space-y-6 relative animate-fadeIn my-8 max-h-[85vh] flex flex-col text-gray-900">
+          {/* COLUNA DIREITA: Leituras e Reflexão */}
+          <div className="lg:col-span-7 p-8 sm:p-10 flex flex-col justify-between space-y-6 bg-white">
             
-            <div className="flex justify-between items-start border-b pb-4">
-              <div>
-                <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">{leituraAberta.rotulo}</span>
-                <h3 className="text-xl font-serif font-bold text-[#005a8d] mt-0.5">
-                  {leituraAberta.opcoes?.[0]?.referencia || "Texto Litúrgico"}
-                </h3>
-              </div>
-              <button
-                onClick={() => setLeituraAberta(null)}
-                className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2.5 rounded-xl transition-colors font-bold flex items-center gap-1 text-xs"
-                title="Fechar quadro"
-              >
-                <X className="w-4 h-4" /> Fechar
-              </button>
-            </div>
-
-            <div className="space-y-4 overflow-y-auto pr-2 flex-1 text-gray-700 text-sm leading-relaxed">
-              {leituraAberta.opcoes?.[0]?.titulo && (
-                <p className="font-serif italic font-bold text-[#005a8d]">
-                  {leituraAberta.opcoes[0].titulo}
-                </p>
-              )}
-              {leituraAberta.opcoes?.[0]?.refrao && (
-                <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-amber-900 font-semibold">
-                  <span>R. </span>{leituraAberta.opcoes[0].refrao}
+            <div className="space-y-6">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-4">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#c5a059]">Missas e Orações</span>
+                  <h4 className="font-serif font-bold text-xl text-[#005a8d]">Leituras e Palavra de Deus</h4>
                 </div>
-              )}
-              <div className="whitespace-pre-wrap font-sans">
-                {leituraAberta.opcoes?.[0]?.texto || "Texto não disponível para esta opção."}
+                
+                <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl border font-bold text-xs shadow-xs ${estilo.badgeBg}`}>
+                  <span className={`w-3.5 h-3.5 rounded-full ${corDoDia === 'Branco' ? 'bg-amber-300' : 'bg-white'} inline-block shadow-xs`}></span>
+                  Cor Litúrgica: {corDoDia}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Clique em uma leitura para ver o texto completo:</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  {liturgiaDia?.leituras?.map((item, idx) => {
+                    const opcaoPrincipal = item.opcoes?.[0];
+                    return (
+                      <div 
+                        key={idx}
+                        onClick={() => setLeituraAberta(item)}
+                        className="bg-gray-50 hover:bg-blue-50/60 p-3.5 rounded-2xl border border-gray-200 hover:border-[#005a8d] text-xs space-y-1 cursor-pointer transition-all group shadow-xs"
+                      >
+                        <div className="flex justify-between items-center">
+                          <span className="font-bold text-gray-400 group-hover:text-[#005a8d] block text-[10px] tracking-wider uppercase">
+                            {item.rotulo}
+                          </span>
+                          <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#005a8d] group-hover:translate-x-0.5 transition-transform" />
+                        </div>
+                        <span className="font-bold text-gray-800 block truncate">
+                          {opcaoPrincipal?.referencia || "Ver texto"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t flex justify-end">
-              <button
-                onClick={() => setLeituraAberta(null)}
-                className="bg-[#005a8d] hover:bg-[#004068] text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-colors"
-              >
-                Recolher / Fechar
-              </button>
+            <div className="space-y-2 bg-blue-50/50 p-5 rounded-2xl border border-blue-100/60">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-[#005a8d] flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#c5a059]" /> Reflexão Diária
+              </h4>
+              <p className="text-gray-700 text-xs sm:text-sm leading-relaxed italic">
+                "{getReflexao(liturgiaDia?.liturgia)}"
+              </p>
             </div>
 
           </div>
-        </div>
-      )}
 
-    </div>
+        </div>
+
+        {/* Onda inferior animada em movimento lento e reverso */}
+        <div className="absolute bottom-0 left-0 w-[200%] overflow-hidden leading-none pointer-events-none animate-wave-reverse rotate-180 opacity-90">
+          <svg className="relative block w-full h-12 sm:h-20" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 120" preserveAspectRatio="none">
+            <path d="M321.39,56.44c58-10.79,114.16-30.13,172-41.86,82.39-16.72,168.19-17.73,250.45-.39C823.78,31,906.67,72,985.66,92.83c70.05,18.48,146.53,26.09,214.34,3V0H0V27.35A600.21,600.21,0,0,0,321.39,56.44Z" fill="#fcfbf9"></path>
+          </svg>
+        </div>
+
+        {/* MODAL / QUADRO EXPANSÍVEL DA LEITURA SELECIONADA */}
+        {leituraAberta && (
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="bg-white max-w-2xl w-full p-8 rounded-3xl shadow-2xl space-y-6 relative animate-fadeIn my-8 max-h-[85vh] flex flex-col text-gray-950">
+              
+              <div className="flex justify-between items-start border-b pb-4">
+                <div>
+                  <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">{leituraAberta.rotulo}</span>
+                  <h3 className="text-xl font-serif font-bold text-[#005a8d] mt-0.5">
+                    {leituraAberta.opcoes?.[0]?.referencia || "Texto Litúrgico"}
+                  </h3>
+                </div>
+                <button
+                  onClick={() => setLeituraAberta(null)}
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2.5 rounded-xl transition-colors font-bold flex items-center gap-1 text-xs"
+                  title="Fechar quadro"
+                >
+                  <X className="w-4 h-4" /> Fechar
+                </button>
+              </div>
+
+              <div className="space-y-4 overflow-y-auto pr-2 flex-1 text-gray-700 text-sm leading-relaxed">
+                {leituraAberta.opcoes?.[0]?.titulo && (
+                  <p className="font-serif italic font-bold text-[#005a8d]">
+                    {leituraAberta.opcoes[0].titulo}
+                  </p>
+                )}
+                {leituraAberta.opcoes?.[0]?.refrao && (
+                  <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-amber-900 font-semibold">
+                    <span>R. </span>{leituraAberta.opcoes[0].refrao}
+                  </div>
+                )}
+                <div className="whitespace-pre-wrap font-sans">
+                  {leituraAberta.opcoes?.[0]?.texto || "Texto não disponível para esta opção."}
+                </div>
+              </div>
+
+              <div className="pt-4 border-t flex justify-end">
+                <button
+                  onClick={() => setLeituraAberta(null)}
+                  className="bg-[#005a8d] hover:bg-[#004068] text-white px-6 py-2.5 rounded-xl font-bold text-xs transition-colors"
+                >
+                  Recolher / Fechar
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
+
+      </div>
+    </>
   );
 }
