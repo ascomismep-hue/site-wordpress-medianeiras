@@ -11,6 +11,7 @@ import Noticias from "./pages/Noticias";
 import Vocacional from "./pages/Vocacional";
 import Contato from "./pages/Contato";
 import Doacoes from "./pages/Doacoes";
+import Pastoral from "./pages/Pastoral";
 
 // Import das subpáginas institucionais
 import SobreNos from "./pages/institucional/SobreNos";
@@ -53,6 +54,8 @@ export default function App() {
             <Route path="/noticias" element={<Noticias />} />
 
             <Route path="/vocacional" element={<Vocacional />} />
+
+            <Route path="/pastoral" element={<Pastoral />} />
 
             <Route path="/contato" element={<Contato />} />
 
