@@ -21,7 +21,7 @@ export default function Navbar() {
             <Link to="/institucional" className="hover:text-[#005a8d] transition-colors">Institucional</Link>
             <Link to="/agenda" className="hover:text-[#005a8d] transition-colors">Agenda</Link>
             <Link to="/obras-e-missoes" className="hover:text-[#005a8d] transition-colors">Obras e Missões</Link>
-            <Link to="/pastoral" className="hover:text-[#005a8d] transition-colors">Partoral e Evangelização</Link>
+            <Link to="/pastoral" className="hover:text-[#005a8d] transition-colors">Pastoral e Evangelização</Link>
             <Link to="/vocacional" className="hover:text-[#005a8d] transition-colors">Vocacional</Link>
             <Link to="/contato" className="bg-[#005a8d] text-white px-5 py-2.5 rounded-xl hover:bg-[#004068] transition-colors shadow">
               Contato
