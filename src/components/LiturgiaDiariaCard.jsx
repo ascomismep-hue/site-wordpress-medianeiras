@@ -50,23 +50,36 @@ export default function LiturgiaDiariaCard() {
 
         let dadosLiturgia = null;
 
-        // Chamada correta passando a data específica para a API v3 do Railway
+        // Tenta buscar da API passando a data específica do calendário
         try {
-          const res = await fetch(`https://liturgia.up.railway.app/v3/${ano}/${mes}/${dia}`);
+          const res = await fetch(`https://api-liturgia-diaria.vercel.app/?date=${ano}-${mes}-${dia}`);
           if (res.ok) {
-            const dataRailway = await res.json();
-            if (dataRailway && dataRailway.celebracoes) {
-              const principal = dataRailway.celebracoes.find(c => c.principal) || dataRailway.celebracoes[0];
-              dadosLiturgia = {
-                data: dataRailway.data || dataFormatadaExibicao,
-                cor: principal.cor || dataRailway.cor || "Verde",
-                liturgia: principal.liturgia || principal.titulo || "Celebração do Dia",
-                leituras: principal.leituras || []
-              };
-            }
+            const json = await res.json();
+            dadosLiturgia = json.today || json;
           }
         } catch (e) {
-          console.warn("Erro ao buscar liturgia por data específica.");
+          console.warn("Falha na API por data.");
+        }
+
+        // Se falhar ou vier sem dados, tenta a API padrão (Railway) como fallback para o dia atual ou geral
+        if (!dadosLiturgia || !dadosLiturgia.leituras) {
+          try {
+            const resRailway = await fetch("https://liturgia.up.railway.app/v3/");
+            if (resRailway.ok) {
+              const dataRailway = await resRailway.json();
+              if (dataRailway && dataRailway.celebracoes) {
+                const principal = dataRailway.celebracoes.find(c => c.principal) || dataRailway.celebracoes[0];
+                dadosLiturgia = {
+                  data: dataRailway.data || dataFormatadaExibicao,
+                  cor: principal.cor || "Verde",
+                  liturgia: principal.liturgia || "Celebração do Dia",
+                  leituras: principal.leituras || []
+                };
+              }
+            }
+          } catch (e) {
+            console.warn("Falha no fallback Railway.");
+          }
         }
 
         // Busca o Santo do Dia correspondente
@@ -86,7 +99,12 @@ export default function LiturgiaDiariaCard() {
         }
 
         if (dadosLiturgia) {
-          setLiturgiaData(dadosLiturgia);
+          setLiturgiaData({
+            data: dadosLiturgia.data || dataFormatadaExibicao,
+            cor: dadosLiturgia.cor || dadosLiturgia.color || "Verde",
+            liturgia: dadosLiturgia.liturgia || dadosLiturgia.titulo || dadosLiturgia.title || "Celebração do Dia",
+            leituras: dadosLiturgia.leituras || dadosLiturgia.readings || []
+          });
         } else {
           setLiturgiaData({
             data: dataFormatadaExibicao,
@@ -145,7 +163,7 @@ export default function LiturgiaDiariaCard() {
 
       <div className="max-w-7xl mx-auto relative z-10 space-y-6">
         
-        {/* Abas de Navegação */}
+        {/* Abas de Navegação (Liturgia do Dia / Calendário do Ano Inteiro) */}
         <div className="flex justify-center items-center gap-3 flex-wrap">
           <button
             onClick={() => setAbaAtiva("liturgia")}
@@ -217,7 +235,7 @@ export default function LiturgiaDiariaCard() {
                 </div>
               </div>
 
-              {/* Direita: Exibe todas as leituras (incluindo 1ª, 2ª, Salmo e Evangelho nos domingos) */}
+              {/* Direita */}
               <div className="lg:col-span-7 p-8 sm:p-10 flex flex-col justify-between space-y-6 bg-white">
                 <div className="space-y-6">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-4">
@@ -234,7 +252,7 @@ export default function LiturgiaDiariaCard() {
 
                   <div className="space-y-3">
                     <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Clique em uma leitura para ver o texto completo:</span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {liturgiaData?.leituras && Array.isArray(liturgiaData.leituras) && liturgiaData.leituras.length > 0 ? (
                         liturgiaData.leituras.map((item, idx) => {
                           const opcaoPrincipal = item.opcoes?.[0];
@@ -246,12 +264,12 @@ export default function LiturgiaDiariaCard() {
                             >
                               <div className="flex justify-between items-center">
                                 <span className="font-bold text-gray-400 group-hover:text-[#005a8d] block text-[10px] tracking-wider uppercase">
-                                  {item.rotulo || "Leitura"}
+                                  {item.rotulo || item.titulo || "Leitura"}
                                 </span>
                                 <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#005a8d] group-hover:translate-x-0.5 transition-transform" />
                               </div>
                               <span className="font-bold text-gray-800 block truncate">
-                                {opcaoPrincipal?.referencia || "Ver texto"}
+                                {opcaoPrincipal?.referencia || item.referencia || item.ref || "Ver texto"}
                               </span>
                             </div>
                           );
@@ -277,7 +295,7 @@ export default function LiturgiaDiariaCard() {
           )
         )}
 
-        {/* CONTEÚDO 2: CALENDÁRIO */}
+        {/* CONTEÚDO 2: CALENDÁRIO DO ANO INTEIRO */}
         {abaAtiva === "calendario" && (
           <div className="bg-white rounded-[2.5rem] p-8 sm:p-10 shadow-2xl text-gray-950 animate-fadeIn space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-center border-b pb-6 gap-4">
@@ -325,37 +343,30 @@ export default function LiturgiaDiariaCard() {
                 );
               })}
             </div>
+            <p className="text-center text-xs text-gray-500 italic pt-4 border-t">
+              💡 Você pode navegar livremente por qualquer mês e ano para consultar a liturgia e a cor correspondente.
+            </p>
           </div>
         )}
 
       </div>
 
-      {/* MODAL DE LEITURA COM SUPORTE A REFRÃO DO SALMO E TEXTOS */}
+      {/* MODAL DE LEITURA COMPLETA */}
       {leituraAberta && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
           <div className="bg-white max-w-2xl w-full p-8 rounded-3xl shadow-2xl space-y-6 relative animate-fadeIn my-8 max-h-[85vh] flex flex-col text-gray-950">
             <div className="flex justify-between items-start border-b pb-4">
               <div>
-                <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">{leituraAberta.rotulo}</span>
-                <h3 className="text-xl font-serif font-bold text-[#005a8d] mt-0.5">{leituraAberta.opcoes?.[0]?.referencia || "Texto Litúrgico"}</h3>
+                <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">{leituraAberta.rotulo || leituraAberta.titulo}</span>
+                <h3 className="text-xl font-serif font-bold text-[#005a8d] mt-0.5">{leituraAberta.opcoes?.[0]?.referencia || leituraAberta.referencia || leituraAberta.ref}</h3>
               </div>
               <button onClick={() => setLeituraAberta(null)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2.5 rounded-xl transition-colors font-bold flex items-center gap-1 text-xs">
                 <X className="w-4 h-4" /> Fechar
               </button>
             </div>
 
-            <div className="space-y-4 overflow-y-auto pr-2 flex-1 text-gray-700 text-sm leading-relaxed">
-              {leituraAberta.opcoes?.[0]?.titulo && (
-                <p className="font-serif italic font-bold text-[#005a8d]">{leituraAberta.opcoes[0].titulo}</p>
-              )}
-              {leituraAberta.opcoes?.[0]?.refrao && (
-                <div className="bg-amber-50 p-4 rounded-2xl border border-amber-200 text-amber-900 font-semibold">
-                  <span>R. </span>{leituraAberta.opcoes[0].refrao}
-                </div>
-              )}
-              <div className="whitespace-pre-wrap font-sans">
-                {leituraAberta.opcoes?.[0]?.texto || "Texto não disponível."}
-              </div>
+            <div className="space-y-4 overflow-y-auto pr-2 flex-1 text-gray-700 text-sm leading-relaxed whitespace-pre-wrap font-sans">
+              {leituraAberta.opcoes?.[0]?.texto || leituraAberta.texto || leituraAberta.text || "Texto não disponível."}
             </div>
 
             <div className="pt-4 border-t flex justify-end">
