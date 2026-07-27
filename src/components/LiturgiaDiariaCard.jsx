@@ -79,11 +79,34 @@ export default function LiturgiaDiariaCard() {
   const corDoDia = liturgiaDia?.cor || "Verde";
   const estilo = corConfig[corDoDia] || corConfig.default;
 
-  function getReflexao(titulo) {
-    if (santoDoDia?.nome) {
-      return `Celebrando a memória de ${santoDoDia.nome}, somos convidados a fazer de Cristo o nosso 'único necessário', buscando a santidade com um amor autêntico e entregue.`;
+  // Função inteligente que gera a reflexão com base no conteúdo real das leituras e do santo do dia
+  function getReflexaoDinamica() {
+    if (!liturgiaDia || !liturgiaDia.leituras) {
+      return "A Palavra de Deus nos chama hoje a renovar a nossa confiança no Senhor, permitindo que a Sua graça transforme profundamente o nosso cotidiano.";
     }
-    return "A liturgia de hoje nos convida a silenciar o coração e escutar com atenção a Palavra de Deus, permitindo que ela seja luz viva para orientar nossos passos e transformar nossas atitudes.";
+
+    // Procura o texto do Evangelho ou da primeira leitura para extrair o tom espiritual
+    const evangelho = liturgiaDia.leituras.find(l => l.rotulo?.toLowerCase().includes("evangelho"))?.opcoes?.[0]?.texto || "";
+    const primeiraLeitura = liturgiaDia.leituras.find(l => l.rotulo?.toLowerCase().includes("1ª leitura"))?.opcoes?.[0]?.texto || "";
+    const textoAnalise = (evangelho + " " + primeiraLeitura).toLowerCase();
+
+    let tomReflexao = "";
+
+    if (textoAnalise.includes("amor") || textoAnalise.includes("amai")) {
+      tomReflexao = "O Evangelho de hoje nos desafia a amar sem medidas, refletindo o próprio amor de Deus que se entrega inteiramente por nós nas pequenas e grandes atitudes do dia a dia.";
+    } else if (textoAnalise.includes("fé") || textoAnalise.includes("crer")) {
+      tomReflexao = "Somos convidados a examinar a nossa fé: crer em Deus não é apenas professar palavras, mas entregar o coração e a vida aos Seus cuidados com total abandono e confiança.";
+    } else if (textoAnalise.includes("reino") || textoAnalise.includes("céu")) {
+      tomReflexao = "As parábolas e ensinamentos de hoje nos lembram que o Reino de Deus começa a se manifestar agora, quando escolhemos a justiça, a paz e a verdade em nossas escolhas.";
+    } else if (textoAnalise.includes("perdão") || textoAnalise.includes("perdoar") || textoAnalise.includes("miséria")) {
+      tomReflexao = "A liturgia de hoje toca profundamente em nossa capacidade de perdoar e acolher a misericórdia divina, mostrando que a reconciliação é o verdadeiro caminho para a paz interior.";
+    } else if (textoAnalise.includes("cruz") || textoAnalise.includes("sofrimento") || textoAnalise.includes("perseguição")) {
+      tomReflexao = "Mesmo diante das cruzes e dos desafios cotidianos, a Palavra nos recorda que nenhuma dor é em vão quando unida ao sacrifício redentor de Cristo.";
+    } else {
+      tomReflexao = `A celebração de hoje, unida à memória de ${santoDoDia?.nome || "nossos santos protetores"}, exorta-nos a escutar a voz de Deus com o coração aberto, colocando a Sua Palavra em prática com fidelidade.`;
+    }
+
+    return tomReflexao;
   }
 
   if (loading) {
@@ -190,7 +213,7 @@ export default function LiturgiaDiariaCard() {
                 <Sparkles className="w-3.5 h-3.5 text-[#c5a059]" /> Reflexão Diária
               </h4>
               <p className="text-gray-700 text-xs sm:text-sm leading-relaxed italic">
-                "{getReflexao(liturgiaDia?.liturgia)}"
+                "{getReflexaoDinamica()}"
               </p>
             </div>
 
