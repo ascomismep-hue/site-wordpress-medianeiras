@@ -40,13 +40,17 @@ export default function Memorial() {
           {falecidas.map((irma) => (
             <div key={irma.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col opacity-90 hover:opacity-100 transition-opacity">
               
-              {/* Contêiner da foto com aplicação dinâmica da posição escolhida no painel */}
+              {/* Enquadramento Fiel com Posição e Zoom */}
               <div className="h-72 w-full bg-gray-900 flex items-center justify-center overflow-hidden grayscale relative">
                 {irma.foto_url ? (
                   <img 
                     src={irma.foto_url} 
                     alt={irma.nome} 
-                    className={`w-full h-full object-cover ${irma.posicao_foto || 'object-top'}`} 
+                    style={{ 
+                      transform: `translate(${irma.pos_x || 0}px, ${irma.pos_y || 0}px) scale(${irma.zoom || 1})`,
+                      transformOrigin: 'center center'
+                    }}
+                    className="max-w-none" 
                   />
                 ) : (
                   <User className="w-20 h-20 text-gray-400" />
