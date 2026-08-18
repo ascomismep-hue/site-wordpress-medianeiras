@@ -15,7 +15,6 @@ export default function Memorial() {
     fetchMemorial();
   }, []);
 
-  // Função para formatar a data de "AAAA-MM-DD" para "DD/MM/AAAA"
   function formatarData(dataString) {
     if (!dataString) return "";
     if (dataString.includes("-")) {
@@ -41,13 +40,13 @@ export default function Memorial() {
           {falecidas.map((irma) => (
             <div key={irma.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col opacity-90 hover:opacity-100 transition-opacity">
               
-              {/* Contêiner da foto ajustado para centralizar perfeitamente o rosto */}
+              {/* Contêiner da foto com aplicação dinâmica da posição escolhida no painel */}
               <div className="h-72 w-full bg-gray-900 flex items-center justify-center overflow-hidden grayscale relative">
                 {irma.foto_url ? (
                   <img 
                     src={irma.foto_url} 
                     alt={irma.nome} 
-                    className="w-full h-full object-cover object-center" 
+                    className={`w-full h-full object-cover ${irma.posicao_foto || 'object-top'}`} 
                   />
                 ) : (
                   <User className="w-20 h-20 text-gray-400" />
@@ -58,7 +57,6 @@ export default function Memorial() {
                 <div>
                   <h3 className="text-xl font-serif font-bold text-[#005a8d] mb-2">{irma.nome}</h3>
                   
-                  {/* Datas com Estrela e Cruz formatadas */}
                   <div className="flex items-center gap-3 text-xs text-[#c5a059] font-medium mb-3">
                     <span className="flex items-center gap-1">
                       <Star className="w-3.5 h-3.5 fill-current" /> {formatarData(irma.data_nascimento)}
