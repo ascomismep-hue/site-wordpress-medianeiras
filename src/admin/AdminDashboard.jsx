@@ -415,7 +415,7 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               )}
 
-              {/* MEMORIAL - CORRIGIDO */}
+              {/* MEMORIAL - CORRIGIDO COM INPUTS DE TIPO DATE */}
               {activeTab === "memorial" && (
                 <div className="space-y-8">
                   <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Cadastrar Irmã Falecida (Memorial)</h2>
@@ -426,8 +426,17 @@ export default function AdminDashboard({ onLogout }) {
                         <label className="block text-xs font-bold text-gray-500 mb-1">Foto</label>
                         <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setNovoMemorial({...novoMemorial, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#005a8d] file:text-white" />
                       </div>
-                      <input type="text" placeholder="Data de Nascimento" value={novoMemorial.data_nascimento} onChange={e => setNovoMemorial({...novoMemorial, data_nascimento: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
-                      <input type="text" placeholder="Data de Falecimento" value={novoMemorial.data_falecimento} onChange={e => setNovoMemorial({...novoMemorial, data_falecimento: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
+                      
+                      {/* Corrigido para type="date" */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Data de Nascimento</label>
+                        <input type="date" value={novoMemorial.data_nascimento} onChange={e => setNovoMemorial({...novoMemorial, data_nascimento: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Data de Falecimento</label>
+                        <input type="date" value={novoMemorial.data_falecimento} onChange={e => setNovoMemorial({...novoMemorial, data_falecimento: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+                      </div>
+
                       <input type="text" placeholder="Localização (Ex: Araripina - PE)" value={novoMemorial.localizacao} onChange={e => setNovoMemorial({...novoMemorial, localizacao: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2" />
                     </div>
                     <textarea rows="3" placeholder="Biografia breve..." value={novoMemorial.biografia_breve} onChange={e => setNovoMemorial({...novoMemorial, biografia_breve: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white font-sans" />
