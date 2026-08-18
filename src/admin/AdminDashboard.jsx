@@ -24,8 +24,9 @@ export default function AdminDashboard({ onLogout }) {
   const [madresList, setMadresList] = useState([]);
   const [novaMadre, setNovaMadre] = useState({ nome: "", foto_url: "", periodo_mandato: "", biografia: "" });
 
+  // Corrigido para alinhar com os campos do formulário e base de dados
   const [memorialList, setMemorialList] = useState([]);
-  const [novoMemorial, setNovoMemorial] = useState({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", biografia_breve: "" });
+  const [novoMemorial, setNovoMemorial] = useState({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "" });
 
   const [domCampeloData, setDomCampeloData] = useState({ id: 1, foto_url: "", historia_biografia: "", sobre_a_causa: "" });
   const [gracasList, setGracasList] = useState([]);
@@ -161,10 +162,12 @@ export default function AdminDashboard({ onLogout }) {
     e.preventDefault();
     const { error } = await supabase.from("memorial_falecidas").insert([novoMemorial]);
     if (!error) {
-      setNovoMemorial({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", biografia_breve: "" });
+      setNovoMemorial({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "" });
       fetchTabData("memorial");
       triggerSuccess();
-    } else alert("Erro ao cadastrar registro no memorial.");
+    } else {
+      alert("Erro ao cadastrar registro no memorial: " + error.message);
+    }
   }
 
   async function handleSaveDomCampelo() {
@@ -412,7 +415,7 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               )}
 
-              {/* MEMORIAL */}
+              {/* MEMORIAL - CORRIGIDO */}
               {activeTab === "memorial" && (
                 <div className="space-y-8">
                   <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Cadastrar Irmã Falecida (Memorial)</h2>
@@ -425,6 +428,7 @@ export default function AdminDashboard({ onLogout }) {
                       </div>
                       <input type="text" placeholder="Data de Nascimento" value={novoMemorial.data_nascimento} onChange={e => setNovoMemorial({...novoMemorial, data_nascimento: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
                       <input type="text" placeholder="Data de Falecimento" value={novoMemorial.data_falecimento} onChange={e => setNovoMemorial({...novoMemorial, data_falecimento: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
+                      <input type="text" placeholder="Localização (Ex: Araripina - PE)" value={novoMemorial.localizacao} onChange={e => setNovoMemorial({...novoMemorial, localizacao: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2" />
                     </div>
                     <textarea rows="3" placeholder="Biografia breve..." value={novoMemorial.biografia_breve} onChange={e => setNovoMemorial({...novoMemorial, biografia_breve: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white font-sans" />
                     <button type="submit" className="bg-[#005a8d] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2"><Plus className="w-5 h-5" /> Adicionar ao Memorial</button>
@@ -440,7 +444,7 @@ export default function AdminDashboard({ onLogout }) {
                           </div>
                           <div>
                             <h4 className="font-bold text-gray-800">{item.nome}</h4>
-                            <p className="text-xs text-gray-500">Falecimento: {item.data_falecimento}</p>
+                            <p className="text-xs text-gray-500">Falecimento: {item.data_falecimento} {item.localizacao ? `• ${item.localizacao}` : ""}</p>
                           </div>
                         </div>
                         <button onClick={() => handleDelete("memorial_falecidas", item.id, "memorial")} className="text-red-500 hover:text-red-700 p-2"><Trash2 className="w-5 h-5" /></button>
@@ -510,7 +514,7 @@ export default function AdminDashboard({ onLogout }) {
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    {/* Lista à esquerda (4 colunas) */}
+                    {/* Lista à esquerda */}
                     <div className="lg:col-span-5 space-y-2 max-h-[500px] overflow-y-auto pr-1">
                       {mensagensList.length === 0 ? (
                         <p className="text-gray-500 text-xs text-center py-12">Nenhuma mensagem recebida.</p>
@@ -539,7 +543,7 @@ export default function AdminDashboard({ onLogout }) {
                       )}
                     </div>
 
-                    {/* Detalhes à direita (7 colunas) */}
+                    {/* Detalhes à direita */}
                     <div className="lg:col-span-7 bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-6">
                       {mensagemSelecionada ? (
                         <div className="space-y-4 animate-fadeIn">
