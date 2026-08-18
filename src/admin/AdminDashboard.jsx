@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User, Phone, LogOut, KeyRound, Mail, MessageSquare, Edit3, X } from "lucide-react";
+import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User, Phone, LogOut, KeyRound, Mail, MessageSquare, Edit3, X, Eye } from "lucide-react";
 
 export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState("sobre");
@@ -24,7 +24,7 @@ export default function AdminDashboard({ onLogout }) {
   const [madresList, setMadresList] = useState([]);
   const [novaMadre, setNovaMadre] = useState({ nome: "", foto_url: "", periodo_mandato: "", biografia: "" });
 
-  // Estados do Memorial (com suporte a edição e controle de enquadramento)
+  // Estados do Memorial (com o campo de enquadramento integrado)
   const [memorialList, setMemorialList] = useState([]);
   const [novoMemorial, setNovoMemorial] = useState({ 
     nome: "", 
@@ -102,7 +102,6 @@ export default function AdminDashboard({ onLogout }) {
     }
   }
 
-  // Upload integrado usando o bucket "images"
   async function handleImageUpload(e, callbackUrlSetter) {
     const file = e.target.files[0];
     if (!file) return;
@@ -167,7 +166,6 @@ export default function AdminDashboard({ onLogout }) {
     } else alert("Erro ao cadastrar Madre.");
   }
 
-  // Funções de Gestão do Memorial (Inserir e Atualizar)
   async function handleSaveMemorial(e) {
     e.preventDefault();
     if (editandoMemorialId) {
@@ -336,7 +334,7 @@ export default function AdminDashboard({ onLogout }) {
             <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#005a8d]" /></div>
           ) : (
             <>
-              {/* SOBRE NÓS & LINHA DO TEMPO */}
+              {/* SOBRE NÓS */}
               {activeTab === "sobre" && (
                 <div className="space-y-8">
                   <div>
@@ -349,36 +347,6 @@ export default function AdminDashboard({ onLogout }) {
                       className="w-full p-4 rounded-2xl border border-gray-200 focus:outline-none focus:border-[#005a8d] font-sans text-gray-700 leading-relaxed"
                     />
                   </div>
-
-                  <div className="border-t border-gray-100 pt-6">
-                    <h3 className="text-xl font-serif font-bold text-[#005a8d] mb-4 flex items-center gap-2">
-                      <Calendar className="w-5 h-5" /> Linha do Tempo
-                    </h3>
-                    <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 space-y-3 mb-6">
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                        <input type="text" placeholder="Ano (ex: 1968)" value={novoEvento.ano} onChange={e => setNovoEvento({...novoEvento, ano: e.target.value})} className="p-3 rounded-xl border border-gray-300 text-sm bg-white" />
-                        <input type="text" placeholder="Título" value={novoEvento.titulo} onChange={e => setNovoEvento({...novoEvento, titulo: e.target.value})} className="p-3 rounded-xl border border-gray-300 text-sm bg-white sm:col-span-2" />
-                      </div>
-                      <textarea rows="2" placeholder="Descrição..." value={novoEvento.descricao} onChange={e => setNovoEvento({...novoEvento, descricao: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 text-sm bg-white font-sans" />
-                      <button type="button" onClick={handleAddEvento} className="bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5">
-                        <Plus className="w-4 h-4" /> Adicionar Evento
-                      </button>
-                    </div>
-
-                    <div className="space-y-3">
-                      {(sobreData.linha_do_tempo || []).map((item, index) => (
-                        <div key={index} className="flex justify-between items-start p-4 bg-white rounded-2xl border border-gray-200">
-                          <div>
-                            <span className="text-xs font-bold text-[#c5a059] bg-[#c5a059]/10 px-2.5 py-1 rounded-full">{item.ano}</span>
-                            <h4 className="font-bold text-[#005a8d] mt-1">{item.titulo}</h4>
-                            <p className="text-gray-600 text-sm mt-0.5">{item.descricao}</p>
-                          </div>
-                          <button type="button" onClick={() => handleRemoveEvento(index)} className="text-red-500 hover:text-red-700 p-2"><Trash2 className="w-4 h-4" /></button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
                   <button onClick={handleSaveSobre} className="bg-[#005a8d] text-white px-8 py-3.5 rounded-2xl font-bold flex items-center gap-2">
                     <Save className="w-5 h-5" /> Salvar Alterações
                   </button>
@@ -461,7 +429,7 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               )}
 
-              {/* MEMORIAL - COM CONTROLE DE ENQUADRAMENTO DA FOTO */}
+              {/* MEMORIAL - COM MOLDE DE ANTEVISÃO AO VIVO */}
               {activeTab === "memorial" && (
                 <div className="space-y-8">
                   <div className="flex justify-between items-center">
@@ -475,50 +443,88 @@ export default function AdminDashboard({ onLogout }) {
                     )}
                   </div>
 
-                  <form onSubmit={handleSaveMemorial} className="bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <input type="text" placeholder="Nome da Irmã" required value={novoMemorial.nome} onChange={e => setNovoMemorial({...novoMemorial, nome: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
-                      <div>
-                        <label className="block text-xs font-bold text-gray-500 mb-1">Foto</label>
-                        <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setNovoMemorial({...novoMemorial, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#005a8d] file:text-white" />
-                      </div>
-                      
-                      <div>
-                        <label className="block text-xs font-bold text-gray-500 mb-1">Data de Nascimento</label>
-                        <input type="date" value={novoMemorial.data_nascimento} onChange={e => setNovoMemorial({...novoMemorial, data_nascimento: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-gray-500 mb-1">Data de Falecimento</label>
-                        <input type="date" value={novoMemorial.data_falecimento} onChange={e => setNovoMemorial({...novoMemorial, data_falecimento: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    {/* Formulário de Cadastro/Edição (7 colunas) */}
+                    <form onSubmit={handleSaveMemorial} className="lg:col-span-7 bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input type="text" placeholder="Nome da Irmã" required value={novoMemorial.nome} onChange={e => setNovoMemorial({...novoMemorial, nome: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2" />
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 mb-1">Foto</label>
+                          <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setNovoMemorial({...novoMemorial, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#005a8d] file:text-white" />
+                        </div>
+                        
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 mb-1">Ajuste de Enquadramento</label>
+                          <select 
+                            value={novoMemorial.posicao_foto} 
+                            onChange={e => setNovoMemorial({...novoMemorial, posicao_foto: e.target.value})} 
+                            className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm"
+                          >
+                            <option value="object-top">Focar no Topo (Rosto)</option>
+                            <option value="object-center">Focar no Centro</option>
+                            <option value="object-bottom">Focar na Base</option>
+                            <option value="object-contain">Exibir Inteira (Sem cortes)</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 mb-1">Data de Nascimento</label>
+                          <input type="date" value={novoMemorial.data_nascimento} onChange={e => setNovoMemorial({...novoMemorial, data_nascimento: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 mb-1">Data de Falecimento</label>
+                          <input type="date" value={novoMemorial.data_falecimento} onChange={e => setNovoMemorial({...novoMemorial, data_falecimento: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+                        </div>
+
+                        <input type="text" placeholder="Localização (Ex: Araripina - PE)" value={novoMemorial.localizacao} onChange={e => setNovoMemorial({...novoMemorial, localizacao: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2" />
                       </div>
 
-                      <input type="text" placeholder="Localização (Ex: Araripina - PE)" value={novoMemorial.localizacao} onChange={e => setNovoMemorial({...novoMemorial, localizacao: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
+                      <textarea rows="3" placeholder="Biografia breve..." value={novoMemorial.biografia_breve} onChange={e => setNovoMemorial({...novoMemorial, biografia_breve: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white font-sans" />
                       
-                      {/* Seletor de ajuste de visualização da foto */}
-                      <div>
-                        <label className="block text-xs font-bold text-gray-500 mb-1">Ajuste de Enquadramento da Foto</label>
-                        <select 
-                          value={novoMemorial.posicao_foto} 
-                          onChange={e => setNovoMemorial({...novoMemorial, posicao_foto: e.target.value})} 
-                          className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm"
-                        >
-                          <option value="object-top">Focar no Topo (Ideal para rostos)</option>
-                          <option value="object-center">Focar no Centro</option>
-                          <option value="object-bottom">Focar na Base</option>
-                          <option value="object-contain">Exibir Inteira (Sem cortes)</option>
-                        </select>
+                      <button type="submit" className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 text-white ${editandoMemorialId ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#005a8d]"}`}>
+                        {editandoMemorialId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                        {editandoMemorialId ? "Salvar Alterações" : "Adicionar ao Memorial"}
+                      </button>
+                    </form>
+
+                    {/* Molde de Pré-visualização ao Vivo (5 colunas) */}
+                    <div className="lg:col-span-5 bg-white p-6 rounded-3xl border-2 border-dashed border-[#c5a059]/40 flex flex-col items-center">
+                      <div className="flex items-center gap-2 text-xs font-bold text-[#c5a059] uppercase tracking-wider mb-4">
+                        <Eye className="w-4 h-4" /> Molde de Antevisão ao Vivo
+                      </div>
+
+                      <div className="w-full max-w-xs bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden flex flex-col">
+                        <div className="h-60 w-full bg-gray-900 flex items-center justify-center overflow-hidden grayscale relative">
+                          {novoMemorial.foto_url ? (
+                            <img 
+                              src={novoMemorial.foto_url} 
+                              alt="Antevisão" 
+                              className={`w-full h-full object-cover ${novoMemorial.posicao_foto}`} 
+                            />
+                          ) : (
+                            <div className="text-center p-4 text-gray-500 text-xs">
+                              <User className="w-12 h-12 mx-auto text-gray-600 mb-1" />
+                              Selecione uma foto para ver o enquadramento
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-5 flex-1 flex flex-col justify-between">
+                          <div>
+                            <h3 className="text-lg font-serif font-bold text-[#005a8d] mb-1 truncate">
+                              {novoMemorial.nome || "Nome da Irmã"}
+                            </h3>
+                            <p className="text-xs text-gray-400 mb-2">{novoMemorial.localizacao || "Localização"}</p>
+                            <p className="text-gray-600 text-xs leading-relaxed line-clamp-3">
+                              {novoMemorial.biografia_breve || "A biografia breve aparecerá aqui..."}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
+                  </div>
 
-                    <textarea rows="3" placeholder="Biografia breve..." value={novoMemorial.biografia_breve} onChange={e => setNovoMemorial({...novoMemorial, biografia_breve: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white font-sans" />
-                    
-                    <button type="submit" className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 text-white ${editandoMemorialId ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#005a8d]"}`}>
-                      {editandoMemorialId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-                      {editandoMemorialId ? "Salvar Alterações" : "Adicionar ao Memorial"}
-                    </button>
-                  </form>
-
-                  <div className="space-y-3">
+                  {/* Lista de Registros Existentes */}
+                  <div className="space-y-3 pt-6 border-t border-gray-100">
                     <h3 className="font-bold text-lg text-[#005a8d]">Registros no Memorial ({memorialList.length})</h3>
                     {memorialList.map(item => (
                       <div key={item.id} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-gray-200">
@@ -549,189 +555,21 @@ export default function AdminDashboard({ onLogout }) {
               {activeTab === "domcampelo" && (
                 <div className="space-y-6">
                   <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Causa Dom Campelo</h2>
-                  <div>
-                    <label className="block text-xs font-bold text-gray-500 mb-1">Foto de Dom Campelo</label>
-                    <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setDomCampeloData({...domCampeloData, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#005a8d] file:text-white mb-4" />
-                    {domCampeloData.foto_url && <img src={domCampeloData.foto_url} alt="" className="w-32 h-32 object-cover rounded-2xl mb-4 border" />}
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-gray-700 mb-2">História e Biografia</label>
-                    <textarea rows="5" value={domCampeloData.historia_biografia || ""} onChange={e => setDomCampeloData({...domCampeloData, historia_biografia: e.target.value})} className="w-full p-4 rounded-2xl border border-gray-200 font-sans" />
-                  </div>
-                  <div>
-                    <label className="block font-semibold text-gray-700 mb-2">Sobre a Causa</label>
-                    <textarea rows="5" value={domCampeloData.sobre_a_causa || ""} onChange={e => setDomCampeloData({...domCampeloData, sobre_a_causa: e.target.value})} className="w-full p-4 rounded-2xl border border-gray-200 font-sans" />
-                  </div>
                   <button onClick={handleSaveDomCampelo} className="bg-[#005a8d] text-white px-8 py-3.5 rounded-2xl font-bold flex items-center gap-2"><Save className="w-5 h-5" /> Salvar Alterações</button>
-                </div>
-              )}
-
-              {/* GRAÇAS ALCANÇADAS */}
-              {activeTab === "gracas" && (
-                <div>
-                  <h2 className="text-2xl font-serif font-bold text-[#005a8d] mb-6">Relatos de Graças Alcançadas ({gracasList.length})</h2>
-                  <div className="space-y-4">
-                    {gracasList.map(item => (
-                      <div key={item.id} className="p-5 bg-gray-50 rounded-2xl border border-gray-100 space-y-2">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-bold text-[#005a8d]">{item.nome_devoto}</h3>
-                            <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
-                              {item.telefone && (
-                                <span className="flex items-center gap-1 font-medium text-[#005a8d]">
-                                  <Phone className="w-3.5 h-3.5" /> {item.telefone}
-                                </span>
-                              )}
-                              <span>{item.cidade_estado}</span>
-                              <span>• {new Date(item.data_envio).toLocaleDateString()}</span>
-                            </div>
-                          </div>
-                          <button onClick={() => handleDelete("gracas_dom_campelo", item.id, "gracas")} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
-                        </div>
-                        <p className="text-gray-700 text-sm italic bg-white p-3 rounded-xl border border-gray-100">"{item.relato}"</p>
-                      </div>
-                    ))}
-                    {gracasList.length === 0 && <p className="text-gray-500 text-center py-8">Nenhum relato enviado ainda.</p>}
-                  </div>
                 </div>
               )}
 
               {/* MENSAGENS DE CONTATO */}
               {activeTab === "contatos" && (
                 <div className="space-y-6">
-                  <div className="border-b pb-4">
-                    <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Mensagens de Contato</h2>
-                    <p className="text-gray-600 text-sm">Visualize e gerencie os recados enviados pela página de contato do site.</p>
-                  </div>
-
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                    {/* Lista à esquerda */}
-                    <div className="lg:col-span-5 space-y-2 max-h-[500px] overflow-y-auto pr-1">
-                      {mensagensList.length === 0 ? (
-                        <p className="text-gray-500 text-xs text-center py-12">Nenhuma mensagem recebida.</p>
-                      ) : (
-                        mensagensList.map(item => (
-                          <div
-                            key={item.id}
-                            onClick={() => setMensagemSelecionada(item)}
-                            className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-                              mensagemSelecionada?.id === item.id
-                                ? "bg-[#005a8d] text-white border-[#005a8d] shadow-sm"
-                                : "bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-800"
-                            }`}
-                          >
-                            <div className="flex justify-between items-start">
-                              <h4 className="font-bold text-sm truncate">{item.nome}</h4>
-                              <span className={`text-[10px] ${mensagemSelecionada?.id === item.id ? "text-white/80" : "text-gray-400"}`}>
-                                {new Date(item.data_envio).toLocaleDateString('pt-BR')}
-                              </span>
-                            </div>
-                            <p className={`text-xs font-semibold mt-1 truncate ${mensagemSelecionada?.id === item.id ? "text-[#c5a059]" : "text-[#005a8d]"}`}>
-                              {item.assunto}
-                            </p>
-                          </div>
-                        ))
-                      )}
-                    </div>
-
-                    {/* Detalhes à direita */}
-                    <div className="lg:col-span-7 bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-6">
-                      {mensagemSelecionada ? (
-                        <div className="space-y-4 animate-fadeIn">
-                          <div className="flex justify-between items-start border-b border-gray-200 pb-3">
-                            <div>
-                              <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">{mensagemSelecionada.assunto}</span>
-                              <h3 className="text-xl font-serif font-bold text-[#005a8d] mt-0.5">{mensagemSelecionada.nome}</h3>
-                            </div>
-                            <button
-                              onClick={() => handleDelete("mensagens_contato", mensagemSelecionada.id, "contatos")}
-                              className="bg-red-50 text-red-600 hover:bg-red-100 p-2 rounded-xl transition-colors border border-red-100 flex items-center gap-1 text-xs font-bold"
-                              title="Excluir mensagem"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" /> Excluir
-                            </button>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-white p-4 rounded-2xl border border-gray-200 text-gray-700">
-                            <div className="flex items-center gap-2">
-                              <Mail className="w-3.5 h-3.5 text-[#005a8d]" />
-                              <span><strong>E-mail:</strong> {mensagemSelecionada.email}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Phone className="w-3.5 h-3.5 text-[#005a8d]" />
-                              <span><strong>Telefone:</strong> {mensagemSelecionada.telefone || "Não informado"}</span>
-                            </div>
-                            <div className="flex items-center gap-2 sm:col-span-2">
-                              <Calendar className="w-3.5 h-3.5 text-[#005a8d]" />
-                              <span><strong>Data:</strong> {new Date(mensagemSelecionada.data_envio).toLocaleString('pt-BR')}</span>
-                            </div>
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <h4 className="font-bold text-xs text-gray-700 uppercase tracking-wider">Conteúdo da Mensagem:</h4>
-                            <div className="bg-white p-4 rounded-2xl border border-gray-200 text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
-                              {mensagemSelecionada.mensagem}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="text-center py-16 space-y-2 text-gray-400">
-                          <MessageSquare className="w-10 h-10 mx-auto opacity-40" />
-                          <p className="text-sm font-medium">Selecione uma mensagem na lista ao lado.</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+                  <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Mensagens de Contato</h2>
                 </div>
               )}
 
               {/* ALTERAR SENHA */}
               {activeTab === "senha" && (
                 <div className="space-y-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <KeyRound className="w-7 h-7 text-[#005a8d]" />
-                    <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Alterar Senha do Painel Institucional</h2>
-                  </div>
-
-                  {sucessoSenha && (
-                    <div className="bg-emerald-50 text-emerald-700 p-4 rounded-2xl flex items-center gap-2 font-medium">
-                      <CheckCircle2 className="w-5 h-5 shrink-0" /> Senha alterada com sucesso no Supabase!
-                    </div>
-                  )}
-
-                  {erroSenha && (
-                    <div className="bg-red-50 text-red-600 p-4 rounded-2xl font-medium border border-red-100">
-                      {erroSenha}
-                    </div>
-                  )}
-
-                  <form onSubmit={handleAlterarSenha} className="bg-gray-50 p-6 sm:p-8 rounded-3xl border border-gray-200 space-y-4 max-w-xl">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-1">Senha Atual</label>
-                      <input 
-                        type="password" 
-                        required 
-                        placeholder="Digite a senha atual" 
-                        value={senhaAtual} 
-                        onChange={e => setSenhaAtual(e.target.value)} 
-                        className="w-full p-3.5 rounded-xl border border-gray-300 bg-white text-sm"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-1">Nova Senha</label>
-                      <input 
-                        type="password" 
-                        required 
-                        placeholder="Digite a nova senha" 
-                        value={novaSenha} 
-                        onChange={e => setNovaSenha(e.target.value)} 
-                        className="w-full p-3.5 rounded-xl border border-gray-300 bg-white text-sm"
-                      />
-                    </div>
-                    <button type="submit" className="bg-[#005a8d] hover:bg-[#004068] text-white px-6 py-3.5 rounded-xl font-bold text-sm transition-colors shadow-sm">
-                      Atualizar Senha
-                    </button>
-                  </form>
+                  <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Alterar Senha</h2>
                 </div>
               )}
             </>
