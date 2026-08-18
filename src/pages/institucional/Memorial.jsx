@@ -15,14 +15,13 @@ export default function Memorial() {
     fetchMemorial();
   }, []);
 
-  // Função auxiliar para converter "AAAA-MM-DD" para "DD/MM/AAAA"
+  // Função para formatar a data de "AAAA-MM-DD" para "DD/MM/AAAA"
   function formatarData(dataString) {
     if (!dataString) return "";
-    // Se a data vier no formato ISO com hífen (ex: 1987-10-22)
     if (dataString.includes("-")) {
       return dataString.split("-").reverse().join("/");
     }
-    return dataString; // Retorna como está caso já esteja formatado
+    return dataString;
   }
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#005a8d]" /></div>;
@@ -41,19 +40,25 @@ export default function Memorial() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {falecidas.map((irma) => (
             <div key={irma.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col opacity-90 hover:opacity-100 transition-opacity">
-              {/* Visualização da foto com enquadramento otimizado no topo */}
-              <div className="h-72 bg-gray-100 flex items-center justify-center overflow-hidden grayscale">
+              
+              {/* Contêiner da foto ajustado para centralizar perfeitamente o rosto */}
+              <div className="h-72 w-full bg-gray-900 flex items-center justify-center overflow-hidden grayscale relative">
                 {irma.foto_url ? (
-                  <img src={irma.foto_url} alt={irma.nome} className="w-full h-full object-cover object-top" />
+                  <img 
+                    src={irma.foto_url} 
+                    alt={irma.nome} 
+                    className="w-full h-full object-cover object-center" 
+                  />
                 ) : (
-                  <User className="w-20 h-20 text-gray-300" />
+                  <User className="w-20 h-20 text-gray-400" />
                 )}
               </div>
+
               <div className="p-6 flex-1 flex flex-col justify-between">
                 <div>
                   <h3 className="text-xl font-serif font-bold text-[#005a8d] mb-2">{irma.nome}</h3>
                   
-                  {/* Exibição com Estrela (Nascimento) e Cruz (Falecimento) formatadas */}
+                  {/* Datas com Estrela e Cruz formatadas */}
                   <div className="flex items-center gap-3 text-xs text-[#c5a059] font-medium mb-3">
                     <span className="flex items-center gap-1">
                       <Star className="w-3.5 h-3.5 fill-current" /> {formatarData(irma.data_nascimento)}
