@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Heart, User } from "lucide-react";
+import { Loader2, Star, Cross, User } from "lucide-react";
 
 export default function Memorial() {
   const [falecidas, setFalecidas] = useState([]);
@@ -31,9 +31,10 @@ export default function Memorial() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {falecidas.map((irma) => (
             <div key={irma.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col opacity-90 hover:opacity-100 transition-opacity">
-              <div className="h-64 bg-gray-100 flex items-center justify-center overflow-hidden grayscale">
+              {/* Ajuste na visualização da foto: object-top garante que o rosto/topo apareça bem enquadrado */}
+              <div className="h-72 bg-gray-100 flex items-center justify-center overflow-hidden grayscale">
                 {irma.foto_url ? (
-                  <img src={irma.foto_url} alt={irma.nome} className="w-full h-full object-cover" />
+                  <img src={irma.foto_url} alt={irma.nome} className="w-full h-full object-cover object-top" />
                 ) : (
                   <User className="w-20 h-20 text-gray-300" />
                 )}
@@ -41,9 +42,18 @@ export default function Memorial() {
               <div className="p-6 flex-1 flex flex-col justify-between">
                 <div>
                   <h3 className="text-xl font-serif font-bold text-[#005a8d] mb-2">{irma.nome}</h3>
-                  <div className="flex items-center gap-1.5 text-xs text-[#c5a059] font-medium mb-3">
-                    <Heart className="w-4 h-4 fill-current" /> {irma.data_nascimento} - {irma.data_falecimento}
+                  
+                  {/* Substituição por Estrela (Nascimento) e Cruz (Falecimento) */}
+                  <div className="flex items-center gap-3 text-xs text-[#c5a059] font-medium mb-3">
+                    <span className="flex items-center gap-1">
+                      <Star className="w-3.5 h-3.5 fill-current" /> {irma.data_nascimento}
+                    </span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <Cross className="w-3.5 h-3.5" /> {irma.data_falecimento}
+                    </span>
                   </div>
+
                   <p className="text-gray-600 text-sm leading-relaxed text-justify">{irma.biografia_breve}</p>
                 </div>
               </div>
