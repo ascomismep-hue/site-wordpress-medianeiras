@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User, Phone, LogOut, KeyRound, Mail, MessageSquare, Edit3, X, Eye, Move } from "lucide-react";
+import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User, Phone, LogOut, KeyRound, Mail, MessageSquare, Edit3, X, Move, ZoomIn } from "lucide-react";
 
 export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState("sobre");
@@ -8,23 +8,24 @@ export default function AdminDashboard({ onLogout }) {
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // Estados de Alteração de Senha
+  // Estados de Senha
   const [senhaAtual, setSenhaAtual] = useState("");
   const [novaSenha, setNovaSenha] = useState("");
   const [sucessoSenha, setSucessoSenha] = useState(false);
   const [erroSenha, setErroSenha] = useState("");
 
-  // Estados dos dados
+  // Dados do Sobre
   const [sobreData, setSobreData] = useState({ id: 1, historia: "", linha_do_tempo: [] });
   const [novoEvento, setNovoEvento] = useState({ ano: "", titulo: "", descricao: "" });
 
+  // Listas
   const [irmasList, setIrmasList] = useState([]);
   const [novaIrma, setNovaIrma] = useState({ nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", primeiros_votos: "", votos_perpetuos: "" });
 
   const [madresList, setMadresList] = useState([]);
   const [novaMadre, setNovaMadre] = useState({ nome: "", foto_url: "", periodo_mandato: "", biografia: "" });
 
-  // Estados do Memorial (com suporte a arraste X e Y)
+  // Memorial com Posição e Zoom
   const [memorialList, setMemorialList] = useState([]);
   const [novoMemorial, setNovoMemorial] = useState({ 
     nome: "", 
@@ -34,11 +35,12 @@ export default function AdminDashboard({ onLogout }) {
     localizacao: "", 
     biografia_breve: "",
     pos_x: 0,
-    pos_y: 0
+    pos_y: 0,
+    zoom: 1
   });
   const [editandoMemorialId, setEditandoMemorialId] = useState(null);
 
-  // Controle de Arraste do Rato (Drag and Drop)
+  // Controle de Arraste (Drag)
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
@@ -124,11 +126,14 @@ export default function AdminDashboard({ onLogout }) {
 
     const { data } = supabase.storage.from('images').getPublicUrl(filePath);
     callbackUrlSetter(data.publicUrl);
+    // Reinicia posição e zoom ao enviar nova foto
+    setNovoMemorial(prev => ({ ...prev, pos_x: 0, pos_y: 0, zoom: 1 }));
     setUploading(false);
   }
 
-  // Funções de Arraste da Imagem com o Rato
+  // Lógica do Mouse Drag
   function handleMouseDown(e) {
+    if (!novoMemorial.foto_url) return;
     setIsDragging(true);
     setDragStart({ x: e.clientX - novoMemorial.pos_x, y: e.clientY - novoMemorial.pos_y });
   }
@@ -155,7 +160,7 @@ export default function AdminDashboard({ onLogout }) {
       if (!error) {
         alert("Registro atualizado com sucesso!");
         setEditandoMemorialId(null);
-        setNovoMemorial({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "", pos_x: 0, pos_y: 0 });
+        setNovoMemorial({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "", pos_x: 0, pos_y: 0, zoom: 1 });
         fetchTabData("memorial");
         triggerSuccess();
       } else {
@@ -164,7 +169,7 @@ export default function AdminDashboard({ onLogout }) {
     } else {
       const { error } = await supabase.from("memorial_falecidas").insert([novoMemorial]);
       if (!error) {
-        setNovoMemorial({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "", pos_x: 0, pos_y: 0 });
+        setNovoMemorial({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "", pos_x: 0, pos_y: 0, zoom: 1 });
         fetchTabData("memorial");
         triggerSuccess();
       } else {
@@ -183,14 +188,15 @@ export default function AdminDashboard({ onLogout }) {
       localizacao: item.localizacao || "",
       biografia_breve: item.biografia_breve || "",
       pos_x: item.pos_x || 0,
-      pos_y: item.pos_y || 0
+      pos_y: item.pos_y || 0,
+      zoom: item.zoom || 1
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function cancelarEdicaoMemorial() {
     setEditandoMemorialId(null);
-    setNovoMemorial({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "", pos_x: 0, pos_y: 0 });
+    setNovoMemorial({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "", pos_x: 0, pos_y: 0, zoom: 1 });
   }
 
   async function handleDelete(table, id, reloadTab) {
@@ -276,10 +282,12 @@ export default function AdminDashboard({ onLogout }) {
                     <form onSubmit={handleSaveMemorial} className="lg:col-span-7 bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <input type="text" placeholder="Nome da Irmã" required value={novoMemorial.nome} onChange={e => setNovoMemorial({...novoMemorial, nome: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2" />
-                        <div>
-                          <label className="block text-xs font-bold text-gray-500 mb-1">Foto</label>
-                          <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setNovoMemorial({...novoMemorial, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#005a8d] file:text-white" />
+                        
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs font-bold text-gray-500 mb-1">Foto da Irmã</label>
+                          <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setNovoMemorial({...novoMemorial, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#005a8d] file:text-white w-full" />
                         </div>
+                        
                         <div>
                           <label className="block text-xs font-bold text-gray-500 mb-1">Data de Nascimento</label>
                           <input type="date" value={novoMemorial.data_nascimento} onChange={e => setNovoMemorial({...novoMemorial, data_nascimento: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
@@ -288,6 +296,7 @@ export default function AdminDashboard({ onLogout }) {
                           <label className="block text-xs font-bold text-gray-500 mb-1">Data de Falecimento</label>
                           <input type="date" value={novoMemorial.data_falecimento} onChange={e => setNovoMemorial({...novoMemorial, data_falecimento: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
                         </div>
+
                         <input type="text" placeholder="Localização (Ex: Araripina - PE)" value={novoMemorial.localizacao} onChange={e => setNovoMemorial({...novoMemorial, localizacao: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2" />
                       </div>
 
@@ -299,17 +308,34 @@ export default function AdminDashboard({ onLogout }) {
                       </button>
                     </form>
 
-                    {/* Molde Interativo de Arraste (5 colunas) */}
+                    {/* Molde Interativo de Arraste e Zoom (5 colunas) */}
                     <div className="lg:col-span-5 bg-white p-6 rounded-3xl border-2 border-dashed border-[#c5a059]/40 flex flex-col items-center select-none">
                       <div className="flex items-center gap-2 text-xs font-bold text-[#c5a059] uppercase tracking-wider mb-2">
-                        <Move className="w-4 h-4" /> Arraste a foto para ajustar o enquadramento
+                        <Move className="w-4 h-4" /> Enquadramento em Tempo Real
                       </div>
-                      <p className="text-[11px] text-gray-400 mb-4 text-center">Clique e mantenha premido sobre a foto para movê-la livremente.</p>
+                      <p className="text-[11px] text-gray-400 mb-3 text-center">Clique e arraste a imagem para posicionar o rosto.</p>
 
+                      {/* Controle de Zoom Slider */}
+                      {novoMemorial.foto_url && (
+                        <div className="w-full max-w-xs mb-3 flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl border border-gray-200">
+                          <ZoomIn className="w-4 h-4 text-gray-500 shrink-0" />
+                          <input 
+                            type="range" 
+                            min="1" 
+                            max="3" 
+                            step="0.05" 
+                            value={novoMemorial.zoom} 
+                            onChange={e => setNovoMemorial({...novoMemorial, zoom: parseFloat(e.target.value)})}
+                            className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-[#005a8d]" 
+                          />
+                          <span className="text-[11px] font-bold text-gray-600 w-8 text-right">{Math.round(novoMemorial.zoom * 100)}%</span>
+                        </div>
+                      )}
+
+                      {/* Cartão Molde */}
                       <div className="w-full max-w-xs bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden flex flex-col">
-                        {/* Caixa de Arraste com Eventos do Rato */}
                         <div 
-                          className="h-60 w-full bg-gray-900 flex items-center justify-center overflow-hidden grayscale relative cursor-grab active:cursor-grabbing"
+                          className="h-64 w-full bg-gray-900 flex items-center justify-center overflow-hidden grayscale relative cursor-grab active:cursor-grabbing"
                           onMouseDown={handleMouseDown}
                           onMouseMove={handleMouseMove}
                           onMouseUp={handleMouseUp}
@@ -319,13 +345,17 @@ export default function AdminDashboard({ onLogout }) {
                             <img 
                               src={novoMemorial.foto_url} 
                               alt="Antevisão" 
-                              style={{ transform: `translate(${novoMemorial.pos_x}px, ${novoMemorial.pos_y}px)`, transition: isDragging ? 'none' : 'transform 0.1s ease' }}
-                              className="absolute w-full h-full object-cover pointer-events-none" 
+                              style={{ 
+                                transform: `translate(${novoMemorial.pos_x}px, ${novoMemorial.pos_y}px) scale(${novoMemorial.zoom})`,
+                                transformOrigin: 'center center',
+                                transition: isDragging ? 'none' : 'transform 0.05s ease-out'
+                              }}
+                              className="max-w-none pointer-events-none" 
                             />
                           ) : (
                             <div className="text-center p-4 text-gray-500 text-xs pointer-events-none">
                               <User className="w-12 h-12 mx-auto text-gray-600 mb-1" />
-                              Selecione uma foto para interagir
+                              Envie uma foto para ver o molde
                             </div>
                           )}
                         </div>
@@ -356,8 +386,11 @@ export default function AdminDashboard({ onLogout }) {
                               <img 
                                 src={item.foto_url} 
                                 alt="" 
-                                style={{ transform: `translate(${item.pos_x || 0}px, ${item.pos_y || 0}px)` }}
-                                className="absolute w-full h-full object-cover" 
+                                style={{ 
+                                  transform: `translate(${item.pos_x || 0}px, ${item.pos_y || 0}px) scale(${item.zoom || 1})`,
+                                  transformOrigin: 'center center'
+                                }}
+                                className="max-w-none" 
                               />
                             ) : <User className="w-6 h-6 text-gray-400" />}
                           </div>
