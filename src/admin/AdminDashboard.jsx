@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User, Phone, LogOut, KeyRound, Mail, MessageSquare } from "lucide-react";
+import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User, Phone, LogOut, KeyRound, Mail, MessageSquare, Edit3, X } from "lucide-react";
 
 export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState("sobre");
@@ -24,9 +24,18 @@ export default function AdminDashboard({ onLogout }) {
   const [madresList, setMadresList] = useState([]);
   const [novaMadre, setNovaMadre] = useState({ nome: "", foto_url: "", periodo_mandato: "", biografia: "" });
 
-  // Corrigido para alinhar com os campos do formulário e base de dados
+  // Estados do Memorial (com suporte a edição e controle de enquadramento)
   const [memorialList, setMemorialList] = useState([]);
-  const [novoMemorial, setNovoMemorial] = useState({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "" });
+  const [novoMemorial, setNovoMemorial] = useState({ 
+    nome: "", 
+    foto_url: "", 
+    data_nascimento: "", 
+    data_falecimento: "", 
+    localizacao: "", 
+    biografia_breve: "",
+    posicao_foto: "object-top" // Padrão focado no rosto/topo
+  });
+  const [editandoMemorialId, setEditandoMemorialId] = useState(null);
 
   const [domCampeloData, setDomCampeloData] = useState({ id: 1, foto_url: "", historia_biografia: "", sobre_a_causa: "" });
   const [gracasList, setGracasList] = useState([]);
@@ -158,16 +167,53 @@ export default function AdminDashboard({ onLogout }) {
     } else alert("Erro ao cadastrar Madre.");
   }
 
-  async function handleAddMemorial(e) {
+  // Funções de Gestão do Memorial (Inserir e Atualizar)
+  async function handleSaveMemorial(e) {
     e.preventDefault();
-    const { error } = await supabase.from("memorial_falecidas").insert([novoMemorial]);
-    if (!error) {
-      setNovoMemorial({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "" });
-      fetchTabData("memorial");
-      triggerSuccess();
+    if (editandoMemorialId) {
+      const { error } = await supabase
+        .from("memorial_falecidas")
+        .update(novoMemorial)
+        .eq("id", editandoMemorialId);
+
+      if (!error) {
+        alert("Registro atualizado com sucesso!");
+        setEditandoMemorialId(null);
+        setNovoMemorial({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "", posicao_foto: "object-top" });
+        fetchTabData("memorial");
+        triggerSuccess();
+      } else {
+        alert("Erro ao atualizar registro: " + error.message);
+      }
     } else {
-      alert("Erro ao cadastrar registro no memorial: " + error.message);
+      const { error } = await supabase.from("memorial_falecidas").insert([novoMemorial]);
+      if (!error) {
+        setNovoMemorial({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "", posicao_foto: "object-top" });
+        fetchTabData("memorial");
+        triggerSuccess();
+      } else {
+        alert("Erro ao cadastrar registro no memorial: " + error.message);
+      }
     }
+  }
+
+  function carregarMemorialParaEdicao(item) {
+    setEditandoMemorialId(item.id);
+    setNovoMemorial({
+      nome: item.nome || "",
+      foto_url: item.foto_url || "",
+      data_nascimento: item.data_nascimento || "",
+      data_falecimento: item.data_falecimento || "",
+      localizacao: item.localizacao || "",
+      biografia_breve: item.biografia_breve || "",
+      posicao_foto: item.posicao_foto || "object-top"
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelarEdicaoMemorial() {
+    setEditandoMemorialId(null);
+    setNovoMemorial({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "", posicao_foto: "object-top" });
   }
 
   async function handleSaveDomCampelo() {
@@ -415,11 +461,21 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               )}
 
-              {/* MEMORIAL - CORRIGIDO COM INPUTS DE TIPO DATE */}
+              {/* MEMORIAL - COM CONTROLE DE ENQUADRAMENTO DA FOTO */}
               {activeTab === "memorial" && (
                 <div className="space-y-8">
-                  <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Cadastrar Irmã Falecida (Memorial)</h2>
-                  <form onSubmit={handleAddMemorial} className="bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-serif font-bold text-[#005a8d]">
+                      {editandoMemorialId ? "Editar Registro do Memorial" : "Cadastrar Irmã Falecida (Memorial)"}
+                    </h2>
+                    {editandoMemorialId && (
+                      <button onClick={cancelarEdicaoMemorial} className="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1.5 rounded-xl font-bold text-gray-700 flex items-center gap-1">
+                        <X className="w-3.5 h-3.5" /> Cancelar Edição
+                      </button>
+                    )}
+                  </div>
+
+                  <form onSubmit={handleSaveMemorial} className="bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <input type="text" placeholder="Nome da Irmã" required value={novoMemorial.nome} onChange={e => setNovoMemorial({...novoMemorial, nome: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
                       <div>
@@ -427,7 +483,6 @@ export default function AdminDashboard({ onLogout }) {
                         <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setNovoMemorial({...novoMemorial, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#005a8d] file:text-white" />
                       </div>
                       
-                      {/* Corrigido para type="date" */}
                       <div>
                         <label className="block text-xs font-bold text-gray-500 mb-1">Data de Nascimento</label>
                         <input type="date" value={novoMemorial.data_nascimento} onChange={e => setNovoMemorial({...novoMemorial, data_nascimento: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
@@ -437,10 +492,30 @@ export default function AdminDashboard({ onLogout }) {
                         <input type="date" value={novoMemorial.data_falecimento} onChange={e => setNovoMemorial({...novoMemorial, data_falecimento: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
                       </div>
 
-                      <input type="text" placeholder="Localização (Ex: Araripina - PE)" value={novoMemorial.localizacao} onChange={e => setNovoMemorial({...novoMemorial, localizacao: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2" />
+                      <input type="text" placeholder="Localização (Ex: Araripina - PE)" value={novoMemorial.localizacao} onChange={e => setNovoMemorial({...novoMemorial, localizacao: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
+                      
+                      {/* Seletor de ajuste de visualização da foto */}
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Ajuste de Enquadramento da Foto</label>
+                        <select 
+                          value={novoMemorial.posicao_foto} 
+                          onChange={e => setNovoMemorial({...novoMemorial, posicao_foto: e.target.value})} 
+                          className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm"
+                        >
+                          <option value="object-top">Focar no Topo (Ideal para rostos)</option>
+                          <option value="object-center">Focar no Centro</option>
+                          <option value="object-bottom">Focar na Base</option>
+                          <option value="object-contain">Exibir Inteira (Sem cortes)</option>
+                        </select>
+                      </div>
                     </div>
+
                     <textarea rows="3" placeholder="Biografia breve..." value={novoMemorial.biografia_breve} onChange={e => setNovoMemorial({...novoMemorial, biografia_breve: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white font-sans" />
-                    <button type="submit" className="bg-[#005a8d] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2"><Plus className="w-5 h-5" /> Adicionar ao Memorial</button>
+                    
+                    <button type="submit" className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 text-white ${editandoMemorialId ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#005a8d]"}`}>
+                      {editandoMemorialId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                      {editandoMemorialId ? "Salvar Alterações" : "Adicionar ao Memorial"}
+                    </button>
                   </form>
 
                   <div className="space-y-3">
@@ -449,14 +524,21 @@ export default function AdminDashboard({ onLogout }) {
                       <div key={item.id} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-gray-200">
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center grayscale">
-                            {item.foto_url ? <img src={item.foto_url} alt="" className="w-full h-full object-cover" /> : <User className="w-6 h-6 text-gray-400" />}
+                            {item.foto_url ? <img src={item.foto_url} alt="" className={`w-full h-full object-cover ${item.posicao_foto || 'object-top'}`} /> : <User className="w-6 h-6 text-gray-400" />}
                           </div>
                           <div>
                             <h4 className="font-bold text-gray-800">{item.nome}</h4>
                             <p className="text-xs text-gray-500">Falecimento: {item.data_falecimento} {item.localizacao ? `• ${item.localizacao}` : ""}</p>
                           </div>
                         </div>
-                        <button onClick={() => handleDelete("memorial_falecidas", item.id, "memorial")} className="text-red-500 hover:text-red-700 p-2"><Trash2 className="w-5 h-5" /></button>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => carregarMemorialParaEdicao(item)} className="bg-blue-50 text-[#005a8d] hover:bg-blue-100 p-2 rounded-xl" title="Editar registro">
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleDelete("memorial_falecidas", item.id, "memorial")} className="text-red-500 hover:text-red-700 p-2" title="Excluir registro">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
