@@ -126,12 +126,11 @@ export default function AdminDashboard({ onLogout }) {
 
     const { data } = supabase.storage.from('images').getPublicUrl(filePath);
     callbackUrlSetter(data.publicUrl);
-    // Reinicia posição e zoom ao enviar nova foto
     setNovoMemorial(prev => ({ ...prev, pos_x: 0, pos_y: 0, zoom: 1 }));
     setUploading(false);
   }
 
-  // Lógica do Mouse Drag
+  // Lógica de Arraste Fluido com o Mouse
   function handleMouseDown(e) {
     if (!novoMemorial.foto_url) return;
     setIsDragging(true);
@@ -321,7 +320,7 @@ export default function AdminDashboard({ onLogout }) {
                           <ZoomIn className="w-4 h-4 text-gray-500 shrink-0" />
                           <input 
                             type="range" 
-                            min="1" 
+                            min="0.5" 
                             max="3" 
                             step="0.05" 
                             value={novoMemorial.zoom} 
@@ -332,10 +331,10 @@ export default function AdminDashboard({ onLogout }) {
                         </div>
                       )}
 
-                      {/* Cartão Molde */}
+                      {/* Cartão Molde h-72 rigoroso */}
                       <div className="w-full max-w-xs bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden flex flex-col">
                         <div 
-                          className="h-64 w-full bg-gray-900 flex items-center justify-center overflow-hidden grayscale relative cursor-grab active:cursor-grabbing"
+                          className="h-72 w-full bg-gray-900 flex items-center justify-center overflow-hidden grayscale relative cursor-grab active:cursor-grabbing"
                           onMouseDown={handleMouseDown}
                           onMouseMove={handleMouseMove}
                           onMouseUp={handleMouseUp}
@@ -346,11 +345,14 @@ export default function AdminDashboard({ onLogout }) {
                               src={novoMemorial.foto_url} 
                               alt="Antevisão" 
                               style={{ 
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
                                 transform: `translate(${novoMemorial.pos_x}px, ${novoMemorial.pos_y}px) scale(${novoMemorial.zoom})`,
                                 transformOrigin: 'center center',
                                 transition: isDragging ? 'none' : 'transform 0.05s ease-out'
                               }}
-                              className="max-w-none pointer-events-none" 
+                              className="pointer-events-none" 
                             />
                           ) : (
                             <div className="text-center p-4 text-gray-500 text-xs pointer-events-none">
@@ -387,10 +389,12 @@ export default function AdminDashboard({ onLogout }) {
                                 src={item.foto_url} 
                                 alt="" 
                                 style={{ 
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover',
                                   transform: `translate(${item.pos_x || 0}px, ${item.pos_y || 0}px) scale(${item.zoom || 1})`,
                                   transformOrigin: 'center center'
                                 }}
-                                className="max-w-none" 
                               />
                             ) : <User className="w-6 h-6 text-gray-400" />}
                           </div>
