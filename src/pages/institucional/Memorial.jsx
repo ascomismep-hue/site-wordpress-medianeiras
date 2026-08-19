@@ -40,8 +40,8 @@ export default function Memorial() {
           {falecidas.map((irma) => (
             <div key={irma.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col opacity-90 hover:opacity-100 transition-opacity">
               
-              {/* Moldura pública ajustada para h-64 (exatamente igual ao painel de administração) */}
-              <div className="h-64 w-full bg-gray-900 flex items-center justify-center overflow-hidden grayscale relative">
+              {/* Moldura pública rigorosamente com h-72 igual ao painel */}
+              <div className="h-72 w-full bg-gray-900 flex items-center justify-center overflow-hidden grayscale relative">
                 {irma.foto_url ? (
                   <img 
                     src={irma.foto_url} 
