@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { PlusCircle, Trash2, Calendar, Clock, MapPin, Loader2, CheckCircle2 } from "lucide-react";
+import { PlusCircle, Trash2, Calendar, Clock, MapPin, Loader2, CheckCircle2, LogOut } from "lucide-react";
 // Certifique-se de que o cliente Supabase está configurado corretamente no seu projeto (ex: import { supabase } from "../lib/supabaseClient";)
 
 export default function AdminAgendaPage() {
@@ -15,6 +15,20 @@ export default function AdminAgendaPage() {
     horario: "",
     local: ""
   });
+
+  // Função para lidar com o logout/saída do painel
+  const handleLogout = async () => {
+    try {
+      // Se estiver usando autenticação do Supabase:
+      // await supabase.auth.signOut();
+      
+      // Redireciona para a página inicial (ajuste a rota se necessário, ex: router.push('/') ou window.location.href = '/')
+      window.location.href = "/";
+    } catch (err) {
+      console.error("Erro ao sair:", err);
+      window.location.href = "/";
+    }
+  };
 
   // Busca os eventos cadastrados
   async function carregarEventos() {
@@ -71,15 +85,25 @@ export default function AdminAgendaPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 space-y-12">
       
-      {/* Cabeçalho */}
-      <div className="bg-[#005a8d] text-white p-8 rounded-[2.5rem] shadow-xl flex flex-col md:flex-row justify-between items-center gap-4">
-        <div>
+      {/* Cabeçalho com Botão de Sair */}
+      <div className="bg-[#005a8d] text-white p-8 rounded-[2.5rem] shadow-xl flex flex-col md:flex-row justify-between items-center gap-6">
+        <div className="space-y-1">
           <span className="bg-white/20 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Painel Restrito</span>
           <h1 className="text-2xl sm:text-3xl font-serif font-bold mt-2">Administração da Agenda Geral</h1>
         </div>
-        <p className="text-xs text-white/80 max-w-xs text-center md:text-right">
-          Gerencie os compromissos institucionais em tempo real.
-        </p>
+
+        <div className="flex items-center gap-4 flex-wrap justify-end">
+          <p className="text-xs text-white/80 max-w-xs text-right hidden sm:block">
+            Gerencie os compromissos institucionais em tempo real.
+          </p>
+          <button
+            onClick={handleLogout}
+            className="bg-red-600 hover:bg-red-700 text-white px-5 py-3 rounded-2xl font-bold text-xs transition-all shadow-md flex items-center gap-2 cursor-pointer"
+            title="Sair do painel administrativo"
+          >
+            <LogOut className="w-4 h-4" /> Sair do Painel
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
