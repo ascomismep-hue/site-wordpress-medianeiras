@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Calendar, Clock, MapPin, Sparkles, Search, Filter } from "lucide-react";
+import { Loader2, Calendar, Clock, MapPin, Search, Filter } from "lucide-react";
 
 export default function Agenda() {
-  const [activeTab, setActiveTab] = useState("geral"); // "geral" ou "madre"
   const [eventos, setEventos] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -12,10 +11,10 @@ export default function Agenda() {
   const [mesSelecionado, setMesSelecionado] = useState(new Date().toISOString().slice(0, 7)); // Formato "YYYY-MM" (Mês atual)
 
   useEffect(() => {
-    fetchEventos(activeTab);
-  }, [activeTab]);
+    fetchEventos();
+  }, []);
 
-  async function fetchEventos(tipo) {
+  async function fetchEventos() {
     setLoading(true);
     
     // Regra opcional: Buscar eventos a partir de 1 ano atrás para frente
@@ -26,7 +25,6 @@ export default function Agenda() {
     const { data } = await supabase
       .from("agenda_eventos")
       .select("*")
-      .eq("tipo", tipo)
       .gte("data_evento", dataLimiteStr) // Filtra para manter apenas o limite de 1 ano no histórico visível
       .order("data_evento", { ascending: true }); // Ordem cronológica
     
@@ -55,32 +53,6 @@ export default function Agenda() {
           Acompanhe os próximos eventos da congregação e os compromissos oficiais.
         </p>
         <div className="w-24 h-1 bg-[#c5a059] mx-auto rounded mt-4"></div>
-      </div>
-
-      {/* Abas de Navegação (Agenda Geral / Agenda da Madre) */}
-      <div className="flex justify-center mb-8">
-        <div className="bg-gray-100 p-1.5 rounded-2xl flex gap-2 border border-gray-200 shadow-xs">
-          <button
-            onClick={() => setActiveTab("geral")}
-            className={`px-6 py-3 rounded-xl font-bold text-sm transition-all ${
-              activeTab === "geral"
-                ? "bg-[#005a8d] text-white shadow-md"
-                : "text-gray-600 hover:text-[#005a8d]"
-            }`}
-          >
-            Agenda Geral
-          </button>
-          <button
-            onClick={() => setActiveTab("madre")}
-            className={`px-6 py-3 rounded-xl font-bold text-sm transition-all flex items-center gap-2 ${
-              activeTab === "madre"
-                ? "bg-[#005a8d] text-white shadow-md"
-                : "text-gray-600 hover:text-[#005a8d]"
-            }`}
-          >
-            <Sparkles className="w-4 h-4 text-[#c5a059]" /> Agenda da Madre
-          </button>
-        </div>
       </div>
 
       {/* Barra de Filtros e Pesquisa */}
