@@ -18,14 +18,17 @@ export default function AdminDashboard({ onLogout }) {
   const [sobreData, setSobreData] = useState({ id: 1, historia: "", linha_do_tempo: [] });
   const [novoEvento, setNovoEvento] = useState({ ano: "", titulo: "", descricao: "" });
 
-  // Listas de Irmãs e Madres
+  // Listas de Irmãs (com suporte a edição)
   const [irmasList, setIrmasList] = useState([]);
   const [novaIrma, setNovaIrma] = useState({ nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", primeiros_votos: "", votos_perpetuos: "" });
+  const [editandoIrmaId, setEditandoIrmaId] = useState(null);
 
+  // Listas de Madres Gerais (com suporte a edição)
   const [madresList, setMadresList] = useState([]);
   const [novaMadre, setNovaMadre] = useState({ nome: "", foto_url: "", periodo_mandato: "", biografia: "" });
+  const [editandoMadreId, setEditandoMadreId] = useState(null);
 
-  // Memorial com Posição e Zoom
+  // Memorial com Posição e Zoom (com suporte a edição)
   const [memorialList, setMemorialList] = useState([]);
   const [novoMemorial, setNovoMemorial] = useState({ 
     nome: "", 
@@ -72,7 +75,7 @@ export default function AdminDashboard({ onLogout }) {
         const { data } = await supabase.from("irmas").select("*").order("nome");
         if (data) setIrmasList(data);
       } else if (tab === "madres") {
-        const { data } = await supabase.from("madres_gerais").select("*");
+        const { data } = await supabase.from("madres_gerais").select("*").order("nome");
         if (data) setMadresList(data);
       } else if (tab === "memorial") {
         const { data } = await supabase.from("memorial_falecidas").select("*").order("nome");
@@ -108,6 +111,14 @@ export default function AdminDashboard({ onLogout }) {
     }
   }
 
+  function formatarDataVisual(dataString) {
+    if (!dataString) return "";
+    if (dataString.includes("-")) {
+      return dataString.split("-").reverse().join("/");
+    }
+    return dataString;
+  }
+
   async function handleImageUpload(e, callbackUrlSetter) {
     const file = e.target.files[0];
     if (!file) return;
@@ -127,7 +138,6 @@ export default function AdminDashboard({ onLogout }) {
 
     const { data } = supabase.storage.from('images').getPublicUrl(filePath);
     callbackUrlSetter(data.publicUrl);
-    setNovoMemorial(prev => ({ ...prev, pos_x: 0, pos_y: 0, zoom: 1 }));
     setUploading(false);
   }
 
@@ -154,25 +164,82 @@ export default function AdminDashboard({ onLogout }) {
     setSobreData({ ...sobreData, linha_do_tempo: atualizada });
   }
 
-  // Funções de Irmãs e Madres
-  async function handleAddIrma(e) {
+  // Funções de Irmãs (Cadastrar e Editar)
+  async function handleSaveIrma(e) {
     e.preventDefault();
-    const { error } = await supabase.from("irmas").insert([novaIrma]);
-    if (!error) {
-      setNovaIrma({ nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", primeiros_votos: "", votos_perpetuos: "" });
-      fetchTabData("irmas");
-      triggerSuccess();
-    } else alert("Erro ao cadastrar irmã.");
+    if (editandoIrmaId) {
+      const { error } = await supabase.from("irmas").update(novaIrma).eq("id", editandoIrmaId);
+      if (!error) {
+        alert("Irmã atualizada com sucesso!");
+        setEditandoIrmaId(null);
+        setNovaIrma({ nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", primeiros_votos: "", votos_perpetuos: "" });
+        fetchTabData("irmas");
+        triggerSuccess();
+      } else alert("Erro ao atualizar irmã: " + error.message);
+    } else {
+      const { error } = await supabase.from("irmas").insert([novaIrma]);
+      if (!error) {
+        setNovaIrma({ nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", primeiros_votos: "", votos_perpetuos: "" });
+        fetchTabData("irmas");
+        triggerSuccess();
+      } else alert("Erro ao cadastrar irmã: " + error.message);
+    }
   }
 
-  async function handleAddMadre(e) {
+  function carregarIrmaParaEdicao(item) {
+    setEditandoIrmaId(item.id);
+    setNovaIrma({
+      nome: item.nome || "",
+      foto_url: item.foto_url || "",
+      data_nascimento: item.data_nascimento || "",
+      local_nascimento: item.local_nascimento || "",
+      primeiros_votos: item.primeiros_votos || "",
+      votos_perpetuos: item.votos_perpetuos || ""
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelarEdicaoIrma() {
+    setEditandoIrmaId(null);
+    setNovaIrma({ nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", primeiros_votos: "", votos_perpetuos: "" });
+  }
+
+  // Funções de Madres Gerais (Cadastrar e Editar)
+  async function handleSaveMadre(e) {
     e.preventDefault();
-    const { error } = await supabase.from("madres_gerais").insert([novaMadre]);
-    if (!error) {
-      setNovaMadre({ nome: "", foto_url: "", periodo_mandato: "", biografia: "" });
-      fetchTabData("madres");
-      triggerSuccess();
-    } else alert("Erro ao cadastrar Madre.");
+    if (editandoMadreId) {
+      const { error } = await supabase.from("madres_gerais").update(novaMadre).eq("id", editandoMadreId);
+      if (!error) {
+        alert("Madre atualizada com sucesso!");
+        setEditandoMadreId(null);
+        setNovaMadre({ nome: "", foto_url: "", periodo_mandato: "", biografia: "" });
+        fetchTabData("madres");
+        triggerSuccess();
+      } else alert("Erro ao atualizar Madre: " + error.message);
+    } else {
+      const { error } = await supabase.from("madres_gerais").insert([novaMadre]);
+      if (!error) {
+        setNovaMadre({ nome: "", foto_url: "", periodo_mandato: "", biografia: "" });
+        fetchTabData("madres");
+        triggerSuccess();
+      } else alert("Erro ao cadastrar Madre: " + error.message);
+    }
+  }
+
+  function carregarMadreParaEdicao(item) {
+    setEditandoMadreId(item.id);
+    setNovaMadre({
+      nome: item.nome || "",
+      foto_url: item.foto_url || "",
+      periodo_mandato: item.periodo_mandato || "",
+      biografia: item.biografia || ""
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelarEdicaoMadre() {
+    setEditandoMadreId(null);
+    setNovaMadre({ nome: "", foto_url: "", periodo_mandato: "", biografia: "" });
   }
 
   // Lógica de Arraste do Memorial com o Mouse
@@ -400,23 +467,45 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               )}
 
-              {/* 2. IRMÃS */}
+              {/* 2. IRMÃS - COM SUPORTE TOTAL A CADASTRO E EDIÇÃO */}
               {activeTab === "irmas" && (
                 <div className="space-y-8">
-                  <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Cadastrar Nova Irmã</h2>
-                  <form onSubmit={handleAddIrma} className="bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-serif font-bold text-[#005a8d]">
+                      {editandoIrmaId ? "Editar Registro da Irmã" : "Cadastrar Nova Irmã"}
+                    </h2>
+                    {editandoIrmaId && (
+                      <button onClick={cancelarEdicaoIrma} className="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1.5 rounded-xl font-bold text-gray-700 flex items-center gap-1">
+                        <X className="w-3.5 h-3.5" /> Cancelar Edição
+                      </button>
+                    )}
+                  </div>
+
+                  <form onSubmit={handleSaveIrma} className="bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <input type="text" placeholder="Nome Completo" required value={novaIrma.nome} onChange={e => setNovaIrma({...novaIrma, nome: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
                       <div>
                         <label className="block text-xs font-bold text-gray-500 mb-1">Foto da Irmã</label>
                         <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setNovaIrma({...novaIrma, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#005a8d] file:text-white" />
                       </div>
-                      <input type="text" placeholder="Data de Nascimento (Ex: 12/05/1950)" value={novaIrma.data_nascimento} onChange={e => setNovaIrma({...novaIrma, data_nascimento: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Data de Nascimento</label>
+                        <input type="date" value={novaIrma.data_nascimento} onChange={e => setNovaIrma({...novaIrma, data_nascimento: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+                      </div>
                       <input type="text" placeholder="Local de Nascimento (Ex: Petrolina - PE)" value={novaIrma.local_nascimento} onChange={e => setNovaIrma({...novaIrma, local_nascimento: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
-                      <input type="text" placeholder="Data Primeiros Votos" value={novaIrma.primeiros_votos} onChange={e => setNovaIrma({...novaIrma, primeiros_votos: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
-                      <input type="text" placeholder="Data Votos Perpétuos" value={novaIrma.votos_perpetuos} onChange={e => setNovaIrma({...novaIrma, votos_perpetuos: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Data Primeiros Votos</label>
+                        <input type="date" value={novaIrma.primeiros_votos} onChange={e => setNovaIrma({...novaIrma, primeiros_votos: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Data Votos Perpétuos</label>
+                        <input type="date" value={novaIrma.votos_perpetuos} onChange={e => setNovaIrma({...novaIrma, votos_perpetuos: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+                      </div>
                     </div>
-                    <button type="submit" className="bg-[#005a8d] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2"><Plus className="w-5 h-5" /> Adicionar Irmã</button>
+                    <button type="submit" className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 text-white ${editandoIrmaId ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#005a8d]"}`}>
+                      {editandoIrmaId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                      {editandoIrmaId ? "Salvar Alterações" : "Adicionar Irmã"}
+                    </button>
                   </form>
 
                   <div className="space-y-3">
@@ -429,21 +518,38 @@ export default function AdminDashboard({ onLogout }) {
                           </div>
                           <div>
                             <h4 className="font-bold text-gray-800">{item.nome}</h4>
-                            <p className="text-xs text-gray-500">Nasc: {item.data_nascimento} ({item.local_nascimento}) • Votos: {item.votos_perpetuos}</p>
+                            <p className="text-xs text-gray-500">Nasc: {formatarDataVisual(item.data_nascimento)} ({item.local_nascimento}) • Votos: {formatarDataVisual(item.votos_perpetuos)}</p>
                           </div>
                         </div>
-                        <button onClick={() => handleDelete("irmas", item.id, "irmas")} className="text-red-500 hover:text-red-700 p-2"><Trash2 className="w-5 h-5" /></button>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => carregarIrmaParaEdicao(item)} className="bg-blue-50 text-[#005a8d] hover:bg-blue-100 p-2 rounded-xl" title="Editar irmã">
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleDelete("irmas", item.id, "irmas")} className="text-red-500 hover:text-red-700 p-2" title="Excluir irmã">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* 3. MADRES GERAIS */}
+              {/* 3. MADRES GERAIS - COM SUPORTE TOTAL A CADASTRO E EDIÇÃO */}
               {activeTab === "madres" && (
                 <div className="space-y-8">
-                  <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Cadastrar Madre Geral</h2>
-                  <form onSubmit={handleAddMadre} className="bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-serif font-bold text-[#005a8d]">
+                      {editandoMadreId ? "Editar Registro da Madre" : "Cadastrar Madre Geral"}
+                    </h2>
+                    {editandoMadreId && (
+                      <button onClick={cancelarEdicaoMadre} className="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1.5 rounded-xl font-bold text-gray-700 flex items-center gap-1">
+                        <X className="w-3.5 h-3.5" /> Cancelar Edição
+                      </button>
+                    )}
+                  </div>
+
+                  <form onSubmit={handleSaveMadre} className="bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <input type="text" placeholder="Nome da Madre" required value={novaMadre.nome} onChange={e => setNovaMadre({...novaMadre, nome: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
                       <div>
@@ -453,7 +559,10 @@ export default function AdminDashboard({ onLogout }) {
                       <input type="text" placeholder="Período do Mandato (Ex: 1980 - 1990)" value={novaMadre.periodo_mandato} onChange={e => setNovaMadre({...novaMadre, periodo_mandato: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2" />
                     </div>
                     <textarea rows="3" placeholder="Biografia..." value={novaMadre.biografia} onChange={e => setNovaMadre({...novaMadre, biografia: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white font-sans" />
-                    <button type="submit" className="bg-[#005a8d] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2"><Plus className="w-5 h-5" /> Adicionar Madre</button>
+                    <button type="submit" className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 text-white ${editandoMadreId ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#005a8d]"}`}>
+                      {editandoMadreId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                      {editandoMadreId ? "Salvar Alterações" : "Adicionar Madre"}
+                    </button>
                   </form>
 
                   <div className="space-y-3">
@@ -469,7 +578,14 @@ export default function AdminDashboard({ onLogout }) {
                             <p className="text-xs text-gray-500">Mandato: {item.periodo_mandato}</p>
                           </div>
                         </div>
-                        <button onClick={() => handleDelete("madres_gerais", item.id, "madres")} className="text-red-500 hover:text-red-700 p-2"><Trash2 className="w-5 h-5" /></button>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => carregarMadreParaEdicao(item)} className="bg-blue-50 text-[#005a8d] hover:bg-blue-100 p-2 rounded-xl" title="Editar madre">
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button onClick={() => handleDelete("madres_gerais", item.id, "madres")} className="text-red-500 hover:text-red-700 p-2" title="Excluir madre">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -611,7 +727,7 @@ export default function AdminDashboard({ onLogout }) {
                           </div>
                           <div>
                             <h4 className="font-bold text-gray-800">{item.nome}</h4>
-                            <p className="text-xs text-gray-500">Falecimento: {item.data_falecimento} {item.localizacao ? `• ${item.localizacao}` : ""}</p>
+                            <p className="text-xs text-gray-500">Falecimento: {formatarDataVisual(item.data_falecimento)} {item.localizacao ? `• ${item.localizacao}` : ""}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
