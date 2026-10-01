@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
-import { Sparkles, Calendar, Loader2, Bookmark, X, ChevronRight, UserCheck } from "lucide-react";
+import { Sparkles, Calendar, Loader2, X, ChevronRight, BookOpen } from "lucide-react";
+import { supabase } from "@/api/supabaseClient";
 
 export default function LiturgiaDiariaCard() {
   const [liturgiaDia, setLiturgiaDia] = useState(null);
-  const [santoDoDia, setSantoDoDia] = useState(null);
+  const [reflexaoManual, setReflexaoManual] = useState("");
   const [loading, setLoading] = useState(true);
   const [leituraAberta, setLeituraAberta] = useState(null);
 
@@ -41,12 +42,12 @@ export default function LiturgiaDiariaCard() {
     async function fetchData() {
       try {
         const hoje = new Date();
-        const dia = hoje.getDate();
-        const mes = hoje.getMonth() + 1;
+        const dataFormatadaSupabase = hoje.toISOString().split('T')[0]; // Formato AAAA-MM-DD para busca opcional
 
-        const [resLiturgia, resSanto] = await Promise.all([
+        // Busca paralela da API de Liturgia e da reflexão cadastrada pelas irmãs no Supabase
+        const [resLiturgia, resReflexaoSupabase] = await Promise.all([
           fetch("https://liturgia.up.railway.app/v3/"),
-          fetch(`https://catolicoapp.com/wp-json/wp/v2/santos?dia=${dia}&mes=${mes}`).catch(() => null)
+          supabase.from("liturgia_reflexao").select("texto_reflexao").eq("data", dataFormatadaSupabase).maybeSingle()
         ]);
 
         const dataLiturgia = await resLiturgia.json();
@@ -58,17 +59,15 @@ export default function LiturgiaDiariaCard() {
           });
         }
 
-        if (resSanto && resSanto.ok) {
-          const dataSanto = await resSanto.json();
-          if (Array.isArray(dataSanto) && dataSanto.length > 0) {
-            setSantoDoDia({
-              nome: dataSanto[0].title?.rendered || "Santo do Dia",
-              imagem: dataSanto[0].imagem_destacada || ""
-            });
-          }
+        // Se houver reflexão escrita pelas irmãs no banco, usa-a; senão, usa uma mensagem padrão acolhedora
+        if (resReflexaoSupabase && resReflexaoSupabase.data?.texto_reflexao) {
+          setReflexaoManual(resReflexaoSupabase.data.texto_reflexao);
+        } else {
+          setReflexaoManual("A Palavra de Deus nos convida hoje a silenciar o coração e a escutar com docilidade a Sua vontade, renovando a nossa esperança e o amor fraterno em nossa comunidade.");
         }
+
       } catch (err) {
-        console.error("Erro ao carregar dados:", err);
+        console.error("Erro ao carregar dados da liturgia:", err);
       } finally {
         setLoading(false);
       }
@@ -78,36 +77,6 @@ export default function LiturgiaDiariaCard() {
 
   const corDoDia = liturgiaDia?.cor || "Verde";
   const estilo = corConfig[corDoDia] || corConfig.default;
-
-  // Função inteligente que gera a reflexão com base no conteúdo real das leituras e do santo do dia
-  function getReflexaoDinamica() {
-    if (!liturgiaDia || !liturgiaDia.leituras) {
-      return "A Palavra de Deus nos chama hoje a renovar a nossa confiança no Senhor, permitindo que a Sua graça transforme profundamente o nosso cotidiano.";
-    }
-
-    // Procura o texto do Evangelho ou da primeira leitura para extrair o tom espiritual
-    const evangelho = liturgiaDia.leituras.find(l => l.rotulo?.toLowerCase().includes("evangelho"))?.opcoes?.[0]?.texto || "";
-    const primeiraLeitura = liturgiaDia.leituras.find(l => l.rotulo?.toLowerCase().includes("1ª leitura"))?.opcoes?.[0]?.texto || "";
-    const textoAnalise = (evangelho + " " + primeiraLeitura).toLowerCase();
-
-    let tomReflexao = "";
-
-    if (textoAnalise.includes("amor") || textoAnalise.includes("amai")) {
-      tomReflexao = "O Evangelho de hoje nos desafia a amar sem medidas, refletindo o próprio amor de Deus que se entrega inteiramente por nós nas pequenas e grandes atitudes do dia a dia.";
-    } else if (textoAnalise.includes("fé") || textoAnalise.includes("crer")) {
-      tomReflexao = "Somos convidados a examinar a nossa fé: crer em Deus não é apenas professar palavras, mas entregar o coração e a vida aos Seus cuidados com total abandono e confiança.";
-    } else if (textoAnalise.includes("reino") || textoAnalise.includes("céu")) {
-      tomReflexao = "As parábolas e ensinamentos de hoje nos lembram que o Reino de Deus começa a se manifestar agora, quando escolhemos a justiça, a paz e a verdade em nossas escolhas.";
-    } else if (textoAnalise.includes("perdão") || textoAnalise.includes("perdoar") || textoAnalise.includes("miséria")) {
-      tomReflexao = "A liturgia de hoje toca profundamente em nossa capacidade de perdoar e acolher a misericórdia divina, mostrando que a reconciliação é o verdadeiro caminho para a paz interior.";
-    } else if (textoAnalise.includes("cruz") || textoAnalise.includes("sofrimento") || textoAnalise.includes("perseguição")) {
-      tomReflexao = "Mesmo diante das cruzes e dos desafios cotidianos, a Palavra nos recorda que nenhuma dor é em vão quando unida ao sacrifício redentor de Cristo.";
-    } else {
-      tomReflexao = `A celebração de hoje, unida à memória de ${santoDoDia?.nome || "nossos santos protetores"}, exorta-nos a escutar a voz de Deus com o coração aberto, colocando a Sua Palavra em prática com fidelidade.`;
-    }
-
-    return tomReflexao;
-  }
 
   if (loading) {
     return (
@@ -119,109 +88,75 @@ export default function LiturgiaDiariaCard() {
 
   return (
     <>
-      {/* Faixa de ponta a ponta na largura da tela (w-screen) com a imagem do Vaticano em opacidade */}
-      <div className={`w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-20 px-4 sm:px-8 my-8 overflow-hidden transition-all duration-700 ${estilo.sectionBg}`}>
+      {/* Faixa de ponta a ponta na largura da tela com a textura do Vaticano */}
+      <div className={`w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] py-16 px-4 sm:px-8 my-8 overflow-hidden transition-all duration-700 ${estilo.sectionBg}`}>
         
-        {/* Imagem do Vaticano com opacidade sutil sobre o fundo sólido */}
         <div 
           className="absolute inset-0 bg-cover bg-center opacity-15 pointer-events-none mix-blend-overlay"
           style={{ backgroundImage: `url(${imagemVaticano})` }}
         ></div>
 
-        {/* Container centralizado do Card */}
-        <div className="max-w-7xl mx-auto bg-white rounded-[2.5rem] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 relative z-10 text-gray-950">
+        {/* Container centralizado exclusivo para a Liturgia */}
+        <div className="max-w-5xl mx-auto bg-white rounded-[2.5rem] shadow-2xl overflow-hidden p-8 sm:p-12 relative z-10 text-gray-950 space-y-8">
           
-          {/* COLUNA ESQUERDA: Santo do Dia */}
-          <div className="lg:col-span-5 relative min-h-[380px] lg:min-h-full overflow-hidden bg-black flex items-center justify-center">
-            <img 
-              src={santoDoDia?.imagem || "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&w=800&q=80"} 
-              alt={santoDoDia?.nome || "Santo do Dia"} 
-              className="absolute inset-0 w-full h-full object-cover filter brightness-90"
-            />
+          {/* Cabeçalho */}
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-6">
+            <div className="space-y-1">
+              <span className="text-xs font-bold uppercase tracking-wider text-[#c5a059] flex items-center gap-1.5">
+                <BookOpen className="w-4 h-4" /> Liturgia Diária
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-serif font-bold text-[#005a8d]">
+                {liturgiaDia?.liturgia || "Celebração do Dia"}
+              </h3>
+              <p className="text-xs text-gray-500 font-medium">{liturgiaDia?.data || "Hoje"}</p>
+            </div>
 
-            <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-black/30 flex flex-col justify-between p-8 text-white z-10">
-              <div className="flex justify-between items-center">
-                <span className="bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shadow-xs">
-                  Liturgia & Santo do Dia
-                </span>
-                <span className={`text-xs font-bold px-4 py-1.5 rounded-xl shadow-md border ${estilo.badgeBg}`}>
-                  Cor: {corDoDia}
-                </span>
-              </div>
-
-              <div className="space-y-3">
-                <p className="text-xs text-white/80 font-medium">{liturgiaDia?.data || "Hoje"}</p>
-                <h3 className="text-xl sm:text-2xl font-serif font-bold leading-snug">{liturgiaDia?.liturgia || "Celebração do Dia"}</h3>
-                
-                {santoDoDia?.nome && (
-                  <div className="pt-2 border-t border-white/20">
-                    <p className="text-xs text-[#c5a059] font-bold flex items-center gap-1.5 leading-relaxed">
-                      <UserCheck className="w-4 h-4 shrink-0 text-[#c5a059]" /> 
-                      <span>Santo do Dia: {santoDoDia.nome}</span>
-                    </p>
-                  </div>
-                )}
-              </div>
+            <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl border font-bold text-xs shadow-xs ${estilo.badgeBg}`}>
+              <span className={`w-3.5 h-3.5 rounded-full ${corDoDia === 'Branco' ? 'bg-amber-300' : 'bg-white'} inline-block shadow-xs`}></span>
+              Cor Litúrgica: {corDoDia}
             </div>
           </div>
 
-          {/* COLUNA DIREITA: Leituras e Reflexão */}
-          <div className="lg:col-span-7 p-8 sm:p-10 flex flex-col justify-between space-y-6 bg-white">
-            
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b pb-4">
-                <div>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-[#c5a059]">Missas e Orações</span>
-                  <h4 className="font-serif font-bold text-xl text-[#005a8d]">Leituras e Palavra de Deus</h4>
-                </div>
-                
-                <div className={`flex items-center gap-2 px-4 py-2 rounded-2xl border font-bold text-xs shadow-xs ${estilo.badgeBg}`}>
-                  <span className={`w-3.5 h-3.5 rounded-full ${corDoDia === 'Branco' ? 'bg-amber-300' : 'bg-white'} inline-block shadow-xs`}></span>
-                  Cor Litúrgica: {corDoDia}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider block">Clique em uma leitura para ver o texto completo:</span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {liturgiaDia?.leituras?.map((item, idx) => {
-                    const opcaoPrincipal = item.opcoes?.[0];
-                    return (
-                      <div 
-                        key={idx}
-                        onClick={() => setLeituraAberta(item)}
-                        className="bg-gray-50 hover:bg-blue-50/60 p-3.5 rounded-2xl border border-gray-200 hover:border-[#005a8d] text-xs space-y-1 cursor-pointer transition-all group shadow-xs"
-                      >
-                        <div className="flex justify-between items-center">
-                          <span className="font-bold text-gray-400 group-hover:text-[#005a8d] block text-[10px] tracking-wider uppercase">
-                            {item.rotulo}
-                          </span>
-                          <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#005a8d] group-hover:translate-x-0.5 transition-transform" />
-                        </div>
-                        <span className="font-bold text-gray-800 block truncate">
-                          {opcaoPrincipal?.referencia || "Ver texto"}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+          {/* Leituras */}
+          <div className="space-y-4">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block">Leituras da Santa Missa (Clique para ler o texto completo):</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {liturgiaDia?.leituras?.map((item, idx) => {
+                const opcaoPrincipal = item.opcoes?.[0];
+                return (
+                  <div 
+                    key={idx}
+                    onClick={() => setLeituraAberta(item)}
+                    className="bg-gray-50 hover:bg-blue-50/60 p-4 rounded-2xl border border-gray-200 hover:border-[#005a8d] text-xs space-y-1.5 cursor-pointer transition-all group shadow-xs flex flex-col justify-between"
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="font-bold text-gray-400 group-hover:text-[#005a8d] block text-[10px] tracking-wider uppercase">
+                        {item.rotulo}
+                      </span>
+                      <ChevronRight className="w-4 h-4 text-gray-400 group-hover:text-[#005a8d] group-hover:translate-x-0.5 transition-transform" />
+                    </div>
+                    <span className="font-bold text-gray-800 block text-sm">
+                      {opcaoPrincipal?.referencia || "Ver texto"}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
+          </div>
 
-            <div className="space-y-2 bg-blue-50/50 p-5 rounded-2xl border border-blue-100/60">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-[#005a8d] flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-[#c5a059]" /> Reflexão Diária
-              </h4>
-              <p className="text-gray-700 text-xs sm:text-sm leading-relaxed italic">
-                "{getReflexaoDinamica()}"
-              </p>
-            </div>
-
+          {/* Reflexão feita pelas Irmãs */}
+          <div className="space-y-2 bg-blue-50/50 p-6 rounded-3xl border border-blue-100/80 shadow-xs">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-[#005a8d] flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-[#c5a059]" /> Reflexão Espiritual (Por uma das Irmãs)
+            </h4>
+            <p className="text-gray-700 text-sm sm:text-base leading-relaxed italic font-serif">
+              "{reflexaoManual}"
+            </p>
           </div>
 
         </div>
 
-        {/* MODAL / QUADRO EXPANSÍVEL DA LEITURA SELECIONADA COM REFRÃO DO SALMO */}
+        {/* Modal de Leitura */}
         {leituraAberta && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-xs z-50 flex items-center justify-center p-4 overflow-y-auto">
             <div className="bg-white max-w-2xl w-full p-8 rounded-3xl shadow-2xl space-y-6 relative animate-fadeIn my-8 max-h-[85vh] flex flex-col text-gray-950">
@@ -236,7 +171,6 @@ export default function LiturgiaDiariaCard() {
                 <button
                   onClick={() => setLeituraAberta(null)}
                   className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2.5 rounded-xl transition-colors font-bold flex items-center gap-1 text-xs"
-                  title="Fechar quadro"
                 >
                   <X className="w-4 h-4" /> Fechar
                 </button>
