@@ -25,14 +25,14 @@ export default function Agenda() {
     const { data } = await supabase
       .from("agenda_eventos")
       .select("*")
-      .gte("data_evento", dataLimiteStr) // Filtra para manter apenas o limite de 1 ano no histórico visível
-      .order("data_evento", { ascending: true }); // Ordem cronológica
+      .gte("data_evento", dataLimiteStr) 
+      .order("data_evento", { ascending: true });
     
     if (data) setEventos(data);
     setLoading(false);
   }
 
-  // Filtragem local por Texto (nome do evento) e Mês Selecionado
+  // Filtragem local por Texto e Mês Selecionado
   const eventosFiltrados = eventos.filter(evento => {
     const matchTexto = evento.titulo.toLowerCase().includes(busca.toLowerCase()) || 
                        (evento.descricao && evento.descricao.toLowerCase().includes(busca.toLowerCase())) ||
@@ -107,18 +107,28 @@ export default function Agenda() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {eventosFiltrados.map((evento) => {
-            const dataFormatada = new Date(evento.data_evento + 'T00:00:00').toLocaleDateString('pt-BR', {
+            const dataFormatadaInicio = new Date(evento.data_evento + 'T00:00:00').toLocaleDateString('pt-BR', {
               day: '2-digit',
               month: 'long',
               year: 'numeric'
             });
 
+            // Formata a data final caso ela exista
+            const dataFormatadaFim = evento.data_final 
+              ? new Date(evento.data_final + 'T00:00:00').toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: 'long',
+                  year: 'numeric'
+                })
+              : null;
+
             return (
               <div key={evento.id} className="bg-white p-7 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between hover:shadow-md transition-shadow">
                 <div>
-                  <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                     <span className="text-xs font-bold text-[#c5a059] bg-[#c5a059]/10 px-3 py-1 rounded-full flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5" /> {dataFormatada}
+                      <Calendar className="w-3.5 h-3.5" /> 
+                      {dataFormatadaFim ? `${dataFormatadaInicio} até ${dataFormatadaFim}` : dataFormatadaInicio}
                     </span>
                     {evento.horario && (
                       <span className="text-xs font-medium text-gray-500 flex items-center gap-1">
