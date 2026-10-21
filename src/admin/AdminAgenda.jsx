@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/api/supabaseClient";
 import { PlusCircle, Trash2, Calendar, Clock, MapPin, Loader2, CheckCircle2, LogOut } from "lucide-react";
-// Certifique-se de que o cliente Supabase está configurado corretamente no seu projeto (ex: import { supabase } from "../lib/supabaseClient";)
 
 export default function AdminAgendaPage() {
   const [eventos, setEventos] = useState([]);
@@ -12,6 +12,7 @@ export default function AdminAgendaPage() {
     titulo: "",
     descricao: "",
     data_evento: "",
+    data_final: "", // Novo campo para a data de término
     horario: "",
     local: ""
   });
@@ -19,10 +20,6 @@ export default function AdminAgendaPage() {
   // Função para lidar com o logout/saída do painel
   const handleLogout = async () => {
     try {
-      // Se estiver usando autenticação do Supabase:
-      // await supabase.auth.signOut();
-      
-      // Redireciona para a página inicial (ajuste a rota se necessário, ex: router.push('/') ou window.location.href = '/')
       window.location.href = "/";
     } catch (err) {
       console.error("Erro ao sair:", err);
@@ -30,14 +27,17 @@ export default function AdminAgendaPage() {
     }
   };
 
-  // Busca os eventos cadastrados
+  // Busca os eventos cadastrados no Supabase
   async function carregarEventos() {
     setLoading(true);
     try {
-      // Exemplo usando Supabase:
-      // const { data, error } = await supabase.from('agenda_eventos').select('*').order('data_evento', { ascending: true });
-      // if (error) throw error;
-      // setEventos(data || []);
+      const { data, error } = await supabase
+        .from('agenda_eventos')
+        .select('*')
+        .order('data_evento', { ascending: true });
+      
+      if (error) throw error;
+      setEventos(data || []);
     } catch (err) {
       console.error("Erro ao carregar eventos:", err);
     } finally {
@@ -49,17 +49,27 @@ export default function AdminAgendaPage() {
     carregarEventos();
   }, []);
 
-  // Cadastra um novo evento
+  // Cadastra um novo evento no Supabase
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSalvando(true);
     try {
-      // Exemplo de inserção no Supabase:
-      // const { error } = await supabase.from('agenda_eventos').insert([{ ...formData, tipo: 'geral' }]);
-      // if (error) throw error;
+      const { error } = await supabase
+        .from('agenda_eventos')
+        .insert([{ 
+          titulo: formData.titulo,
+          descricao: formData.descricao,
+          data_evento: formData.data_evento,
+          data_final: formData.data_final || null, // Salva null se estiver vazio
+          horario: formData.horario || null,
+          local: formData.local,
+          tipo: 'geral' 
+        }]);
+
+      if (error) throw error;
 
       setSucesso(true);
-      setFormData({ titulo: "", descricao: "", data_evento: "", horario: "", local: "" });
+      setFormData({ titulo: "", descricao: "", data_evento: "", data_final: "", horario: "", local: "" });
       carregarEventos();
       setTimeout(() => setSucesso(false), 4000);
     } catch (err) {
@@ -70,16 +80,31 @@ export default function AdminAgendaPage() {
     }
   };
 
-  // Exclui um evento
+  // Exclui um evento do Supabase
   const handleDelete = async (id) => {
     if (!confirm("Tem certeza que deseja excluir este evento?")) return;
     try {
-      // const { error } = await supabase.from('agenda_eventos').delete().eq('id', id);
-      // if (error) throw error;
+      const { error } = await supabase
+        .from('agenda_eventos')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
       carregarEventos();
     } catch (err) {
       console.error("Erro ao excluir:", err);
+      alert("Erro ao excluir o evento.");
     }
+  };
+
+  // Função auxiliar para exibir a data formatada no padrão brasileiro
+  const formatarDataExibicao = (dataStr) => {
+    if (!dataStr) return "";
+    const partes = dataStr.split("-");
+    if (partes.length === 3) {
+      return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+    return dataStr;
   };
 
   return (
@@ -129,14 +154,15 @@ export default function AdminAgendaPage() {
                 required
                 value={formData.titulo}
                 onChange={(e) => setFormData({...formData, titulo: e.target.value})}
-                placeholder="Ex: Reunião Pastoral" 
+                placeholder="Ex: Retiro Anual" 
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs focus:ring-2 focus:ring-[#005a8d] outline-none"
               />
             </div>
 
+            {/* Linha com Data de Início e Data Final */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Data</label>
+                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Data de Início</label>
                 <input 
                   type="date" 
                   required
@@ -146,7 +172,20 @@ export default function AdminAgendaPage() {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Horário</label>
+                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Data Final <span className="text-gray-400 font-normal">(Opcional)</span></label>
+                <input 
+                  type="date" 
+                  value={formData.data_final}
+                  onChange={(e) => setFormData({...formData, data_final: e.target.value})}
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs focus:ring-2 focus:ring-[#005a8d] outline-none bg-white"
+                />
+              </div>
+            </div>
+
+            {/* Linha com Horário Opcional e Local */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Horário <span className="text-gray-400 font-normal">(Opcional)</span></label>
                 <input 
                   type="text" 
                   value={formData.horario}
@@ -155,17 +194,16 @@ export default function AdminAgendaPage() {
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs focus:ring-2 focus:ring-[#005a8d] outline-none"
                 />
               </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Local</label>
-              <input 
-                type="text" 
-                value={formData.local}
-                onChange={(e) => setFormData({...formData, local: e.target.value})}
-                placeholder="Ex: Matriz / Auditório" 
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs focus:ring-2 focus:ring-[#005a8d] outline-none"
-              />
+              <div>
+                <label className="block text-xs font-bold uppercase text-gray-500 mb-1">Local</label>
+                <input 
+                  type="text" 
+                  value={formData.local}
+                  onChange={(e) => setFormData({...formData, local: e.target.value})}
+                  placeholder="Ex: Matriz / Auditório" 
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 text-xs focus:ring-2 focus:ring-[#005a8d] outline-none"
+                />
+              </div>
             </div>
 
             <div>
@@ -182,7 +220,7 @@ export default function AdminAgendaPage() {
             <button 
               type="submit"
               disabled={salvando}
-              className="w-full py-3.5 bg-[#005a8d] hover:bg-[#004068] text-white rounded-xl font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3.5 bg-[#005a8d] hover:bg-[#004068] text-white rounded-xl font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               {salvando ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlusCircle className="w-4 h-4" />}
               Cadastrar Evento
@@ -208,7 +246,10 @@ export default function AdminAgendaPage() {
                 <div key={ev.id} className="p-4 rounded-2xl border border-gray-100 bg-gray-50 flex items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-gray-500">{ev.data_evento}</span>
+                      <span className="text-xs font-bold text-gray-500">
+                        {formatarDataExibicao(ev.data_evento)}
+                        {ev.data_final && ` até ${formatarDataExibicao(ev.data_final)}`}
+                      </span>
                       {ev.horario && <span className="text-xs text-gray-400">• {ev.horario}</span>}
                     </div>
                     <h3 className="font-serif font-bold text-sm text-gray-900">{ev.titulo}</h3>
@@ -217,7 +258,7 @@ export default function AdminAgendaPage() {
 
                   <button 
                     onClick={() => handleDelete(ev.id)}
-                    className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
                     title="Excluir evento"
                   >
                     <Trash2 className="w-4 h-4" />
