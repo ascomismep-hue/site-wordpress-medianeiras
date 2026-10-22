@@ -18,17 +18,32 @@ export default function AdminDashboard({ onLogout }) {
   const [sobreData, setSobreData] = useState({ id: 1, historia: "", linha_do_tempo: [] });
   const [novoEvento, setNovoEvento] = useState({ ano: "", titulo: "", descricao: "" });
 
-  // Listas de Irmãs (com suporte a edição)
+  // Listas de Irmãs (com suporte a edição, pos_x, pos_y e zoom)
   const [irmasList, setIrmasList] = useState([]);
-  const [novaIrma, setNovaIrma] = useState({ nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", primeiros_votos: "", votos_perpetuos: "" });
+  const [novaIrma, setNovaIrma] = useState({ 
+    nome: "", 
+    foto_url: "", 
+    data_nascimento: "", 
+    local_nascimento: "", 
+    primeiros_votos: "", 
+    votos_perpetuos: "",
+    pos_x: 0,
+    pos_y: 0,
+    zoom: 1
+  });
   const [editandoIrmaId, setEditandoIrmaId] = useState(null);
 
-  // Listas de Madres Gerais (com suporte a edição)
+  // Controle de Arraste (Drag) genérico
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [dragTarget, setDragTarget] = useState(null); // 'irma' ou 'memorial'
+
+  // Listas de Madres Gerais
   const [madresList, setMadresList] = useState([]);
   const [novaMadre, setNovaMadre] = useState({ nome: "", foto_url: "", periodo_mandato: "", biografia: "" });
   const [editandoMadreId, setEditandoMadreId] = useState(null);
 
-  // Memorial com Posição e Zoom (com suporte a edição)
+  // Memorial com Posição e Zoom
   const [memorialList, setMemorialList] = useState([]);
   const [novoMemorial, setNovoMemorial] = useState({ 
     nome: "", 
@@ -42,10 +57,6 @@ export default function AdminDashboard({ onLogout }) {
     zoom: 1
   });
   const [editandoMemorialId, setEditandoMemorialId] = useState(null);
-
-  // Controle de Arraste (Drag)
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   // Outras Seções
   const [domCampeloData, setDomCampeloData] = useState({ id: 1, foto_url: "", historia_biografia: "", sobre_a_causa: "" });
@@ -104,11 +115,8 @@ export default function AdminDashboard({ onLogout }) {
   function handleSair() {
     sessionStorage.removeItem("irimep_painel_logado");
     sessionStorage.removeItem("irimep_auth");
-    if (onLogout) {
-      onLogout();
-    } else {
-      window.location.reload();
-    }
+    localStorage.removeItem("irimep_painel_logado");
+    window.location.href = "/";
   }
 
   function formatarDataVisual(dataString) {
@@ -164,6 +172,37 @@ export default function AdminDashboard({ onLogout }) {
     setSobreData({ ...sobreData, linha_do_tempo: atualizada });
   }
 
+  // Lógica de Arraste Unificada (Mouse Drag para Irmã e Memorial)
+  function handleMouseDown(e, target) {
+    if (target === 'irma' && !novaIrma.foto_url) return;
+    if (target === 'memorial' && !novoMemorial.foto_url) return;
+    
+    setIsDragging(true);
+    setDragTarget(target);
+    if (target === 'irma') {
+      setDragStart({ x: e.clientX - novaIrma.pos_x, y: e.clientY - novaIrma.pos_y });
+    } else {
+      setDragStart({ x: e.clientX - novoMemorial.pos_x, y: e.clientY - novoMemorial.pos_y });
+    }
+  }
+
+  function handleMouseMove(e) {
+    if (!isDragging) return;
+    const newX = e.clientX - dragStart.x;
+    const newY = e.clientY - dragStart.y;
+    
+    if (dragTarget === 'irma') {
+      setNovaIrma(prev => ({ ...prev, pos_x: newX, pos_y: newY }));
+    } else if (dragTarget === 'memorial') {
+      setNovoMemorial(prev => ({ ...prev, pos_x: newX, pos_y: newY }));
+    }
+  }
+
+  function handleMouseUp() {
+    setIsDragging(false);
+    setDragTarget(null);
+  }
+
   // Funções de Irmãs (Cadastrar e Editar)
   async function handleSaveIrma(e) {
     e.preventDefault();
@@ -172,14 +211,14 @@ export default function AdminDashboard({ onLogout }) {
       if (!error) {
         alert("Irmã atualizada com sucesso!");
         setEditandoIrmaId(null);
-        setNovaIrma({ nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", primeiros_votos: "", votos_perpetuos: "" });
+        setNovaIrma({ nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", primeiros_votos: "", votos_perpetuos: "", pos_x: 0, pos_y: 0, zoom: 1 });
         fetchTabData("irmas");
         triggerSuccess();
       } else alert("Erro ao atualizar irmã: " + error.message);
     } else {
       const { error } = await supabase.from("irmas").insert([novaIrma]);
       if (!error) {
-        setNovaIrma({ nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", primeiros_votos: "", votos_perpetuos: "" });
+        setNovaIrma({ nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", primeiros_votos: "", votos_perpetuos: "", pos_x: 0, pos_y: 0, zoom: 1 });
         fetchTabData("irmas");
         triggerSuccess();
       } else alert("Erro ao cadastrar irmã: " + error.message);
@@ -194,14 +233,17 @@ export default function AdminDashboard({ onLogout }) {
       data_nascimento: item.data_nascimento || "",
       local_nascimento: item.local_nascimento || "",
       primeiros_votos: item.primeiros_votos || "",
-      votos_perpetuos: item.votos_perpetuos || ""
+      votos_perpetuos: item.votos_perpetuos || "",
+      pos_x: item.pos_x || 0,
+      pos_y: item.pos_y || 0,
+      zoom: item.zoom || 1
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   function cancelarEdicaoIrma() {
     setEditandoIrmaId(null);
-    setNovaIrma({ nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", primeiros_votos: "", votos_perpetuos: "" });
+    setNovaIrma({ nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", primeiros_votos: "", votos_perpetuos: "", pos_x: 0, pos_y: 0, zoom: 1 });
   }
 
   // Funções de Madres Gerais (Cadastrar e Editar)
@@ -240,24 +282,6 @@ export default function AdminDashboard({ onLogout }) {
   function cancelarEdicaoMadre() {
     setEditandoMadreId(null);
     setNovaMadre({ nome: "", foto_url: "", periodo_mandato: "", biografia: "" });
-  }
-
-  // Lógica de Arraste do Memorial com o Mouse
-  function handleMouseDown(e) {
-    if (!novoMemorial.foto_url) return;
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - novoMemorial.pos_x, y: e.clientY - novoMemorial.pos_y });
-  }
-
-  function handleMouseMove(e) {
-    if (!isDragging) return;
-    const newX = e.clientX - dragStart.x;
-    const newY = e.clientY - dragStart.y;
-    setNovoMemorial(prev => ({ ...prev, pos_x: newX, pos_y: newY }));
-  }
-
-  function handleMouseUp() {
-    setIsDragging(false);
   }
 
   async function handleSaveMemorial(e) {
@@ -377,7 +401,7 @@ export default function AdminDashboard({ onLogout }) {
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
+    <div className="max-w-7xl mx-auto px-4 py-12" onMouseUp={handleMouseUp} onMouseMove={handleMouseMove}>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div className="flex items-center gap-3">
           <Shield className="w-8 h-8 text-[#005a8d]" />
@@ -467,7 +491,7 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               )}
 
-              {/* 2. IRMÃS - COM SUPORTE TOTAL A CADASTRO E EDIÇÃO */}
+              {/* 2. IRMÃS - COM SUPORTE TOTAL A CADASTRO, EDIÇÃO E ENQUADRAMENTO */}
               {activeTab === "irmas" && (
                 <div className="space-y-8">
                   <div className="flex justify-between items-center">
@@ -481,40 +505,120 @@ export default function AdminDashboard({ onLogout }) {
                     )}
                   </div>
 
-                  <form onSubmit={handleSaveIrma} className="bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <input type="text" placeholder="Nome Completo" required value={novaIrma.nome} onChange={e => setNovaIrma({...novaIrma, nome: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
-                      <div>
-                        <label className="block text-xs font-bold text-gray-500 mb-1">Foto da Irmã</label>
-                        <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setNovaIrma({...novaIrma, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#005a8d] file:text-white" />
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    {/* Formulário (7 colunas) */}
+                    <form onSubmit={handleSaveIrma} className="lg:col-span-7 bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <input type="text" placeholder="Nome Completo" required value={novaIrma.nome} onChange={e => setNovaIrma({...novaIrma, nome: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2" />
+                        
+                        <div className="sm:col-span-2">
+                          <label className="block text-xs font-bold text-gray-500 mb-1">Foto da Irmã</label>
+                          <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setNovaIrma({...novaIrma, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#005a8d] file:text-white w-full" />
+                        </div>
+
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 mb-1">Data de Nascimento</label>
+                          <input type="date" value={novaIrma.data_nascimento} onChange={e => setNovaIrma({...novaIrma, data_nascimento: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+                        </div>
+                        <input type="text" placeholder="Local de Nascimento (Ex: Petrolina - PE)" value={novaIrma.local_nascimento} onChange={e => setNovaIrma({...novaIrma, local_nascimento: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
+                        
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 mb-1">Data Primeiros Votos</label>
+                          <input type="date" value={novaIrma.primeiros_votos} onChange={e => setNovaIrma({...novaIrma, primeiros_votos: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 mb-1">Data Votos Perpétuos</label>
+                          <input type="date" value={novaIrma.votos_perpetuos} onChange={e => setNovaIrma({...novaIrma, votos_perpetuos: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-xs font-bold text-gray-500 mb-1">Data de Nascimento</label>
-                        <input type="date" value={novaIrma.data_nascimento} onChange={e => setNovaIrma({...novaIrma, data_nascimento: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+
+                      <button type="submit" className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 text-white ${editandoIrmaId ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#005a8d]"}`}>
+                        {editandoIrmaId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                        {editandoIrmaId ? "Salvar Alterações" : "Adicionar Irmã"}
+                      </button>
+                    </form>
+
+                    {/* Molde Interativo de Arraste e Zoom para Irmãs (5 colunas) */}
+                    <div className="lg:col-span-5 bg-white p-6 rounded-3xl border-2 border-dashed border-[#c5a059]/40 flex flex-col items-center select-none">
+                      <div className="flex items-center gap-2 text-xs font-bold text-[#c5a059] uppercase tracking-wider mb-2">
+                        <Move className="w-4 h-4" /> Enquadramento em Tempo Real
                       </div>
-                      <input type="text" placeholder="Local de Nascimento (Ex: Petrolina - PE)" value={novaIrma.local_nascimento} onChange={e => setNovaIrma({...novaIrma, local_nascimento: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
-                      <div>
-                        <label className="block text-xs font-bold text-gray-500 mb-1">Data Primeiros Votos</label>
-                        <input type="date" value={novaIrma.primeiros_votos} onChange={e => setNovaIrma({...novaIrma, primeiros_votos: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-bold text-gray-500 mb-1">Data Votos Perpétuos</label>
-                        <input type="date" value={novaIrma.votos_perpetuos} onChange={e => setNovaIrma({...novaIrma, votos_perpetuos: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+                      <p className="text-[11px] text-gray-400 mb-3 text-center">Clique e arraste a imagem para posicionar o rosto.</p>
+
+                      {novaIrma.foto_url && (
+                        <div className="w-full max-w-xs mb-3 flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl border border-gray-200">
+                          <ZoomIn className="w-4 h-4 text-gray-500 shrink-0" />
+                          <input 
+                            type="range" 
+                            min="0.5" 
+                            max="3" 
+                            step="0.05" 
+                            value={novaIrma.zoom} 
+                            onChange={e => setNovaIrma({...novaIrma, zoom: parseFloat(e.target.value)})}
+                            className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-[#005a8d]" 
+                          />
+                          <span className="text-[11px] font-bold text-gray-600 w-8 text-right">{Math.round(novaIrma.zoom * 100)}%</span>
+                        </div>
+                      )}
+
+                      <div className="w-full max-w-xs bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden flex flex-col">
+                        <div 
+                          className="h-72 w-full bg-gray-900 flex items-center justify-center overflow-hidden relative cursor-grab active:cursor-grabbing"
+                          onMouseDown={(e) => handleMouseDown(e, 'irma')}
+                        >
+                          {novaIrma.foto_url ? (
+                            <img 
+                              src={novaIrma.foto_url} 
+                              alt="Antevisão" 
+                              style={{ 
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                transform: `translate(${novaIrma.pos_x}px, ${novaIrma.pos_y}px) scale(${novaIrma.zoom})`,
+                                transformOrigin: 'center center',
+                                transition: isDragging && dragTarget === 'irma' ? 'none' : 'transform 0.05s ease-out'
+                              }}
+                              className="pointer-events-none" 
+                            />
+                          ) : (
+                            <div className="text-center p-4 text-gray-500 text-xs pointer-events-none">
+                              <User className="w-12 h-12 mx-auto text-gray-600 mb-1" />
+                              Envie uma foto para ver o molde
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="p-5 flex-1 flex flex-col justify-between pointer-events-none">
+                          <div>
+                            <h3 className="text-lg font-serif font-bold text-[#005a8d] mb-1 truncate">
+                              {novaIrma.nome || "Nome da Irmã"}
+                            </h3>
+                            <p className="text-xs text-gray-400">Nascimento: {formatarDataVisual(novaIrma.data_nascimento)}</p>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <button type="submit" className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 text-white ${editandoIrmaId ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#005a8d]"}`}>
-                      {editandoIrmaId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
-                      {editandoIrmaId ? "Salvar Alterações" : "Adicionar Irmã"}
-                    </button>
-                  </form>
+                  </div>
 
-                  <div className="space-y-3">
+                  <div className="space-y-3 pt-6 border-t border-gray-100">
                     <h3 className="font-bold text-lg text-[#005a8d]">Irmãs Cadastradas ({irmasList.length})</h3>
                     {irmasList.map(item => (
                       <div key={item.id} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-gray-200">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center">
-                            {item.foto_url ? <img src={item.foto_url} alt="" className="w-full h-full object-cover" /> : <User className="w-6 h-6 text-gray-400" />}
+                          <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center relative">
+                            {item.foto_url ? (
+                              <img 
+                                src={item.foto_url} 
+                                alt="" 
+                                style={{ 
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover',
+                                  transform: `translate(${item.pos_x || 0}px, ${item.pos_y || 0}px) scale(${item.zoom || 1})`,
+                                  transformOrigin: 'center center'
+                                }}
+                              />
+                            ) : <User className="w-6 h-6 text-gray-400" />}
                           </div>
                           <div>
                             <h4 className="font-bold text-gray-800">{item.nome}</h4>
@@ -662,11 +766,8 @@ export default function AdminDashboard({ onLogout }) {
 
                       <div className="w-full max-w-xs bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden flex flex-col">
                         <div 
-                          className="h-72 w-full bg-gray-900 flex items-center justify-center overflow-hidden grayscale relative cursor-grab active:cursor-grabbing"
-                          onMouseDown={handleMouseDown}
-                          onMouseMove={handleMouseMove}
-                          onMouseUp={handleMouseUp}
-                          onMouseLeave={handleMouseUp}
+                          className="h-72 w-full bg-gray-900 flex items-center justify-center overflow-hidden relative cursor-grab active:cursor-grabbing"
+                          onMouseDown={(e) => handleMouseDown(e, 'memorial')}
                         >
                           {novoMemorial.foto_url ? (
                             <img 
@@ -678,7 +779,7 @@ export default function AdminDashboard({ onLogout }) {
                                 objectFit: 'cover',
                                 transform: `translate(${novoMemorial.pos_x}px, ${novoMemorial.pos_y}px) scale(${novoMemorial.zoom})`,
                                 transformOrigin: 'center center',
-                                transition: isDragging ? 'none' : 'transform 0.05s ease-out'
+                                transition: isDragging && dragTarget === 'memorial' ? 'none' : 'transform 0.05s ease-out'
                               }}
                               className="pointer-events-none" 
                             />
@@ -710,7 +811,7 @@ export default function AdminDashboard({ onLogout }) {
                     {memorialList.map(item => (
                       <div key={item.id} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-gray-200">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center grayscale relative">
+                          <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center relative">
                             {item.foto_url ? (
                               <img 
                                 src={item.foto_url} 
