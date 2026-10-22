@@ -15,7 +15,6 @@ export default function Irmas() {
     fetchIrmas();
   }, []);
 
-  // Função auxiliar para converter datas de "AAAA-MM-DD" para "DD/MM/AAAA"
   function formatarData(dataString) {
     if (!dataString) return "";
     if (dataString.includes("-")) {
@@ -40,16 +39,22 @@ export default function Irmas() {
           {irmas.map((irma) => (
             <div key={irma.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
               
-              {/* Contêiner da foto padronizado com altura fixa e object-top para focar no rosto */}
-              <div className="h-72 bg-gray-100 flex items-center justify-center overflow-hidden relative">
+              {/* Moldura pública aplicando as coordenadas exatas de arraste e zoom */}
+              <div className="h-72 bg-gray-900 flex items-center justify-center overflow-hidden relative">
                 {irma.foto_url ? (
                   <img 
                     src={irma.foto_url} 
                     alt={irma.nome} 
-                    className="w-full h-full object-cover object-top" 
+                    style={{ 
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      transform: `translate(${irma.pos_x || 0}px, ${irma.pos_y || 0}px) scale(${irma.zoom || 1})`,
+                      transformOrigin: 'center center'
+                    }} 
                   />
                 ) : (
-                  <User className="w-20 h-20 text-gray-300" />
+                  <User className="w-20 h-20 text-gray-400" />
                 )}
               </div>
 
@@ -57,26 +62,9 @@ export default function Irmas() {
                 <div>
                   <h3 className="text-xl font-serif font-bold text-[#005a8d] mb-3">{irma.nome}</h3>
                   <div className="space-y-1.5 text-sm text-gray-600">
-                    
-                    {/* Exibição da data de nascimento formatada */}
-                    <p>
-                      <strong className="text-gray-800">Nascimento:</strong> {formatarData(irma.data_nascimento)} {irma.local_nascimento && `(${irma.local_nascimento})`}
-                    </p>
-
-                    {/* Exibição dos primeiros votos formatada (só aparece se estiver preenchido) */}
-                    {irma.primeiros_votos && (
-                      <p>
-                        <strong className="text-gray-800">Primeiros Votos:</strong> {formatarData(irma.primeiros_votos)}
-                      </p>
-                    )}
-
-                    {/* Exibição dos votos perpétuos formatada (só aparece se estiver preenchido) */}
-                    {irma.votos_perpetuos && (
-                      <p>
-                        <strong className="text-gray-800">Votos Perpétuos:</strong> {formatarData(irma.votos_perpetuos)}
-                      </p>
-                    )}
-
+                    <p><strong className="text-gray-800">Nascimento:</strong> {formatarData(irma.data_nascimento)} {irma.local_nascimento && `(${irma.local_nascimento})`}</p>
+                    {irma.primeiros_votos && <p><strong className="text-gray-800">Primeiros Votos:</strong> {formatarData(irma.primeiros_votos)}</p>}
+                    {irma.votos_perpetuos && <p><strong className="text-gray-800">Votos Perpétuos:</strong> {formatarData(irma.votos_perpetuos)}</p>}
                   </div>
                 </div>
               </div>
