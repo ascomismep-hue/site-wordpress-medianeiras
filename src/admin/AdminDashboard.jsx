@@ -538,7 +538,7 @@ export default function AdminDashboard({ onLogout }) {
                       </button>
                     </form>
 
-                    {/* Molde Interativo de Arraste e Zoom para Irmãs (5 colunas) */}
+                    {/* Molde Interativo com Imagem Original Completa e Arraste */}
                     <div className="lg:col-span-5 bg-white p-6 rounded-3xl border-2 border-dashed border-[#c5a059]/40 flex flex-col items-center select-none">
                       <div className="flex items-center gap-2 text-xs font-bold text-[#c5a059] uppercase tracking-wider mb-2">
                         <Move className="w-4 h-4" /> Enquadramento em Tempo Real
@@ -567,19 +567,22 @@ export default function AdminDashboard({ onLogout }) {
                           onMouseDown={(e) => handleMouseDown(e, 'irma')}
                         >
                           {novaIrma.foto_url ? (
-                            <img 
-                              src={novaIrma.foto_url} 
-                              alt="Antevisão" 
-                              style={{ 
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                transform: `translate(${novaIrma.pos_x}px, ${novaIrma.pos_y}px) scale(${novaIrma.zoom})`,
-                                transformOrigin: 'center center',
-                                transition: isDragging && dragTarget === 'irma' ? 'none' : 'transform 0.05s ease-out'
-                              }}
-                              className="pointer-events-none" 
-                            />
+                            <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+                              <img 
+                                src={novaIrma.foto_url} 
+                                alt="Antevisão" 
+                                style={{ 
+                                  maxWidth: 'none',
+                                  maxHeight: 'none',
+                                  width: 'auto',
+                                  height: '100%',
+                                  transform: `translate(${novaIrma.pos_x}px, ${novaIrma.pos_y}px) scale(${novaIrma.zoom})`,
+                                  transformOrigin: 'center center',
+                                  transition: isDragging && dragTarget === 'irma' ? 'none' : 'transform 0.05s ease-out'
+                                }}
+                                className="pointer-events-none select-none" 
+                              />
+                            </div>
                           ) : (
                             <div className="text-center p-4 text-gray-500 text-xs pointer-events-none">
                               <User className="w-12 h-12 mx-auto text-gray-600 mb-1" />
@@ -607,17 +610,20 @@ export default function AdminDashboard({ onLogout }) {
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center relative">
                             {item.foto_url ? (
-                              <img 
-                                src={item.foto_url} 
-                                alt="" 
-                                style={{ 
-                                  width: '100%',
-                                  height: '100%',
-                                  objectFit: 'cover',
-                                  transform: `translate(${item.pos_x || 0}px, ${item.pos_y || 0}px) scale(${item.zoom || 1})`,
-                                  transformOrigin: 'center center'
-                                }}
-                              />
+                              <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+                                <img 
+                                  src={item.foto_url} 
+                                  alt="" 
+                                  style={{ 
+                                    maxWidth: 'none',
+                                    maxHeight: 'none',
+                                    width: 'auto',
+                                    height: '100%',
+                                    transform: `translate(${item.pos_x || 0}px, ${item.pos_y || 0}px) scale(${item.zoom || 1})`,
+                                    transformOrigin: 'center center'
+                                  }}
+                                />
+                              </div>
                             ) : <User className="w-6 h-6 text-gray-400" />}
                           </div>
                           <div>
@@ -770,19 +776,22 @@ export default function AdminDashboard({ onLogout }) {
                           onMouseDown={(e) => handleMouseDown(e, 'memorial')}
                         >
                           {novoMemorial.foto_url ? (
-                            <img 
-                              src={novoMemorial.foto_url} 
-                              alt="Antevisão" 
-                              style={{ 
-                                width: '100%',
-                                height: '100%',
-                                objectFit: 'cover',
-                                transform: `translate(${novoMemorial.pos_x}px, ${novoMemorial.pos_y}px) scale(${novoMemorial.zoom})`,
-                                transformOrigin: 'center center',
-                                transition: isDragging && dragTarget === 'memorial' ? 'none' : 'transform 0.05s ease-out'
-                              }}
-                              className="pointer-events-none" 
-                            />
+                            <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+                              <img 
+                                src={novoMemorial.foto_url} 
+                                alt="Antevisão" 
+                                style={{ 
+                                  maxWidth: 'none',
+                                  maxHeight: 'none',
+                                  width: 'auto',
+                                  height: '100%',
+                                  transform: `translate(${novoMemorial.pos_x}px, ${novoMemorial.pos_y}px) scale(${novoMemorial.zoom})`,
+                                  transformOrigin: 'center center',
+                                  transition: isDragging && dragTarget === 'memorial' ? 'none' : 'transform 0.05s ease-out'
+                                }}
+                                className="pointer-events-none select-none" 
+                              />
+                            </div>
                           ) : (
                             <div className="text-center p-4 text-gray-500 text-xs pointer-events-none">
                               <User className="w-12 h-12 mx-auto text-gray-600 mb-1" />
@@ -813,17 +822,20 @@ export default function AdminDashboard({ onLogout }) {
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center relative">
                             {item.foto_url ? (
-                              <img 
-                                src={item.foto_url} 
-                                alt="" 
-                                style={{ 
-                                  width: '100%',
-                                  height: '100%',
-                                  objectFit: 'cover',
-                                  transform: `translate(${item.pos_x || 0}px, ${item.pos_y || 0}px) scale(${item.zoom || 1})`,
-                                  transformOrigin: 'center center'
-                                }}
-                              />
+                              <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+                                <img 
+                                  src={item.foto_url} 
+                                  alt="" 
+                                  style={{ 
+                                    maxWidth: 'none',
+                                    maxHeight: 'none',
+                                    width: 'auto',
+                                    height: '100%',
+                                    transform: `translate(${item.pos_x || 0}px, ${item.pos_y || 0}px) scale(${item.zoom || 1})`,
+                                    transformOrigin: 'center center'
+                                  }}
+                                />
+                              </div>
                             ) : <User className="w-6 h-6 text-gray-400" />}
                           </div>
                           <div>
