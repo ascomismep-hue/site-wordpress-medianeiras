@@ -15,6 +15,7 @@ export default function Irmas() {
     fetchIrmas();
   }, []);
 
+  // Função auxiliar para formatar datas de "AAAA-MM-DD" para "DD/MM/AAAA"
   function formatarData(dataString) {
     if (!dataString) return "";
     if (dataString.includes("-")) {
@@ -39,7 +40,7 @@ export default function Irmas() {
           {irmas.map((irma) => (
             <div key={irma.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
               
-              {/* Moldura pública aplicando as coordenadas exatas de arraste e zoom */}
+              {/* Moldura pública sincronizada com as coordenadas pos_x, pos_y e zoom do painel */}
               <div className="h-72 bg-gray-900 flex items-center justify-center overflow-hidden relative">
                 {irma.foto_url ? (
                   <img 
