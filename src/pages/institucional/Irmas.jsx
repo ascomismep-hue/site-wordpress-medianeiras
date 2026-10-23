@@ -40,16 +40,26 @@ export default function Irmas() {
           {irmas.map((irma) => (
             <div key={irma.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
               
-              {/* Moldura pública padronizada com h-72 e object-top para focar no rosto */}
-              <div className="h-72 bg-gray-100 flex items-center justify-center overflow-hidden relative">
+              {/* Moldura pública com o mesmo comportamento de enquadramento exato do painel */}
+              <div className="h-72 bg-gray-900 flex items-center justify-center overflow-hidden relative">
                 {irma.foto_url ? (
-                  <img 
-                    src={irma.foto_url} 
-                    alt={irma.nome} 
-                    className="w-full h-full object-cover object-top"
-                  />
+                  <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
+                    <img 
+                      src={irma.foto_url} 
+                      alt={irma.nome} 
+                      style={{ 
+                        maxWidth: 'none',
+                        maxHeight: 'none',
+                        width: 'auto',
+                        height: '100%',
+                        transform: `translate(${irma.pos_x || 0}px, ${irma.pos_y || 0}px) scale(${irma.zoom || 1})`,
+                        transformOrigin: 'center center'
+                      }} 
+                      className="pointer-events-none select-none"
+                    />
+                  </div>
                 ) : (
-                  <User className="w-20 h-20 text-gray-300" />
+                  <User className="w-20 h-20 text-gray-400" />
                 )}
               </div>
 
