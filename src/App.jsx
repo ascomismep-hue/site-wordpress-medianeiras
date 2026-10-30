@@ -2,6 +2,7 @@ import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import FloatingDonationButton from "./components/FloatingDonationButton"; // Importa o balão flutuante
+import PopupNovena from "./components/PopupNovena"; // Importa o pop-up da Novena
 import Home from "./pages/Home";
 import InstitucionalSubNav from "./components/InstitucionalSubNav";
 import LoginUnificado from "./admin/LoginUnificado"; // Central de Login Unificada
@@ -32,7 +33,11 @@ function LayoutInstitucional({ children }) {
 export default function App() {
   return (
     <Router>
-      <div className="flex flex-col min-h-screen bg-[#fcfbf9]">
+      <div className="flex flex-col min-h-screen bg-[#fcfbf9] relative">
+        
+        {/* Pop-up global da Novena (aparece automaticamente nas datas programadas) */}
+        <PopupNovena />
+
         <Header />
         <main className="flex-grow">
           <Routes>
