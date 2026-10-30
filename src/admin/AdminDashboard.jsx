@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User, Phone, LogOut, KeyRound, Mail, MessageSquare, Edit3, X, Move, ZoomIn } from "lucide-react";
+import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User, Phone, LogOut, KeyRound, Mail, MessageSquare, Edit3, X, Move, ZoomIn, BookOpen } from "lucide-react";
 
 export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState("sobre");
@@ -58,6 +58,10 @@ export default function AdminDashboard({ onLogout }) {
   });
   const [editandoMemorialId, setEditandoMemorialId] = useState(null);
 
+  // Estados para Reflexões Litúrgicas
+  const [reflexoesList, setReflexoesList] = useState([]);
+  const [novaReflexao, setNovaReflexao] = useState({ data: "", texto_reflexao: "" });
+
   // Outras Seções
   const [domCampeloData, setDomCampeloData] = useState({ id: 1, foto_url: "", historia_biografia: "", sobre_a_causa: "" });
   const [gracasList, setGracasList] = useState([]);
@@ -91,6 +95,9 @@ export default function AdminDashboard({ onLogout }) {
       } else if (tab === "memorial") {
         const { data } = await supabase.from("memorial_falecidas").select("*").order("nome");
         if (data) setMemorialList(data);
+      } else if (tab === "liturgia") {
+        const { data } = await supabase.from("liturgia_reflexao").select("*").order("data", { ascending: false });
+        if (data) setReflexoesList(data);
       } else if (tab === "domcampelo") {
         const { data } = await supabase.from("causa_dom_campelo").select("*").limit(1).single();
         if (data) setDomCampeloData(data);
@@ -334,6 +341,20 @@ export default function AdminDashboard({ onLogout }) {
     setNovoMemorial({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "", pos_x: 0, pos_y: 0, zoom: 1 });
   }
 
+  // Função para salvar Reflexão Litúrgica
+  async function handleSaveReflexao(e) {
+    e.preventDefault();
+    const { error } = await supabase.from("liturgia_reflexao").insert([novaReflexao]);
+    if (!error) {
+      alert("Reflexão agendada com sucesso!");
+      setNovaReflexao({ data: "", texto_reflexao: "" });
+      fetchTabData("liturgia");
+      triggerSuccess();
+    } else {
+      alert("Erro ao salvar reflexão (verifique se já existe um registro para esta data): " + error.message);
+    }
+  }
+
   // Dom Campelo
   async function handleSaveDomCampelo() {
     await supabase.from("causa_dom_campelo").update({
@@ -395,6 +416,7 @@ export default function AdminDashboard({ onLogout }) {
     { id: "madres", label: "Madres Gerais" },
     { id: "memorial", label: "Memorial" },
     { id: "domcampelo", label: "Causa Dom Campelo" },
+    { id: "liturgia", label: "Reflexão Litúrgica" }, // <-- Aba adicionada no menu lateral
     { id: "gracas", label: "Graças Alcançadas" },
     { id: "contatos", label: "Mensagens de Contato" },
     { id: "senha", label: "Alterar Senha" },
@@ -491,7 +513,7 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               )}
 
-              {/* 2. IRMÃS - COM SUPORTE TOTAL A CADASTRO, EDIÇÃO E ENQUADRAMENTO */}
+              {/* 2. IRMÃS */}
               {activeTab === "irmas" && (
                 <div className="space-y-8">
                   <div className="flex justify-between items-center">
@@ -506,7 +528,6 @@ export default function AdminDashboard({ onLogout }) {
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                    {/* Formulário (7 colunas) */}
                     <form onSubmit={handleSaveIrma} className="lg:col-span-7 bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <input type="text" placeholder="Nome Completo" required value={novaIrma.nome} onChange={e => setNovaIrma({...novaIrma, nome: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2" />
@@ -538,7 +559,6 @@ export default function AdminDashboard({ onLogout }) {
                       </button>
                     </form>
 
-                    {/* Molde Interativo com Imagem Original Completa e Arraste */}
                     <div className="lg:col-span-5 bg-white p-6 rounded-3xl border-2 border-dashed border-[#c5a059]/40 flex flex-col items-center select-none">
                       <div className="flex items-center gap-2 text-xs font-bold text-[#c5a059] uppercase tracking-wider mb-2">
                         <Move className="w-4 h-4" /> Enquadramento em Tempo Real
@@ -590,15 +610,6 @@ export default function AdminDashboard({ onLogout }) {
                             </div>
                           )}
                         </div>
-
-                        <div className="p-5 flex-1 flex flex-col justify-between pointer-events-none">
-                          <div>
-                            <h3 className="text-lg font-serif font-bold text-[#005a8d] mb-1 truncate">
-                              {novaIrma.nome || "Nome da Irmã"}
-                            </h3>
-                            <p className="text-xs text-gray-400">Nascimento: {formatarDataVisual(novaIrma.data_nascimento)}</p>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -645,7 +656,7 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               )}
 
-              {/* 3. MADRES GERAIS - COM SUPORTE TOTAL A CADASTRO E EDIÇÃO */}
+              {/* 3. MADRES GERAIS */}
               {activeTab === "madres" && (
                 <div className="space-y-8">
                   <div className="flex justify-between items-center">
@@ -717,7 +728,6 @@ export default function AdminDashboard({ onLogout }) {
                   </div>
 
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                    {/* Formulário (7 colunas) */}
                     <form onSubmit={handleSaveMemorial} className="lg:col-span-7 bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <input type="text" placeholder="Nome da Irmã" required value={novoMemorial.nome} onChange={e => setNovoMemorial({...novoMemorial, nome: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2" />
@@ -747,7 +757,6 @@ export default function AdminDashboard({ onLogout }) {
                       </button>
                     </form>
 
-                    {/* Molde Interativo de Arraste e Zoom (5 colunas) */}
                     <div className="lg:col-span-5 bg-white p-6 rounded-3xl border-2 border-dashed border-[#c5a059]/40 flex flex-col items-center select-none">
                       <div className="flex items-center gap-2 text-xs font-bold text-[#c5a059] uppercase tracking-wider mb-2">
                         <Move className="w-4 h-4" /> Enquadramento em Tempo Real
@@ -799,18 +808,6 @@ export default function AdminDashboard({ onLogout }) {
                             </div>
                           )}
                         </div>
-
-                        <div className="p-5 flex-1 flex flex-col justify-between pointer-events-none">
-                          <div>
-                            <h3 className="text-lg font-serif font-bold text-[#005a8d] mb-1 truncate">
-                              {novoMemorial.nome || "Nome da Irmã"}
-                            </h3>
-                            <p className="text-xs text-gray-400 mb-2">{novoMemorial.localizacao || "Localização"}</p>
-                            <p className="text-gray-600 text-xs leading-relaxed line-clamp-3">
-                              {novoMemorial.biografia_breve || "A biografia breve aparecerá aqui..."}
-                            </p>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -857,7 +854,60 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               )}
 
-              {/* 5. CAUSA DOM CAMPELO */}
+              {/* 5. REFLEXÃO LITÚRGICA (NOVA ABA) */}
+              {activeTab === "liturgia" && (
+                <div className="space-y-8">
+                  <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Cadastrar Reflexão Litúrgica Diária</h2>
+                  
+                  <form onSubmit={handleSaveReflexao} className="bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 mb-1">Data da Reflexão</label>
+                      <input 
+                        type="date" 
+                        required
+                        value={novaReflexao.data} 
+                        onChange={e => setNovaReflexao({...novaReflexao, data: e.target.value})} 
+                        className="w-full sm:w-72 p-3 rounded-xl border border-gray-300 bg-white text-sm" 
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 mb-1">Texto da Reflexão</label>
+                      <textarea 
+                        rows="4" 
+                        required
+                        placeholder="Escreva a mensagem espiritual que aparecerá no site nesta data..." 
+                        value={novaReflexao.texto_reflexao} 
+                        onChange={e => setNovaReflexao({...novaReflexao, texto_reflexao: e.target.value})} 
+                        className="w-full p-3 rounded-xl border border-gray-300 bg-white font-sans text-sm" 
+                      />
+                    </div>
+
+                    <button type="submit" className="bg-[#005a8d] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 cursor-pointer">
+                      <Plus className="w-5 h-5" /> Agendar Reflexão
+                    </button>
+                  </form>
+
+                  <div className="space-y-3">
+                    <h3 className="font-bold text-lg text-[#005a8d]">Reflexões Agendadas ({reflexoesList.length})</h3>
+                    {reflexoesList.map(item => (
+                      <div key={item.id} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-gray-200 gap-4">
+                        <div className="space-y-1">
+                          <span className="text-xs font-bold text-[#c5a059] bg-[#c5a059]/10 px-2.5 py-1 rounded-full">
+                            {formatarDataVisual(item.data)}
+                          </span>
+                          <p className="text-gray-700 text-sm italic mt-1">"{item.texto_reflexao}"</p>
+                        </div>
+                        <button onClick={() => handleDelete("liturgia_reflexao", item.id, "liturgia")} className="text-red-500 hover:text-red-700 p-2 shrink-0 cursor-pointer" title="Excluir reflexão">
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 6. CAUSA DOM CAMPELO */}
               {activeTab === "domcampelo" && (
                 <div className="space-y-6">
                   <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Causa Dom Campelo</h2>
@@ -878,7 +928,7 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               )}
 
-              {/* 6. GRAÇAS ALCANÇADAS */}
+              {/* 7. GRAÇAS ALCANÇADAS */}
               {activeTab === "gracas" && (
                 <div>
                   <h2 className="text-2xl font-serif font-bold text-[#005a8d] mb-6">Relatos de Graças Alcançadas ({gracasList.length})</h2>
@@ -908,7 +958,7 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               )}
 
-              {/* 7. MENSAGENS DE CONTATO */}
+              {/* 8. MENSAGENS DE CONTATO */}
               {activeTab === "contatos" && (
                 <div className="space-y-6">
                   <div className="border-b pb-4">
@@ -995,7 +1045,7 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               )}
 
-              {/* 8. ALTERAR SENHA */}
+              {/* 9. ALTERAR SENHA */}
               {activeTab === "senha" && (
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 mb-4">
