@@ -42,9 +42,9 @@ export default function LiturgiaDiariaCard() {
     async function fetchData() {
       try {
         const hoje = new Date();
-        const dataFormatadaSupabase = hoje.toISOString().split('T')[0]; // Formato AAAA-MM-DD para busca opcional
+        const dataFormatadaSupabase = hoje.toISOString().split('T')[0]; // Ex: "2026-10-30"
 
-        // Busca paralela da API de Liturgia e da reflexão cadastrada pelas irmãs no Supabase
+        // Busca paralela: API da Liturgia e reflexão específica do dia no Supabase
         const [resLiturgia, resReflexaoSupabase] = await Promise.all([
           fetch("https://liturgia.up.railway.app/v3/"),
           supabase.from("liturgia_reflexao").select("texto_reflexao").eq("data", dataFormatadaSupabase).maybeSingle()
@@ -59,7 +59,7 @@ export default function LiturgiaDiariaCard() {
           });
         }
 
-        // Se houver reflexão escrita pelas irmãs no banco, usa-a; senão, usa uma mensagem padrão acolhedora
+        // Define a reflexão do dia encontrada ou usa o texto padrão de segurança
         if (resReflexaoSupabase && resReflexaoSupabase.data?.texto_reflexao) {
           setReflexaoManual(resReflexaoSupabase.data.texto_reflexao);
         } else {
@@ -144,7 +144,7 @@ export default function LiturgiaDiariaCard() {
             </div>
           </div>
 
-          {/* Reflexão feita pelas Irmãs */}
+          {/* Reflexão diária cadastrada para a data correspondente */}
           <div className="space-y-2 bg-blue-50/50 p-6 rounded-3xl border border-blue-100/80 shadow-xs">
             <h4 className="text-xs font-bold uppercase tracking-wider text-[#005a8d] flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[#c5a059]" /> Reflexão Espiritual (Por uma das Irmãs)
