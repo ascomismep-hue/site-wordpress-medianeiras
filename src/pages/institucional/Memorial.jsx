@@ -7,25 +7,16 @@ export default function Memorial() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    async function fetchMemorial() {
+      const { data } = await supabase.from("memorial_falecidas").select("*").order("nome");
+      if (data) setFalecidas(data);
+      setLoading(false);
+    }
     fetchMemorial();
   }, []);
 
-  async function fetchMemorial() {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from("memorial_falecidas")
-      .select("*")
-      .order("nome");
-
-    if (error) {
-      console.error("Erro ao buscar memorial:", error);
-    } else {
-      setFalecidas(data || []);
-    }
-    setLoading(false);
-  }
-
-  function formatarDataVisual(dataString) {
+  // Função auxiliar para formatar datas de "AAAA-MM-DD" para "DD/MM/AAAA"
+  function formatarData(dataString) {
     if (!dataString) return "";
     if (dataString.includes("-")) {
       return dataString.split("-").reverse().join("/");
@@ -33,44 +24,38 @@ export default function Memorial() {
     return dataString;
   }
 
+  if (loading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#005a8d]" /></div>;
+
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
-        <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#005a8d]">
-          Memorial
-        </h1>
-        <p className="text-gray-600 text-sm leading-relaxed">
+    <div className="max-w-6xl mx-auto py-16 px-4">
+      <div className="text-center mb-12">
+        <h1 className="text-3xl sm:text-4xl font-serif font-bold text-[#005a8d] mb-4">Memorial</h1>
+        <p className="text-gray-600 text-sm max-w-xl mx-auto mb-4">
           Em eterna memória e gratidão às irmãs que concluíram sua jornada terrestre e descansam na paz do Senhor.
         </p>
-        <div className="w-20 h-1 bg-[#c5a059] mx-auto rounded-full"></div>
+        <div className="w-24 h-1 bg-[#c5a059] mx-auto rounded"></div>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <Loader2 className="w-8 h-8 animate-spin text-[#005a8d]" />
-        </div>
-      ) : falecidas.length === 0 ? (
+      {falecidas.length === 0 ? (
         <p className="text-center text-gray-500 py-12">Nenhum registro encontrado no memorial.</p>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {falecidas.map((item) => (
-            <div 
-              key={item.id} 
-              className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col transition-all hover:shadow-md"
-            >
-              {/* Contentor da Imagem Padronizado */}
-              <div className="h-72 w-full bg-gray-100 flex items-center justify-center overflow-hidden relative shrink-0">
+            <div key={item.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+              
+              {/* Moldura com altura ajustada (h-64) para um card mais compacto e proporcional */}
+              <div className="h-64 bg-gray-100 flex items-center justify-center overflow-hidden relative">
                 {item.foto_url ? (
                   <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
                     <img 
                       src={item.foto_url} 
                       alt={item.nome}
                       style={{ 
-                        width: '100%',
+                        maxWidth: 'none',
+                        maxHeight: 'none',
+                        width: 'auto',
                         height: '100%',
-                        objectFit: 'cover',
-                        objectPosition: 'center top',
-                        filter: 'grayscale(100%)', // Preto e branco clássico
+                        filter: 'grayscale(100%)', // Mantém o memorial em preto e branco clássico
                         transform: `translate(${item.pos_x || 0}px, ${item.pos_y || 0}px) scale(${item.zoom || 1})`,
                         transformOrigin: 'center center'
                       }}
@@ -78,37 +63,26 @@ export default function Memorial() {
                     />
                   </div>
                 ) : (
-                  <div className="text-center p-4 text-gray-400 text-xs">
-                    <User className="w-12 h-12 mx-auto text-gray-300 mb-1" />
-                    Sem foto
-                  </div>
+                  <User className="w-16 h-16 text-gray-300" />
                 )}
               </div>
 
-              {/* Informações da Irmã Falecida com espaçamento limpo */}
-              <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
-                <div className="space-y-1">
-                  <h3 className="text-lg font-serif font-bold text-[#005a8d] leading-snug">
-                    {item.nome}
-                  </h3>
+              {/* Conteúdo com espaçamento otimizado */}
+              <div className="p-5 flex-1 flex flex-col justify-between space-y-3">
+                <div>
+                  <h3 className="text-lg font-serif font-bold text-[#005a8d] mb-1">{item.nome}</h3>
                   {item.localizacao && (
-                    <p className="text-xs text-gray-400 font-medium">
-                      {item.localizacao}
-                    </p>
+                    <p className="text-xs text-gray-400 font-medium mb-2.5">{item.localizacao}</p>
                   )}
-                </div>
-
-                <div className="text-xs text-gray-600 space-y-1 bg-gray-50 p-3 rounded-2xl border border-gray-100">
-                  {item.data_nascimento && (
-                    <p className="flex items-center gap-1.5">
-                      <span className="text-[#c5a059]">⭐</span> <strong>Nascimento:</strong> {formatarDataVisual(item.data_nascimento)}
-                    </p>
-                  )}
-                  {item.data_falecimento && (
-                    <p className="flex items-center gap-1.5">
-                      <span className="text-[#005a8d]">✝️</span> <strong>Falecimento:</strong> {formatarDataVisual(item.data_falecimento)}
-                    </p>
-                  )}
+                  
+                  <div className="space-y-1 text-xs text-gray-600 bg-gray-50 p-2.5 rounded-2xl border border-gray-100">
+                    {item.data_nascimento && (
+                      <p><strong className="text-gray-800">Nascimento:</strong> {formatarData(item.data_nascimento)}</p>
+                    )}
+                    {item.data_falecimento && (
+                      <p><strong className="text-gray-800">Falecimento:</strong> {formatarData(item.data_falecimento)}</p>
+                    )}
+                  </div>
                 </div>
 
                 {item.biografia_breve && (
