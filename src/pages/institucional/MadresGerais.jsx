@@ -50,18 +50,18 @@ export default function MadresGerais() {
               key={item.id} 
               className="bg-white rounded-[2rem] shadow-sm border border-gray-100 overflow-hidden flex flex-col transition-all hover:shadow-md"
             >
-              {/* Contentor da Imagem com suporte a Posição e Zoom */}
-              <div className="h-80 w-full bg-gray-900 flex items-center justify-center overflow-hidden relative">
+              {/* Contentor da Imagem corrigido para preencher sem bordas vazias */}
+              <div className="h-80 w-full bg-gray-100 flex items-center justify-center overflow-hidden relative">
                 {item.foto_url ? (
                   <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
                     <img 
                       src={item.foto_url} 
                       alt={item.nome}
                       style={{ 
-                        maxWidth: 'none',
-                        maxHeight: 'none',
-                        width: 'auto',
+                        width: '100%',
                         height: '100%',
+                        objectFit: 'cover', // <-- Garante o preenchimento uniforme sem sobras pretas
+                        objectPosition: 'center top',
                         transform: `translate(${item.pos_x || 0}px, ${item.pos_y || 0}px) scale(${item.zoom || 1})`,
                         transformOrigin: 'center center'
                       }}
@@ -69,8 +69,8 @@ export default function MadresGerais() {
                     />
                   </div>
                 ) : (
-                  <div className="text-center p-4 text-gray-500 text-xs">
-                    <User className="w-12 h-12 mx-auto text-gray-600 mb-1" />
+                  <div className="text-center p-4 text-gray-400 text-xs">
+                    <User className="w-12 h-12 mx-auto text-gray-300 mb-1" />
                     Sem foto
                   </div>
                 )}
