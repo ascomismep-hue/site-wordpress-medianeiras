@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
-import { ChevronRight, Calendar, Heart, ArrowRight, Loader2, Sparkles, Church, Users, GraduationCap, Stethoscope, Clock, MapPin, Phone, ChevronLeft, Gift, Globe } from "lucide-react";
+import { 
+  ChevronRight, Calendar, Heart, ArrowRight, Loader2, Sparkles, 
+  Users, GraduationCap, Stethoscope, Clock, MapPin, Phone, 
+  ChevronLeft, Gift, Globe 
+} from "lucide-react";
 import LiturgiaDiariaCard from "../components/LiturgiaDiariaCard";
 
 export default function Home() {
@@ -23,7 +27,11 @@ export default function Home() {
   useEffect(() => {
     async function fetchBanners() {
       try {
-        const { data } = await supabase.from("banners").select("*").eq("active", true).order("order", { ascending: true });
+        const { data } = await supabase
+          .from("banners")
+          .select("*")
+          .eq("active", true)
+          .order("order", { ascending: true });
         if (data) setBanners(data);
       } catch (err) {
         console.error("Erro ao buscar banners:", err);
@@ -35,7 +43,12 @@ export default function Home() {
     async function fetchEventosFuturos() {
       try {
         const hoje = new Date().toISOString().split('T')[0];
-        const { data } = await supabase.from("agenda_eventos").select("*").gte("data_evento", hoje).order("data_evento", { ascending: true }).limit(6);
+        const { data } = await supabase
+          .from("agenda_eventos")
+          .select("*")
+          .gte("data_evento", hoje)
+          .order("data_evento", { ascending: true })
+          .limit(6);
         if (data) setEventosHome(data);
       } catch (err) {
         console.error("Erro ao buscar eventos:", err);
@@ -46,7 +59,10 @@ export default function Home() {
 
     async function fetchCasasMissao() {
       try {
-        const { data } = await supabase.from("casas_missao").select("*").order("ordem", { ascending: true });
+        const { data } = await supabase
+          .from("casas_missao")
+          .select("*")
+          .order("ordem", { ascending: true });
         if (data) setCasasMissao(data);
       } catch (err) {
         console.error("Erro ao buscar casas:", err);
@@ -57,7 +73,12 @@ export default function Home() {
 
     async function fetchNoticiasHome() {
       try {
-        const { data } = await supabase.from("noticias").select("*").eq("active", true).order("data_publicacao", { ascending: false }).limit(3);
+        const { data } = await supabase
+          .from("noticias")
+          .select("*")
+          .eq("active", true)
+          .order("data_publicacao", { ascending: false })
+          .limit(3);
         if (data) setNoticiasHome(data);
       } catch (err) {
         console.error("Erro ao buscar notícias:", err);
@@ -99,6 +120,7 @@ export default function Home() {
     fetchAniversariantesHoje();
   }, []);
 
+  // Rotação automática dos banners a cada 10 segundos
   useEffect(() => {
     if (banners.length <= 1) return;
     const intervalo = setInterval(() => {
@@ -107,6 +129,7 @@ export default function Home() {
     return () => clearInterval(intervalo);
   }, [banners.length]);
 
+  // Rotação automática do carrossel de casas a cada 10 segundos
   useEffect(() => {
     if (casasMissao.length <= 1) return;
     const intervalo = setInterval(() => {
@@ -133,63 +156,110 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfbf9]">
-      {/* Hero Section com Carrossel de Banners na lateral direita */}
-      <section className="relative bg-gradient-to-br from-[#005a8d] via-[#004068] to-[#002845] text-white py-24 px-4 sm:px-6 lg:px-8 overflow-hidden shadow-xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#c5a059]/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[#e31e24]/15 rounded-full blur-3xl pointer-events-none"></div>
+      {/* Hero Section: Banner cobrindo TODA a área azul */}
+      <section className="relative min-h-[520px] lg:min-h-[600px] flex items-center bg-[#002845] text-white py-20 px-4 sm:px-6 lg:px-8 overflow-hidden shadow-xl">
+        
+        {/* Camada de Banners em Segundo Plano */}
+        {loadingBanners ? (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#005a8d] via-[#004068] to-[#002845]"></div>
+        ) : banners.length > 0 ? (
+          <div className="absolute inset-0 z-0">
+            {banners.map((banner, index) => (
+              <div
+                key={banner.id}
+                className={`absolute inset-0 transition-opacity duration-1000 overflow-hidden ${
+                  index === indiceCarrosselBanners ? "opacity-100 z-10" : "opacity-0 z-0"
+                }`}
+              >
+                {/* Imagem do Banner com Zoom e Posição */}
+                <img
+                  src={banner.foto_url}
+                  alt={banner.titulo}
+                  style={{
+                    transform: `translate(${banner.pos_x || 0}px, ${banner.pos_y || 0}px) scale(${banner.zoom || 1})`,
+                    transformOrigin: 'center center'
+                  }}
+                  className="w-full h-full object-cover"
+                />
+                {/* Degradê escuro sobreposto para garantir a legibilidade dos textos */}
+                <div className="absolute inset-0 bg-gradient-to-r from-[#002845]/95 via-[#004068]/80 to-transparent"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#005a8d] via-[#004068] to-[#002845]"></div>
+        )}
 
-        <div className="max-w-7xl mx-auto grid md:grid-cols-2 gap-12 items-center relative z-10">
-          <div className="space-y-6">
+        {/* Luzes decorativas sutis */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#c5a059]/15 rounded-full blur-3xl pointer-events-none z-10"></div>
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[#e31e24]/15 rounded-full blur-3xl pointer-events-none z-10"></div>
+
+        {/* Conteúdo Institucional sobreposto */}
+        <div className="max-w-7xl mx-auto w-full relative z-20">
+          <div className="max-w-2xl space-y-6">
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider text-[#c5a059] shadow-inner backdrop-blur-md">
               <Sparkles className="w-4 h-4 text-[#c5a059]" />
               Instituto Religioso das Medianeiras da Paz
             </div>
 
-            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-wide drop-shadow-sm">
+            {/* Caso o banner tenha título específico, mostra em destaque menor, mantendo o título da congregação */}
+            {banners.length > 0 && banners[indiceCarrosselBanners]?.titulo && (
+              <span className="block text-xs font-bold text-[#c5a059] uppercase tracking-widest">
+                Destaque: {banners[indiceCarrosselBanners].titulo}
+              </span>
+            )}
+
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-wide drop-shadow-md">
               Consagradas à paz, à <span className="text-[#c5a059]">oração</span> e ao <span className="text-[#ff4d53]">serviço</span>.
             </h1>
 
-            <p className="text-lg text-white/90 leading-relaxed font-light">
+            <p className="text-lg text-white/90 leading-relaxed font-light drop-shadow-sm">
               Bem-vindo ao portal oficial do IRIMEP. Um espaço de comunhão, fé e esperança onde compartilhamos nossa missão de amor ao próximo e edificação espiritual.
             </p>
 
             <div className="flex flex-wrap gap-4 pt-4">
-              <Link to="/institucional" className="bg-[#e31e24] hover:bg-[#c9181d] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg hover:shadow-red-600/30 flex items-center gap-2 group">
+              <Link 
+                to="/institucional" 
+                className="bg-[#e31e24] hover:bg-[#c9181d] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg hover:shadow-red-600/30 flex items-center gap-2 group"
+              >
                 Conheça Nossa História <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link to="/agenda" className="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-8 py-4 rounded-2xl font-bold transition-all backdrop-blur-md hover:border-[#c5a059]">
-                Ver Agenda
-              </Link>
-            </div>
-          </div>
 
-          {/* Carrossel de Banners Dinâmicos no Topo */}
-          <div className="bg-white/10 border border-white/25 rounded-3xl backdrop-blur-xl shadow-2xl relative overflow-hidden h-[360px] flex items-center justify-center">
-            {loadingBanners ? (
-              <Loader2 className="w-8 h-8 animate-spin text-[#c5a059]" />
-            ) : banners.length > 0 ? (
-              <div className="w-full h-full relative">
-                {banners.map((banner, index) => (
-                  <div
-                    key={banner.id}
-                    className={`absolute inset-0 transition-opacity duration-1000 flex flex-col justify-end p-8 bg-cover bg-center ${
-                      index === indiceCarrosselBanners ? "opacity-100 z-10" : "opacity-0 z-0"
+              {/* Botão Dinâmico do Banner se houver link cadastrado */}
+              {banners.length > 0 && banners[indiceCarrosselBanners]?.link ? (
+                <a
+                  href={banners[indiceCarrosselBanners].link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-[#c5a059] hover:bg-[#b08c48] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg flex items-center gap-2"
+                >
+                  Saiba Mais sobre este Destaque <ChevronRight className="w-5 h-5" />
+                </a>
+              ) : (
+                <Link 
+                  to="/agenda" 
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-8 py-4 rounded-2xl font-bold transition-all backdrop-blur-md hover:border-[#c5a059]"
+                >
+                  Ver Agenda
+                </Link>
+              )}
+            </div>
+
+            {/* Indicadores numéricos/bolinhas dos Banners se houver mais de um */}
+            {banners.length > 1 && (
+              <div className="flex items-center gap-2 pt-6">
+                {banners.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setIndiceCarrosselBanners(idx)}
+                    className={`h-2.5 rounded-full transition-all cursor-pointer ${
+                      idx === indiceCarrosselBanners 
+                        ? "w-8 bg-[#c5a059]" 
+                        : "w-2.5 bg-white/40 hover:bg-white/70"
                     }`}
-                    style={{ backgroundImage: `linear-gradient(to top, rgba(0,40,68,0.95), rgba(0,90,141,0.3)), url(${banner.foto_url})` }}
-                  >
-                    <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider mb-1">Destaque Institucional</span>
-                    <h3 className="font-serif text-2xl font-bold text-white mb-2">{banner.titulo}</h3>
-                    {banner.link && (
-                      <a href={banner.link} target="_blank" rel="noopener noreferrer" className="text-xs font-bold text-white underline hover:text-[#c5a059]">
-                        Saiba mais &rarr;
-                      </a>
-                    )}
-                  </div>
+                    title={`Ir para banner ${idx + 1}`}
+                  />
                 ))}
-              </div>
-            ) : (
-              <div className="text-center p-6 text-white/80">
-                <p className="text-sm font-medium">Bem-vindo ao portal do IRIMEP</p>
               </div>
             )}
           </div>
@@ -200,8 +270,6 @@ export default function Home() {
       {!loadingAniversariantes && aniversariantes.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-16 w-full">
           <div className="bg-gradient-to-r from-amber-500 via-[#c5a059] to-amber-600 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
-            
             <div className="space-y-2 text-center md:text-left relative z-10">
               <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-xs">
                 <Gift className="w-4 h-4 text-white animate-bounce" /> Celebração Especial
@@ -232,7 +300,7 @@ export default function Home() {
         </section>
       )}
 
-      {/* SEÇÃO DE PILARES DA NOSSA MISSÃO (AGORA COM 5 CARDS: EDUC., SAÚDE, SOCIAL, MISSÃO, VOCACIONAL) */}
+      {/* SEÇÃO DE PILARES DA NOSSA MISSÃO (5 CARDS) */}
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full bg-white rounded-[3rem] shadow-sm border border-gray-100 my-16">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#005a8d]">Pilares da nossa Missão</h2>
@@ -241,7 +309,6 @@ export default function Home() {
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
-          {/* Card 1: Educação */}
           <div className="bg-gray-50 p-6 rounded-3xl border border-blue-100 hover:shadow-md transition-all group flex flex-col justify-between">
             <div>
               <div className="w-12 h-12 bg-blue-50 text-[#005a8d] rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -258,7 +325,6 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Card 2: Saúde */}
           <div className="bg-gray-50 p-6 rounded-3xl border border-emerald-100 hover:shadow-md transition-all group flex flex-col justify-between">
             <div>
               <div className="w-12 h-12 bg-emerald-50 text-emerald-700 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -275,7 +341,6 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Card 3: Social (Desmembrado) */}
           <div className="bg-gray-50 p-6 rounded-3xl border border-purple-100 hover:shadow-md transition-all group flex flex-col justify-between">
             <div>
               <div className="w-12 h-12 bg-purple-50 text-purple-700 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -292,7 +357,6 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Card 4: Missão (Desmembrado) */}
           <div className="bg-gray-50 p-6 rounded-3xl border border-red-100 hover:shadow-md transition-all group flex flex-col justify-between">
             <div>
               <div className="w-12 h-12 bg-red-50 text-[#e31e24] rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -309,7 +373,6 @@ export default function Home() {
             </Link>
           </div>
 
-          {/* Card 5: Caminho Vocacional */}
           <div className="bg-gray-50 p-6 rounded-3xl border border-amber-100 hover:shadow-md transition-all group flex flex-col justify-between sm:col-span-2 lg:col-span-1">
             <div>
               <div className="w-12 h-12 bg-amber-50 text-[#c5a059] rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -331,7 +394,7 @@ export default function Home() {
       {/* SEÇÃO DA LITURGIA DIÁRIA */}
       <LiturgiaDiariaCard />
 
-      {/* Seção: Carrossel de Casas de Missão */}
+      {/* CARROSSEL DE CASAS DE MISSÃO */}
       <section className="bg-gradient-to-br from-[#002845] to-[#004068] text-white py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden my-12">
         <div className="max-w-5xl mx-auto">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-10">
@@ -399,7 +462,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SEÇÃO: 3 ÚLTIMAS NOTÍCIAS EM DESTAQUE COM CAPA (MOVIDA PARA APÓS AS CASAS DE MISSÃO) */}
+      {/* SEÇÃO: 3 ÚLTIMAS NOTÍCIAS EM DESTAQUE */}
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-12">
           <div>
@@ -452,7 +515,7 @@ export default function Home() {
         )}
       </section>
 
-      {/* Seção de Próximos Eventos e Agenda da Semana */}
+      {/* SEÇÃO DE PRÓXIMOS EVENTOS E AGENDA */}
       <section className="bg-white py-20 border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-12">
