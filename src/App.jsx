@@ -2,7 +2,7 @@ import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import FloatingDonationButton from "./components/FloatingDonationButton";
-import PopupNovena from "./components/PopupNovena"; // Importação correta do componente
+import PopupNovena from "./components/PopupNovena";
 import Home from "./pages/Home";
 import InstitucionalSubNav from "./components/InstitucionalSubNav";
 import LoginUnificado from "./admin/LoginUnificado";
@@ -52,7 +52,11 @@ export default function App() {
             <Route path="/institucional/causa-dom-campelo" element={<LayoutInstitucional><CausaDomCampelo /></LayoutInstitucional>} />
 
             <Route path="/agenda" element={<Agenda />} />
+            
+            {/* Rotas de Notícias (Listagem geral e visualização de notícia individual por ID) */}
             <Route path="/noticias" element={<Noticias />} />
+            <Route path="/noticias/:id" element={<Noticias />} />
+
             <Route path="/vocacional" element={<Vocacional />} />
             <Route path="/pastoral" element={<Pastoral />} />
             <Route path="/contato" element={<Contato />} />
