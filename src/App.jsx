@@ -16,11 +16,12 @@ import Pastoral from "./pages/Pastoral";
 
 // Import das subpáginas institucionais
 import SobreNos from "./pages/institucional/SobreNos";
+import Simbolo from "./pages/institucional/Simbolo";
 import MadresGerais from "./pages/institucional/MadresGerais";
 import Irmas from "./pages/institucional/Irmas";
 import Memorial from "./pages/institucional/Memorial";
 import CausaDomCampelo from "./pages/institucional/CausaDomCampelo";
-import Simbolo from "./pages/institucional/Simbolo";
+
 
 function LayoutInstitucional({ children }) {
   return (
@@ -47,11 +48,12 @@ export default function App() {
             <Route path="/institucional" element={<Navigate to="/institucional/sobre-nos" replace />} />
 
             <Route path="/institucional/sobre-nos" element={<LayoutInstitucional><SobreNos /></LayoutInstitucional>} />
+            <Route path="/institucional/simbolo" element={<LayoutInstitucional><Simbolo /></LayoutInstitucional>} />
             <Route path="/institucional/madres-gerais" element={<LayoutInstitucional><MadresGerais /></LayoutInstitucional>} />
             <Route path="/institucional/irmas" element={<LayoutInstitucional><Irmas /></LayoutInstitucional>} />
             <Route path="/institucional/memorial" element={<LayoutInstitucional><Memorial /></LayoutInstitucional>} />
             <Route path="/institucional/causa-dom-campelo" element={<LayoutInstitucional><CausaDomCampelo /></LayoutInstitucional>} />
-            <Route path="/institucional/simbolo" element={<LayoutInstitucional><Simbolo /></LayoutInstitucional>} />
+            
 
             <Route path="/agenda" element={<Agenda />} />
             
