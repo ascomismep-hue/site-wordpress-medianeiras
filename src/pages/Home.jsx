@@ -129,7 +129,7 @@ export default function Home() {
     return () => clearInterval(intervalo);
   }, [banners.length]);
 
-  // Rotação automática das casas
+  // Rotação automática do carrossel de casas a cada 10 segundos
   useEffect(() => {
     if (casasMissao.length <= 1) return;
     const intervalo = setInterval(() => {
@@ -156,71 +156,110 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfbf9]">
-      
-      {/* 1. HERO SECTION: Apenas o carrossel de banners livre e visível */}
-      <section className="relative bg-gradient-to-br from-[#005a8d] via-[#004068] to-[#002845] py-12 lg:py-16 px-4 sm:px-6 lg:px-8 w-full shadow-inner">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-white/10 border border-white/25 rounded-3xl backdrop-blur-xl shadow-2xl overflow-hidden relative h-[340px] sm:h-[420px] lg:h-[480px] flex items-center justify-center">
-            {loadingBanners ? (
-              <Loader2 className="w-8 h-8 animate-spin text-[#c5a059]" />
-            ) : banners.length > 0 ? (
-              <div className="w-full h-full relative flex items-center justify-center bg-[#001d30]">
-                {banners.map((banner, index) => (
-                  <div
-                    key={banner.id}
-                    className={`absolute inset-0 transition-opacity duration-1000 overflow-hidden flex items-center justify-center ${
-                      index === indiceCarrosselBanners ? "opacity-100 z-10" : "opacity-0 z-0"
-                    }`}
-                  >
-                    <img
-                      src={banner.foto_url}
-                      alt={banner.titulo}
-                      style={{
-                        transform: `translate(${banner.pos_x || 0}px, ${banner.pos_y || 0}px) scale(${banner.zoom || 1})`,
-                        transformOrigin: 'center center'
-                      }}
-                      className="w-full h-full object-contain"
-                    />
-
-                    {/* Barra Inferior com Título e Botão do Banner */}
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#002845]/95 via-[#002845]/60 to-transparent p-6 flex items-end justify-between gap-4">
-                      <div>
-                        <span className="text-[10px] font-bold text-[#c5a059] uppercase tracking-wider block">Destaque Institucional</span>
-                        <h3 className="font-serif text-lg sm:text-xl font-bold text-white line-clamp-1">{banner.titulo}</h3>
-                      </div>
-
-                      {banner.link && (
-                        <a
-                          href={banner.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="bg-[#c5a059] hover:bg-[#b08c48] text-white px-4 py-2 rounded-xl text-xs font-bold shrink-0 flex items-center gap-1 transition-colors shadow-md"
-                        >
-                          Saiba Mais <ChevronRight className="w-3.5 h-3.5" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                ))}
-
-                {/* Indicadores do Carrossel */}
-                {banners.length > 1 && (
-                  <div className="absolute top-4 right-4 z-20 flex gap-1.5 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
-                    {banners.map((_, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => setIndiceCarrosselBanners(idx)}
-                        className={`h-2 rounded-full transition-all cursor-pointer ${
-                          idx === indiceCarrosselBanners ? "w-6 bg-[#c5a059]" : "w-2 bg-white/50"
-                        }`}
-                      />
-                    ))}
-                  </div>
-                )}
+      {/* Hero Section: Banner cobrindo TODA a área azul */}
+      <section className="relative min-h-[520px] lg:min-h-[600px] flex items-center bg-[#002845] text-white py-20 px-4 sm:px-6 lg:px-8 overflow-hidden shadow-xl">
+        
+        {/* Camada de Banners em Segundo Plano */}
+        {loadingBanners ? (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#005a8d] via-[#004068] to-[#002845]"></div>
+        ) : banners.length > 0 ? (
+          <div className="absolute inset-0 z-0">
+            {banners.map((banner, index) => (
+              <div
+                key={banner.id}
+                className={`absolute inset-0 transition-opacity duration-1000 overflow-hidden ${
+                  index === indiceCarrosselBanners ? "opacity-100 z-10" : "opacity-0 z-0"
+                }`}
+              >
+                {/* Imagem do Banner com Zoom e Posição */}
+                <img
+                  src={banner.foto_url}
+                  alt={banner.titulo}
+                  style={{
+                    transform: `translate(${banner.pos_x || 0}px, ${banner.pos_y || 0}px) scale(${banner.zoom || 1})`,
+                    transformOrigin: 'center center'
+                  }}
+                  className="w-full h-full object-cover"
+                />
+                {/* Degradê escuro sobreposto para garantir a legibilidade dos textos */}
+                <div className="absolute inset-0 bg-gradient-to-r from-[#002845]/95 via-[#004068]/80 to-transparent"></div>
               </div>
-            ) : (
-              <div className="text-center p-6 text-white/80">
-                <p className="text-sm font-medium">Portal oficial do IRIMEP</p>
+            ))}
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#005a8d] via-[#004068] to-[#002845]"></div>
+        )}
+
+        {/* Luzes decorativas sutis */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#c5a059]/15 rounded-full blur-3xl pointer-events-none z-10"></div>
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[#e31e24]/15 rounded-full blur-3xl pointer-events-none z-10"></div>
+
+        {/* Conteúdo Institucional sobreposto */}
+        <div className="max-w-7xl mx-auto w-full relative z-20">
+          <div className="max-w-2xl space-y-6">
+            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider text-[#c5a059] shadow-inner backdrop-blur-md">
+              <Sparkles className="w-4 h-4 text-[#c5a059]" />
+              Instituto Religioso das Medianeiras da Paz
+            </div>
+
+            {/* Caso o banner tenha título específico, mostra em destaque menor, mantendo o título da congregação */}
+            {banners.length > 0 && banners[indiceCarrosselBanners]?.titulo && (
+              <span className="block text-xs font-bold text-[#c5a059] uppercase tracking-widest">
+                Destaque: {banners[indiceCarrosselBanners].titulo}
+              </span>
+            )}
+
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-wide drop-shadow-md">
+              Consagradas à paz, à <span className="text-[#c5a059]">oração</span> e ao <span className="text-[#ff4d53]">serviço</span>.
+            </h1>
+
+            <p className="text-lg text-white/90 leading-relaxed font-light drop-shadow-sm">
+              Bem-vindo ao portal oficial do IRIMEP. Um espaço de comunhão, fé e esperança onde compartilhamos nossa missão de amor ao próximo e edificação espiritual.
+            </p>
+
+            <div className="flex flex-wrap gap-4 pt-4">
+              <Link 
+                to="/institucional" 
+                className="bg-[#e31e24] hover:bg-[#c9181d] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg hover:shadow-red-600/30 flex items-center gap-2 group"
+              >
+                Conheça Nossa História <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+
+              {/* Botão Dinâmico do Banner se houver link cadastrado */}
+              {banners.length > 0 && banners[indiceCarrosselBanners]?.link ? (
+                <a
+                  href={banners[indiceCarrosselBanners].link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-[#c5a059] hover:bg-[#b08c48] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg flex items-center gap-2"
+                >
+                  Saiba Mais sobre este Destaque <ChevronRight className="w-5 h-5" />
+                </a>
+              ) : (
+                <Link 
+                  to="/agenda" 
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-8 py-4 rounded-2xl font-bold transition-all backdrop-blur-md hover:border-[#c5a059]"
+                >
+                  Ver Agenda
+                </Link>
+              )}
+            </div>
+
+            {/* Indicadores numéricos/bolinhas dos Banners se houver mais de um */}
+            {banners.length > 1 && (
+              <div className="flex items-center gap-2 pt-6">
+                {banners.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setIndiceCarrosselBanners(idx)}
+                    className={`h-2.5 rounded-full transition-all cursor-pointer ${
+                      idx === indiceCarrosselBanners 
+                        ? "w-8 bg-[#c5a059]" 
+                        : "w-2.5 bg-white/40 hover:bg-white/70"
+                    }`}
+                    title={`Ir para banner ${idx + 1}`}
+                  />
+                ))}
               </div>
             )}
           </div>
@@ -229,7 +268,7 @@ export default function Home() {
 
       {/* SEÇÃO DE ANIVERSARIANTES DO DIA */}
       {!loadingAniversariantes && aniversariantes.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-12 w-full">
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 my-16 w-full">
           <div className="bg-gradient-to-r from-amber-500 via-[#c5a059] to-amber-600 rounded-3xl p-8 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="space-y-2 text-center md:text-left relative z-10">
               <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-xs">
@@ -261,138 +300,94 @@ export default function Home() {
         </section>
       )}
 
-      {/* 2. SEÇÃO LADO A LADO: Informações Institucionais à Esquerda + Pilares da Missão à Direita */}
-      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full bg-white rounded-[3rem] shadow-sm border border-gray-100 my-12">
-        <div className="grid lg:grid-cols-12 gap-12 items-start">
-          
-          {/* COLUNA ESQUERDA: Informações Institucionais */}
-          <div className="lg:col-span-5 space-y-6 lg:sticky lg:top-8">
-            <div className="inline-flex items-center gap-2 bg-[#005a8d]/10 border border-[#005a8d]/20 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider text-[#005a8d]">
-              <Sparkles className="w-4 h-4 text-[#c5a059]" />
-              Instituto Religioso das Medianeiras da Paz
+      {/* SEÇÃO DE PILARES DA NOSSA MISSÃO (5 CARDS) */}
+      <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full bg-white rounded-[3rem] shadow-sm border border-gray-100 my-16">
+        <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
+          <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#005a8d]">Pilares da nossa Missão</h2>
+          <div className="w-24 h-1 bg-[#c5a059] mx-auto rounded-full"></div>
+          <p className="text-gray-600">Conheça as frentes de atuação e o impacto social e espiritual da congregação.</p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="bg-gray-50 p-6 rounded-3xl border border-blue-100 hover:shadow-md transition-all group flex flex-col justify-between">
+            <div>
+              <div className="w-12 h-12 bg-blue-50 text-[#005a8d] rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <GraduationCap className="w-6 h-6" />
+              </div>
+              <span className="text-[9px] font-bold uppercase tracking-wider bg-blue-50 text-[#005a8d] px-2 py-0.5 rounded-full">Obras Sociais</span>
+              <h3 className="font-serif text-lg font-bold text-[#005a8d] mt-2 mb-2">Educação</h3>
+              <p className="text-gray-600 text-xs leading-relaxed mb-6">
+                Formação integral de crianças e jovens através de escolas e projetos pedagógicos humanizados.
+              </p>
             </div>
-
-            <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#005a8d] leading-tight">
-              Consagradas à paz, à <span className="text-[#c5a059]">oração</span> e ao <span className="text-[#e31e24]">serviço</span>.
-            </h1>
-
-            <p className="text-gray-600 text-base leading-relaxed">
-              Bem-vindo ao portal oficial do IRIMEP. Um espaço de comunhão, fé e esperança onde compartilhamos nossa missão de amor ao próximo e edificação espiritual.
-            </p>
-
-            <div className="flex flex-wrap gap-4 pt-2">
-              <Link 
-                to="/institucional" 
-                className="bg-[#e31e24] hover:bg-[#c9181d] text-white px-6 py-3.5 rounded-2xl font-bold transition-all shadow-lg hover:shadow-red-600/30 flex items-center gap-2 group text-sm"
-              >
-                Conheça Nossa História <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link 
-                to="/agenda" 
-                className="bg-gray-100 hover:bg-gray-200 text-[#005a8d] border border-gray-200 px-6 py-3.5 rounded-2xl font-bold transition-all text-sm"
-              >
-                Ver Agenda
-              </Link>
-            </div>
+            <Link to="/obras-e-missoes" className="text-[#005a8d] font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+              Ver unidades <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
-          {/* COLUNA DIREITA: Cartões dos Pilares da Nossa Missão */}
-          <div className="lg:col-span-7 space-y-8">
-            <div className="space-y-2">
-              <h2 className="font-serif text-3xl font-bold text-[#005a8d]">Pilares da nossa Missão</h2>
-              <div className="w-20 h-1 bg-[#c5a059] rounded-full"></div>
-              <p className="text-gray-600 text-sm">Conheça as frentes de atuação e o impacto social e espiritual da congregação.</p>
+          <div className="bg-gray-50 p-6 rounded-3xl border border-emerald-100 hover:shadow-md transition-all group flex flex-col justify-between">
+            <div>
+              <div className="w-12 h-12 bg-emerald-50 text-emerald-700 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Stethoscope className="w-6 h-6" />
+              </div>
+              <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">Obras Sociais</span>
+              <h3 className="font-serif text-lg font-bold text-emerald-900 mt-2 mb-2">Saúde</h3>
+              <p className="text-gray-600 text-xs leading-relaxed mb-6">
+                Atendimento e amparo à saúde com dedicação, postos de apoio e assistência comunitária.
+              </p>
             </div>
-
-            <div className="grid sm:grid-cols-2 gap-6">
-              {/* Card 1: Educação */}
-              <div className="bg-gray-50 p-6 rounded-3xl border border-blue-100 hover:shadow-md transition-all group flex flex-col justify-between">
-                <div>
-                  <div className="w-12 h-12 bg-blue-50 text-[#005a8d] rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <GraduationCap className="w-6 h-6" />
-                  </div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider bg-blue-50 text-[#005a8d] px-2 py-0.5 rounded-full">Obras Sociais</span>
-                  <h3 className="font-serif text-lg font-bold text-[#005a8d] mt-2 mb-2">Educação</h3>
-                  <p className="text-gray-600 text-xs leading-relaxed mb-6">
-                    Formação integral de crianças e jovens através de escolas e projetos pedagógicos humanizados.
-                  </p>
-                </div>
-                <Link to="/obras-e-missoes" className="text-[#005a8d] font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                  Ver unidades <ChevronRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-
-              {/* Card 2: Saúde */}
-              <div className="bg-gray-50 p-6 rounded-3xl border border-emerald-100 hover:shadow-md transition-all group flex flex-col justify-between">
-                <div>
-                  <div className="w-12 h-12 bg-emerald-50 text-emerald-700 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <Stethoscope className="w-6 h-6" />
-                  </div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">Obras Sociais</span>
-                  <h3 className="font-serif text-lg font-bold text-emerald-900 mt-2 mb-2">Saúde</h3>
-                  <p className="text-gray-600 text-xs leading-relaxed mb-6">
-                    Atendimento e amparo à saúde com dedicação, postos de apoio e assistência comunitária.
-                  </p>
-                </div>
-                <Link to="/obras-e-missoes" className="text-emerald-700 font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                  Ver saúde <ChevronRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-
-              {/* Card 3: Social */}
-              <div className="bg-gray-50 p-6 rounded-3xl border border-purple-100 hover:shadow-md transition-all group flex flex-col justify-between">
-                <div>
-                  <div className="w-12 h-12 bg-purple-50 text-purple-700 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <Users className="w-6 h-6" />
-                  </div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">Assistência</span>
-                  <h3 className="font-serif text-lg font-bold text-purple-950 mt-2 mb-2">Social</h3>
-                  <p className="text-gray-600 text-xs leading-relaxed mb-6">
-                    Apoio contínuo a famílias carentes, abrigos e amparo às comunidades em situação de vulnerabilidade.
-                  </p>
-                </div>
-                <Link to="/obras-e-missoes" className="text-purple-700 font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                  Conhecer projetos <ChevronRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-
-              {/* Card 4: Missão */}
-              <div className="bg-gray-50 p-6 rounded-3xl border border-red-100 hover:shadow-md transition-all group flex flex-col justify-between">
-                <div>
-                  <div className="w-12 h-12 bg-red-50 text-[#e31e24] rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <Globe className="w-6 h-6" />
-                  </div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider bg-red-50 text-[#e31e24] px-2 py-0.5 rounded-full">Evangelização</span>
-                  <h3 className="font-serif text-lg font-bold text-red-950 mt-2 mb-2">Missão</h3>
-                  <p className="text-gray-600 text-xs leading-relaxed mb-6">
-                    Casas missionárias e frentes de evangelização espalhadas em diferentes regiões levando a Palavra.
-                  </p>
-                </div>
-                <Link to="/obras-e-missoes" className="text-[#e31e24] font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                  Casas de missão <ChevronRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-
-              {/* Card 5: Vocacional */}
-              <div className="bg-gray-50 p-6 rounded-3xl border border-amber-100 hover:shadow-md transition-all group flex flex-col justify-between sm:col-span-2">
-                <div>
-                  <div className="w-12 h-12 bg-amber-50 text-[#c5a059] rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                    <Heart className="w-6 h-6" />
-                  </div>
-                  <span className="text-[9px] font-bold uppercase tracking-wider bg-amber-50 text-[#c5a059] px-2 py-0.5 rounded-full">Espiritualidade</span>
-                  <h3 className="font-serif text-lg font-bold text-[#005a8d] mt-2 mb-2">Vocacional</h3>
-                  <p className="text-gray-600 text-xs leading-relaxed mb-6">
-                    Sente o chamado divino para a vida consagrada? Descubra os passos para trilhar este caminho.
-                  </p>
-                </div>
-                <Link to="/institucional/sobre-nos" className="text-[#c5a059] font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-                  Quero saber mais <ChevronRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            </div>
-
+            <Link to="/obras-e-missoes" className="text-emerald-700 font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+              Ver saúde <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
           </div>
 
+          <div className="bg-gray-50 p-6 rounded-3xl border border-purple-100 hover:shadow-md transition-all group flex flex-col justify-between">
+            <div>
+              <div className="w-12 h-12 bg-purple-50 text-purple-700 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Users className="w-6 h-6" />
+              </div>
+              <span className="text-[9px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">Assistência</span>
+              <h3 className="font-serif text-lg font-bold text-purple-950 mt-2 mb-2">Social</h3>
+              <p className="text-gray-600 text-xs leading-relaxed mb-6">
+                Apoio contínuo a famílias carentes, abrigos e amparo às comunidades em situação de vulnerabilidade.
+              </p>
+            </div>
+            <Link to="/obras-e-missoes" className="text-purple-700 font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+              Conhecer projetos <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="bg-gray-50 p-6 rounded-3xl border border-red-100 hover:shadow-md transition-all group flex flex-col justify-between">
+            <div>
+              <div className="w-12 h-12 bg-red-50 text-[#e31e24] rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Globe className="w-6 h-6" />
+              </div>
+              <span className="text-[9px] font-bold uppercase tracking-wider bg-red-50 text-[#e31e24] px-2 py-0.5 rounded-full">Evangelização</span>
+              <h3 className="font-serif text-lg font-bold text-red-950 mt-2 mb-2">Missão</h3>
+              <p className="text-gray-600 text-xs leading-relaxed mb-6">
+                Casas missionárias e frentes de evangelização espalhadas em diferentes regiões levando a Palavra.
+              </p>
+            </div>
+            <Link to="/obras-e-missoes" className="text-[#e31e24] font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+              Casas de missão <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          <div className="bg-gray-50 p-6 rounded-3xl border border-amber-100 hover:shadow-md transition-all group flex flex-col justify-between sm:col-span-2 lg:col-span-1">
+            <div>
+              <div className="w-12 h-12 bg-amber-50 text-[#c5a059] rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Heart className="w-6 h-6" />
+              </div>
+              <span className="text-[9px] font-bold uppercase tracking-wider bg-amber-50 text-[#c5a059] px-2 py-0.5 rounded-full">Espiritualidade</span>
+              <h3 className="font-serif text-lg font-bold text-[#005a8d] mt-2 mb-2">Vocacional</h3>
+              <p className="text-gray-600 text-xs leading-relaxed mb-6">
+                Sente o chamado divino para a vida consagrada? Descubra os passos para trilhar este caminho.
+              </p>
+            </div>
+            <Link to="/institucional/sobre-nos" className="text-[#c5a059] font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
+              Quero saber mais <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
       </section>
 
