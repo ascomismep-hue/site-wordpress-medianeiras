@@ -120,7 +120,7 @@ export default function Home() {
     fetchAniversariantesHoje();
   }, []);
 
-  // Rotação automática dos banners
+  // Rotação automática dos banners a cada 10 segundos
   useEffect(() => {
     if (banners.length <= 1) return;
     const intervalo = setInterval(() => {
@@ -129,7 +129,7 @@ export default function Home() {
     return () => clearInterval(intervalo);
   }, [banners.length]);
 
-  // Rotação automática das casas
+  // Rotação automática do carrossel de casas a cada 10 segundos
   useEffect(() => {
     if (casasMissao.length <= 1) return;
     const intervalo = setInterval(() => {
@@ -156,112 +156,113 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfbf9]">
-      {/* Hero Section Organizada: Texto Fixo à Esquerda + Carrossel de Banner à Direita */}
-      <section className="relative bg-gradient-to-br from-[#005a8d] via-[#004068] to-[#002845] text-white py-16 lg:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden shadow-xl">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-[#c5a059]/15 rounded-full blur-3xl pointer-events-none"></div>
-        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[#e31e24]/15 rounded-full blur-3xl pointer-events-none"></div>
+      {/* Hero Section: Banner cobrindo TODA a área azul */}
+      <section className="relative min-h-[520px] lg:min-h-[600px] flex items-center bg-[#002845] text-white py-20 px-4 sm:px-6 lg:px-8 overflow-hidden shadow-xl">
+        
+        {/* Camada de Banners em Segundo Plano */}
+        {loadingBanners ? (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#005a8d] via-[#004068] to-[#002845]"></div>
+        ) : banners.length > 0 ? (
+          <div className="absolute inset-0 z-0">
+            {banners.map((banner, index) => (
+              <div
+                key={banner.id}
+                className={`absolute inset-0 transition-opacity duration-1000 overflow-hidden ${
+                  index === indiceCarrosselBanners ? "opacity-100 z-10" : "opacity-0 z-0"
+                }`}
+              >
+                {/* Imagem do Banner com Zoom e Posição */}
+                <img
+                  src={banner.foto_url}
+                  alt={banner.titulo}
+                  style={{
+                    transform: `translate(${banner.pos_x || 0}px, ${banner.pos_y || 0}px) scale(${banner.zoom || 1})`,
+                    transformOrigin: 'center center'
+                  }}
+                  className="w-full h-full object-cover"
+                />
+                {/* Degradê escuro sobreposto para garantir a legibilidade dos textos */}
+                <div className="absolute inset-0 bg-gradient-to-r from-[#002845]/95 via-[#004068]/80 to-transparent"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="absolute inset-0 bg-gradient-to-br from-[#005a8d] via-[#004068] to-[#002845]"></div>
+        )}
 
-        <div className="max-w-7xl mx-auto grid md:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
-          
-          {/* LADO ESQUERDO: Boas-vindas e Institucional */}
-          <div className="md:col-span-7 lg:col-span-6 space-y-6">
+        {/* Luzes decorativas sutis */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#c5a059]/15 rounded-full blur-3xl pointer-events-none z-10"></div>
+        <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[#e31e24]/15 rounded-full blur-3xl pointer-events-none z-10"></div>
+
+        {/* Conteúdo Institucional sobreposto */}
+        <div className="max-w-7xl mx-auto w-full relative z-20">
+          <div className="max-w-2xl space-y-6">
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider text-[#c5a059] shadow-inner backdrop-blur-md">
               <Sparkles className="w-4 h-4 text-[#c5a059]" />
               Instituto Religioso das Medianeiras da Paz
             </div>
 
-            <h1 className="font-serif text-3xl sm:text-5xl font-bold leading-tight tracking-wide drop-shadow-sm">
+            {/* Caso o banner tenha título específico, mostra em destaque menor, mantendo o título da congregação */}
+            {banners.length > 0 && banners[indiceCarrosselBanners]?.titulo && (
+              <span className="block text-xs font-bold text-[#c5a059] uppercase tracking-widest">
+                Destaque: {banners[indiceCarrosselBanners].titulo}
+              </span>
+            )}
+
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-wide drop-shadow-md">
               Consagradas à paz, à <span className="text-[#c5a059]">oração</span> e ao <span className="text-[#ff4d53]">serviço</span>.
             </h1>
 
-            <p className="text-base sm:text-lg text-white/90 leading-relaxed font-light">
+            <p className="text-lg text-white/90 leading-relaxed font-light drop-shadow-sm">
               Bem-vindo ao portal oficial do IRIMEP. Um espaço de comunhão, fé e esperança onde compartilhamos nossa missão de amor ao próximo e edificação espiritual.
             </p>
 
-            <div className="flex flex-wrap gap-4 pt-2">
+            <div className="flex flex-wrap gap-4 pt-4">
               <Link 
                 to="/institucional" 
-                className="bg-[#e31e24] hover:bg-[#c9181d] text-white px-7 py-3.5 rounded-2xl font-bold transition-all shadow-lg hover:shadow-red-600/30 flex items-center gap-2 group text-sm"
+                className="bg-[#e31e24] hover:bg-[#c9181d] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg hover:shadow-red-600/30 flex items-center gap-2 group"
               >
-                Conheça Nossa História <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                Conheça Nossa História <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <Link 
-                to="/agenda" 
-                className="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-7 py-3.5 rounded-2xl font-bold transition-all backdrop-blur-md hover:border-[#c5a059] text-sm"
-              >
-                Ver Agenda
-              </Link>
-            </div>
-          </div>
 
-          {/* LADO DIREITO: Moldura do Banner Promocional com Ajuste de Imagem */}
-          <div className="md:col-span-5 lg:col-span-6">
-            <div className="bg-white/10 border border-white/25 rounded-3xl backdrop-blur-xl shadow-2xl overflow-hidden relative h-[320px] sm:h-[380px] lg:h-[420px] flex items-center justify-center">
-              {loadingBanners ? (
-                <Loader2 className="w-8 h-8 animate-spin text-[#c5a059]" />
-              ) : banners.length > 0 ? (
-                <div className="w-full h-full relative">
-                  {banners.map((banner, index) => (
-                    <div
-                      key={banner.id}
-                      className={`absolute inset-0 transition-opacity duration-1000 overflow-hidden ${
-                        index === indiceCarrosselBanners ? "opacity-100 z-10" : "opacity-0 z-0"
-                      }`}
-                    >
-                      <img
-                        src={banner.foto_url}
-                        alt={banner.titulo}
-                        style={{
-                          transform: `translate(${banner.pos_x || 0}px, ${banner.pos_y || 0}px) scale(${banner.zoom || 1})`,
-                          transformOrigin: 'center center'
-                        }}
-                        className="w-full h-full object-cover"
-                      />
-
-                      {/* Barra Inferior com Título e Botão do Banner */}
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#002845]/95 via-[#002845]/60 to-transparent p-6 flex items-end justify-between gap-4">
-                        <div>
-                          <span className="text-[10px] font-bold text-[#c5a059] uppercase tracking-wider block">Destaque Especial</span>
-                          <h3 className="font-serif text-lg sm:text-xl font-bold text-white line-clamp-1">{banner.titulo}</h3>
-                        </div>
-
-                        {banner.link && (
-                          <a
-                            href={banner.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="bg-[#c5a059] hover:bg-[#b08c48] text-white px-4 py-2 rounded-xl text-xs font-bold shrink-0 flex items-center gap-1 transition-colors"
-                          >
-                            Saiba Mais <ChevronRight className="w-3.5 h-3.5" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-
-                  {/* Indicadores de Páginas do Carrossel */}
-                  {banners.length > 1 && (
-                    <div className="absolute top-4 right-4 z-20 flex gap-1.5 bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
-                      {banners.map((_, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => setIndiceCarrosselBanners(idx)}
-                          className={`h-2 rounded-full transition-all cursor-pointer ${
-                            idx === indiceCarrosselBanners ? "w-6 bg-[#c5a059]" : "w-2 bg-white/50"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </div>
+              {/* Botão Dinâmico do Banner se houver link cadastrado */}
+              {banners.length > 0 && banners[indiceCarrosselBanners]?.link ? (
+                <a
+                  href={banners[indiceCarrosselBanners].link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bg-[#c5a059] hover:bg-[#b08c48] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg flex items-center gap-2"
+                >
+                  Saiba Mais sobre este Destaque <ChevronRight className="w-5 h-5" />
+                </a>
               ) : (
-                <div className="text-center p-6 text-white/80">
-                  <p className="text-sm font-medium">Bem-vindo ao portal do IRIMEP</p>
-                </div>
+                <Link 
+                  to="/agenda" 
+                  className="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-8 py-4 rounded-2xl font-bold transition-all backdrop-blur-md hover:border-[#c5a059]"
+                >
+                  Ver Agenda
+                </Link>
               )}
             </div>
-          </div>
 
+            {/* Indicadores numéricos/bolinhas dos Banners se houver mais de um */}
+            {banners.length > 1 && (
+              <div className="flex items-center gap-2 pt-6">
+                {banners.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setIndiceCarrosselBanners(idx)}
+                    className={`h-2.5 rounded-full transition-all cursor-pointer ${
+                      idx === indiceCarrosselBanners 
+                        ? "w-8 bg-[#c5a059]" 
+                        : "w-2.5 bg-white/40 hover:bg-white/70"
+                    }`}
+                    title={`Ir para banner ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 
