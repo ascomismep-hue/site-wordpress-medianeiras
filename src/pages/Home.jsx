@@ -299,7 +299,7 @@ export default function Home() {
         </section>
       )}
 
-      {/* SEÇÃO DE PILARES DA NOSSA MISSÃO - ORGANIZADA EM DUAS LINHAS */}
+      {/* SEÇÃO DE PILARES DA NOSSA MISSÃO (5 CARDS) */}
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full bg-white rounded-[3rem] shadow-sm border border-gray-100 my-16">
         <div className="text-center max-w-2xl mx-auto mb-16 space-y-3">
           <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#005a8d]">Pilares da nossa Missão</h2>
@@ -307,88 +307,84 @@ export default function Home() {
           <p className="text-gray-600">Conheça as frentes de atuação e o impacto social e espiritual da congregação.</p>
         </div>
 
-        {/* Linha Superior: 3 Cartões (Educação, Saúde, Social) */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
-          <div className="bg-gray-50 p-8 rounded-3xl border border-blue-100 hover:shadow-md transition-all group flex flex-col justify-between">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="bg-gray-50 p-6 rounded-3xl border border-blue-100 hover:shadow-md transition-all group flex flex-col justify-between">
             <div>
-              <div className="w-14 h-14 bg-blue-50 text-[#005a8d] rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                <GraduationCap className="w-7 h-7" />
+              <div className="w-12 h-12 bg-blue-50 text-[#005a8d] rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <GraduationCap className="w-6 h-6" />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-[#005a8d] px-2.5 py-1 rounded-full">Obras Sociais</span>
-              <h3 className="font-serif text-xl font-bold text-[#005a8d] mt-3 mb-2">Educação</h3>
-              <p className="text-gray-600 text-sm leading-relaxed mb-6">
+              <span className="text-[9px] font-bold uppercase tracking-wider bg-blue-50 text-[#005a8d] px-2 py-0.5 rounded-full">Obras Sociais</span>
+              <h3 className="font-serif text-lg font-bold text-[#005a8d] mt-2 mb-2">Educação</h3>
+              <p className="text-gray-600 text-xs leading-relaxed mb-6">
                 Formação integral de crianças e jovens através de escolas e projetos pedagógicos humanizados.
               </p>
             </div>
             <Link to="/obras-e-missoes" className="text-[#005a8d] font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-              Ver unidades <ChevronRight className="w-4 h-4" />
+              Ver unidades <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          <div className="bg-gray-50 p-8 rounded-3xl border border-emerald-100 hover:shadow-md transition-all group flex flex-col justify-between">
+          <div className="bg-gray-50 p-6 rounded-3xl border border-emerald-100 hover:shadow-md transition-all group flex flex-col justify-between">
             <div>
-              <div className="w-14 h-14 bg-emerald-50 text-emerald-700 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                <Stethoscope className="w-7 h-7" />
+              <div className="w-12 h-12 bg-emerald-50 text-emerald-700 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Stethoscope className="w-6 h-6" />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-full">Obras Sociais</span>
-              <h3 className="font-serif text-xl font-bold text-emerald-900 mt-3 mb-2">Saúde</h3>
-              <p className="text-gray-600 text-sm leading-relaxed mb-6">
+              <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">Obras Sociais</span>
+              <h3 className="font-serif text-lg font-bold text-emerald-900 mt-2 mb-2">Saúde</h3>
+              <p className="text-gray-600 text-xs leading-relaxed mb-6">
                 Atendimento e amparo à saúde com dedicação, postos de apoio e assistência comunitária.
               </p>
             </div>
             <Link to="/obras-e-missoes" className="text-emerald-700 font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-              Ver saúde <ChevronRight className="w-4 h-4" />
+              Ver saúde <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          <div className="bg-gray-50 p-8 rounded-3xl border border-purple-100 hover:shadow-md transition-all group flex flex-col justify-between sm:col-span-2 lg:col-span-1">
+          <div className="bg-gray-50 p-6 rounded-3xl border border-purple-100 hover:shadow-md transition-all group flex flex-col justify-between">
             <div>
-              <div className="w-14 h-14 bg-purple-50 text-purple-700 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                <Users className="w-7 h-7" />
+              <div className="w-12 h-12 bg-purple-50 text-purple-700 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Users className="w-6 h-6" />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full">Assistência</span>
-              <h3 className="font-serif text-xl font-bold text-purple-950 mt-3 mb-2">Social</h3>
-              <p className="text-gray-600 text-sm leading-relaxed mb-6">
+              <span className="text-[9px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full">Assistência</span>
+              <h3 className="font-serif text-lg font-bold text-purple-950 mt-2 mb-2">Social</h3>
+              <p className="text-gray-600 text-xs leading-relaxed mb-6">
                 Apoio contínuo a famílias carentes, abrigos e amparo às comunidades em situação de vulnerabilidade.
               </p>
             </div>
             <Link to="/obras-e-missoes" className="text-purple-700 font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-              Conhecer projetos <ChevronRight className="w-4 h-4" />
+              Conhecer projetos <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
-        </div>
 
-        {/* Linha Inferior: 2 Cartões Centralizados (Missão e Vocacional) */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-2 gap-8 max-w-4xl mx-auto">
-          <div className="bg-gray-50 p-8 rounded-3xl border border-red-100 hover:shadow-md transition-all group flex flex-col justify-between">
+          <div className="bg-gray-50 p-6 rounded-3xl border border-red-100 hover:shadow-md transition-all group flex flex-col justify-between">
             <div>
-              <div className="w-14 h-14 bg-red-50 text-[#e31e24] rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                <Globe className="w-7 h-7" />
+              <div className="w-12 h-12 bg-red-50 text-[#e31e24] rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Globe className="w-6 h-6" />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-red-50 text-[#e31e24] px-2.5 py-1 rounded-full">Evangelização</span>
-              <h3 className="font-serif text-xl font-bold text-red-950 mt-3 mb-2">Missão</h3>
-              <p className="text-gray-600 text-sm leading-relaxed mb-6">
+              <span className="text-[9px] font-bold uppercase tracking-wider bg-red-50 text-[#e31e24] px-2 py-0.5 rounded-full">Evangelização</span>
+              <h3 className="font-serif text-lg font-bold text-red-950 mt-2 mb-2">Missão</h3>
+              <p className="text-gray-600 text-xs leading-relaxed mb-6">
                 Casas missionárias e frentes de evangelização espalhadas em diferentes regiões levando a Palavra.
               </p>
             </div>
             <Link to="/obras-e-missoes" className="text-[#e31e24] font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-              Casas de missão <ChevronRight className="w-4 h-4" />
+              Casas de missão <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
-          <div className="bg-gray-50 p-8 rounded-3xl border border-amber-100 hover:shadow-md transition-all group flex flex-col justify-between">
+          <div className="bg-gray-50 p-6 rounded-3xl border border-amber-100 hover:shadow-md transition-all group flex flex-col justify-between sm:col-span-2 lg:col-span-1">
             <div>
-              <div className="w-14 h-14 bg-amber-50 text-[#c5a059] rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                <Heart className="w-7 h-7" />
+              <div className="w-12 h-12 bg-amber-50 text-[#c5a059] rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <Heart className="w-6 h-6" />
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-50 text-[#c5a059] px-2.5 py-1 rounded-full">Espiritualidade</span>
-              <h3 className="font-serif text-xl font-bold text-[#005a8d] mt-3 mb-2">Vocacional</h3>
-              <p className="text-gray-600 text-sm leading-relaxed mb-6">
+              <span className="text-[9px] font-bold uppercase tracking-wider bg-amber-50 text-[#c5a059] px-2 py-0.5 rounded-full">Espiritualidade</span>
+              <h3 className="font-serif text-lg font-bold text-[#005a8d] mt-2 mb-2">Vocacional</h3>
+              <p className="text-gray-600 text-xs leading-relaxed mb-6">
                 Sente o chamado divino para a vida consagrada? Descubra os passos para trilhar este caminho.
               </p>
             </div>
             <Link to="/institucional/sobre-nos" className="text-[#c5a059] font-bold text-xs flex items-center gap-1 group-hover:translate-x-1 transition-transform">
-              Quero saber mais <ChevronRight className="w-4 h-4" />
+              Quero saber mais <ChevronRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
