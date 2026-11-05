@@ -1,72 +1,67 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, User, Phone, LogOut, KeyRound, Mail, MessageSquare, Edit3, X, Move, ZoomIn, BookOpen } from "lucide-react";
+import { 
+  Loader2, Save, CheckCircle2, Plus, Trash2, Shield, Calendar, 
+  User, Phone, LogOut, KeyRound, Mail, MessageSquare, Edit3, X, 
+  Move, ZoomIn, Image as ImageIcon 
+} from "lucide-react";
 
 export default function AdminDashboard({ onLogout }) {
-  const [activeTab, setActiveTab] = useState("sobre");
+  const [activeTab, setActiveTab] = useState("banners");
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // Estados de Senha
+  // --- ESTADOS DE SEGURANÇA E SENHA ---
   const [senhaAtual, setSenhaAtual] = useState("");
   const [novaSenha, setNovaSenha] = useState("");
   const [sucessoSenha, setSucessoSenha] = useState(false);
   const [erroSenha, setErroSenha] = useState("");
 
-  // Dados do Sobre
+  // --- ESTADO SOBRE NÓS ---
   const [sobreData, setSobreData] = useState({ id: 1, historia: "", linha_do_tempo: [] });
   const [novoEvento, setNovoEvento] = useState({ ano: "", titulo: "", descricao: "" });
 
-  // Listas de Irmãs (com suporte a edição, pos_x, pos_y e zoom)
+  // --- ESTADO BANNERS ---
+  const [bannersList, setBannersList] = useState([]);
+  const [novoBanner, setNovoBanner] = useState({ 
+    titulo: "", link: "", foto_url: "", order: 0, active: true, pos_x: 0, pos_y: 0, zoom: 1 
+  });
+  const [editandoBannerId, setEditandoBannerId] = useState(null);
+
+  // --- ESTADO IRMÃS ---
   const [irmasList, setIrmasList] = useState([]);
   const [novaIrma, setNovaIrma] = useState({ 
-    nome: "", 
-    foto_url: "", 
-    data_nascimento: "", 
-    local_nascimento: "", 
-    primeiros_votos: "", 
-    votos_perpetuos: "",
-    pos_x: 0,
-    pos_y: 0,
-    zoom: 1
+    nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", 
+    primeiros_votos: "", votos_perpetuos: "", pos_x: 0, pos_y: 0, zoom: 1 
   });
   const [editandoIrmaId, setEditandoIrmaId] = useState(null);
 
-  // Controle de Arraste (Drag) genérico
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [dragTarget, setDragTarget] = useState(null); // 'irma' ou 'memorial'
-
-  // Listas de Madres Gerais
+  // --- ESTADO MADRES GERAIS ---
   const [madresList, setMadresList] = useState([]);
   const [novaMadre, setNovaMadre] = useState({ nome: "", foto_url: "", periodo_mandato: "", biografia: "" });
   const [editandoMadreId, setEditandoMadreId] = useState(null);
 
-  // Memorial com Posição e Zoom
+  // --- ESTADO MEMORIAL ---
   const [memorialList, setMemorialList] = useState([]);
   const [novoMemorial, setNovoMemorial] = useState({ 
-    nome: "", 
-    foto_url: "", 
-    data_nascimento: "", 
-    data_falecimento: "", 
-    localizacao: "", 
-    biografia_breve: "",
-    pos_x: 0,
-    pos_y: 0,
-    zoom: 1
+    nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", 
+    localizacao: "", biografia_breve: "", pos_x: 0, pos_y: 0, zoom: 1 
   });
   const [editandoMemorialId, setEditandoMemorialId] = useState(null);
 
-  // Estados para Reflexões Litúrgicas
+  // --- ESTADOS REFLEXÃO, DOM CAMPELO, GRAÇAS E CONTATOS ---
   const [reflexoesList, setReflexoesList] = useState([]);
   const [novaReflexao, setNovaReflexao] = useState({ data: "", texto_reflexao: "" });
-
-  // Outras Seções
   const [domCampeloData, setDomCampeloData] = useState({ id: 1, foto_url: "", historia_biografia: "", sobre_a_causa: "" });
   const [gracasList, setGracasList] = useState([]);
   const [mensagensList, setMensagensList] = useState([]);
   const [mensagemSelecionada, setMensagemSelecionada] = useState(null);
+
+  // --- CONTROLO DE ARRASTE (DRAG & DROP DE IMAGENS) ---
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [dragTarget, setDragTarget] = useState(null); // 'irma', 'memorial' ou 'banner'
 
   useEffect(() => {
     if (activeTab !== "senha") {
@@ -74,6 +69,7 @@ export default function AdminDashboard({ onLogout }) {
     }
   }, [activeTab]);
 
+  // Função centralizada para carregar os dados do Supabase dependendo da aba ativa
   async function fetchTabData(tab) {
     setLoading(true);
     try {
@@ -86,6 +82,9 @@ export default function AdminDashboard({ onLogout }) {
             linha_do_tempo: Array.isArray(data.linha_do_tempo) ? data.linha_do_tempo : []
           });
         }
+      } else if (tab === "banners") {
+        const { data } = await supabase.from("banners").select("*").order("order", { ascending: true });
+        if (data) setBannersList(data);
       } else if (tab === "irmas") {
         const { data } = await supabase.from("irmas").select("*").order("nome");
         if (data) setIrmasList(data);
@@ -108,32 +107,33 @@ export default function AdminDashboard({ onLogout }) {
         const { data } = await supabase.from("mensagens_contato").select("*").order("data_envio", { ascending: false });
         if (data) {
           setMensagensList(data);
-          if (data.length > 0 && !mensagemSelecionada) {
-            setMensagemSelecionada(data[0]);
-          }
+          if (data.length > 0 && !mensagemSelecionada) setMensagemSelecionada(data[0]);
         }
       }
     } catch (err) {
-      console.error("Erro ao buscar dados:", err);
+      console.error("Erro ao buscar dados no Supabase:", err);
     }
     setLoading(false);
   }
 
   function handleSair() {
-    sessionStorage.removeItem("irimep_painel_logado");
-    sessionStorage.removeItem("irimep_auth");
-    localStorage.removeItem("irimep_painel_logado");
-    window.location.href = "/";
+    if (onLogout) {
+      onLogout();
+    } else {
+      sessionStorage.removeItem("irimep_painel_logado");
+      sessionStorage.removeItem("irimep_auth");
+      localStorage.removeItem("irimep_painel_logado");
+      window.location.href = "/";
+    }
   }
 
   function formatarDataVisual(dataString) {
     if (!dataString) return "";
-    if (dataString.includes("-")) {
-      return dataString.split("-").reverse().join("/");
-    }
+    if (dataString.includes("-")) return dataString.split("-").reverse().join("/");
     return dataString;
   }
 
+  // Upload genérico de imagens para o Supabase Storage
   async function handleImageUpload(e, callbackUrlSetter) {
     const file = e.target.files[0];
     if (!file) return;
@@ -141,9 +141,7 @@ export default function AdminDashboard({ onLogout }) {
     setUploading(true);
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
-    const filePath = `${fileName}`;
-
-    let { error: uploadError } = await supabase.storage.from('images').upload(filePath, file);
+    let { error: uploadError } = await supabase.storage.from('images').upload(fileName, file);
 
     if (uploadError) {
       alert("Erro ao fazer upload da imagem: " + uploadError.message);
@@ -151,12 +149,80 @@ export default function AdminDashboard({ onLogout }) {
       return;
     }
 
-    const { data } = supabase.storage.from('images').getPublicUrl(filePath);
+    const { data } = supabase.storage.from('images').getPublicUrl(fileName);
     callbackUrlSetter(data.publicUrl);
     setUploading(false);
   }
 
-  // Funções de Sobre Nós
+  // --- LÓGICA DE ARRASTE (DRAG & DROP) DAS IMAGENS ---
+  function handleMouseDown(e, target) {
+    if (target === 'irma' && !novaIrma.foto_url) return;
+    if (target === 'memorial' && !novoMemorial.foto_url) return;
+    if (target === 'banner' && !novoBanner.foto_url) return;
+    
+    setIsDragging(true);
+    setDragTarget(target);
+    if (target === 'irma') setDragStart({ x: e.clientX - novaIrma.pos_x, y: e.clientY - novaIrma.pos_y });
+    else if (target === 'memorial') setDragStart({ x: e.clientX - novoMemorial.pos_x, y: e.clientY - novoMemorial.pos_y });
+    else if (target === 'banner') setDragStart({ x: e.clientX - novoBanner.pos_x, y: e.clientY - novoBanner.pos_y });
+  }
+
+  function handleMouseMove(e) {
+    if (!isDragging) return;
+    const newX = e.clientX - dragStart.x;
+    const newY = e.clientY - dragStart.y;
+    
+    if (dragTarget === 'irma') setNovaIrma(prev => ({ ...prev, pos_x: newX, pos_y: newY }));
+    else if (dragTarget === 'memorial') setNovoMemorial(prev => ({ ...prev, pos_x: newX, pos_y: newY }));
+    else if (dragTarget === 'banner') setNovoBanner(prev => ({ ...prev, pos_x: newX, pos_y: newY }));
+  }
+
+  function handleMouseUp() {
+    setIsDragging(false);
+    setDragTarget(null);
+  }
+
+  // --- BANNERS ---
+  async function handleSaveBanner(e) {
+    e.preventDefault();
+    if (editandoBannerId) {
+      const { error } = await supabase.from("banners").update(novoBanner).eq("id", editandoBannerId);
+      if (!error) {
+        cancelarEdicaoBanner();
+        fetchTabData("banners");
+        triggerSuccess();
+      } else alert("Erro ao atualizar banner: " + error.message);
+    } else {
+      const { error } = await supabase.from("banners").insert([novoBanner]);
+      if (!error) {
+        cancelarEdicaoBanner();
+        fetchTabData("banners");
+        triggerSuccess();
+      } else alert("Erro ao cadastrar banner: " + error.message);
+    }
+  }
+
+  function carregarBannerParaEdicao(item) {
+    setEditandoBannerId(item.id);
+    setNovoBanner({
+      titulo: item.titulo || "",
+      link: item.link || "",
+      foto_url: item.foto_url || "",
+      order: item.order || 0,
+      active: item.active ?? true,
+      pos_x: item.pos_x || 0,
+      pos_y: item.pos_y || 0,
+      zoom: item.zoom || 1
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelarEdicaoBanner() {
+    setEditandoBannerId(null);
+    setNovoBanner({ titulo: "", link: "", foto_url: "", order: 0, active: true, pos_x: 0, pos_y: 0, zoom: 1 });
+  }
+
+  // --- SOBRE NÓS ---
   async function handleSaveSobre() {
     await supabase.from("institucional_sobre").update({ 
       historia: sobreData.historia,
@@ -179,53 +245,20 @@ export default function AdminDashboard({ onLogout }) {
     setSobreData({ ...sobreData, linha_do_tempo: atualizada });
   }
 
-  // Lógica de Arraste Unificada (Mouse Drag para Irmã e Memorial)
-  function handleMouseDown(e, target) {
-    if (target === 'irma' && !novaIrma.foto_url) return;
-    if (target === 'memorial' && !novoMemorial.foto_url) return;
-    
-    setIsDragging(true);
-    setDragTarget(target);
-    if (target === 'irma') {
-      setDragStart({ x: e.clientX - novaIrma.pos_x, y: e.clientY - novaIrma.pos_y });
-    } else {
-      setDragStart({ x: e.clientX - novoMemorial.pos_x, y: e.clientY - novoMemorial.pos_y });
-    }
-  }
-
-  function handleMouseMove(e) {
-    if (!isDragging) return;
-    const newX = e.clientX - dragStart.x;
-    const newY = e.clientY - dragStart.y;
-    
-    if (dragTarget === 'irma') {
-      setNovaIrma(prev => ({ ...prev, pos_x: newX, pos_y: newY }));
-    } else if (dragTarget === 'memorial') {
-      setNovoMemorial(prev => ({ ...prev, pos_x: newX, pos_y: newY }));
-    }
-  }
-
-  function handleMouseUp() {
-    setIsDragging(false);
-    setDragTarget(null);
-  }
-
-  // Funções de Irmãs (Cadastrar e Editar)
+  // --- IRMÃS ---
   async function handleSaveIrma(e) {
     e.preventDefault();
     if (editandoIrmaId) {
       const { error } = await supabase.from("irmas").update(novaIrma).eq("id", editandoIrmaId);
       if (!error) {
-        alert("Irmã atualizada com sucesso!");
-        setEditandoIrmaId(null);
-        setNovaIrma({ nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", primeiros_votos: "", votos_perpetuos: "", pos_x: 0, pos_y: 0, zoom: 1 });
+        cancelarEdicaoIrma();
         fetchTabData("irmas");
         triggerSuccess();
       } else alert("Erro ao atualizar irmã: " + error.message);
     } else {
       const { error } = await supabase.from("irmas").insert([novaIrma]);
       if (!error) {
-        setNovaIrma({ nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", primeiros_votos: "", votos_perpetuos: "", pos_x: 0, pos_y: 0, zoom: 1 });
+        cancelarEdicaoIrma();
         fetchTabData("irmas");
         triggerSuccess();
       } else alert("Erro ao cadastrar irmã: " + error.message);
@@ -253,22 +286,20 @@ export default function AdminDashboard({ onLogout }) {
     setNovaIrma({ nome: "", foto_url: "", data_nascimento: "", local_nascimento: "", primeiros_votos: "", votos_perpetuos: "", pos_x: 0, pos_y: 0, zoom: 1 });
   }
 
-  // Funções de Madres Gerais (Cadastrar e Editar)
+  // --- MADRES GERAIS ---
   async function handleSaveMadre(e) {
     e.preventDefault();
     if (editandoMadreId) {
       const { error } = await supabase.from("madres_gerais").update(novaMadre).eq("id", editandoMadreId);
       if (!error) {
-        alert("Madre atualizada com sucesso!");
-        setEditandoMadreId(null);
-        setNovaMadre({ nome: "", foto_url: "", periodo_mandato: "", biografia: "" });
+        cancelarEdicaoMadre();
         fetchTabData("madres");
         triggerSuccess();
       } else alert("Erro ao atualizar Madre: " + error.message);
     } else {
       const { error } = await supabase.from("madres_gerais").insert([novaMadre]);
       if (!error) {
-        setNovaMadre({ nome: "", foto_url: "", periodo_mandato: "", biografia: "" });
+        cancelarEdicaoMadre();
         fetchTabData("madres");
         triggerSuccess();
       } else alert("Erro ao cadastrar Madre: " + error.message);
@@ -291,32 +322,23 @@ export default function AdminDashboard({ onLogout }) {
     setNovaMadre({ nome: "", foto_url: "", periodo_mandato: "", biografia: "" });
   }
 
+  // --- MEMORIAL ---
   async function handleSaveMemorial(e) {
     e.preventDefault();
     if (editandoMemorialId) {
-      const { error } = await supabase
-        .from("memorial_falecidas")
-        .update(novoMemorial)
-        .eq("id", editandoMemorialId);
-
+      const { error } = await supabase.from("memorial_falecidas").update(novoMemorial).eq("id", editandoMemorialId);
       if (!error) {
-        alert("Registro atualizado com sucesso!");
-        setEditandoMemorialId(null);
-        setNovoMemorial({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "", pos_x: 0, pos_y: 0, zoom: 1 });
+        cancelarEdicaoMemorial();
         fetchTabData("memorial");
         triggerSuccess();
-      } else {
-        alert("Erro ao atualizar registro: " + error.message);
-      }
+      } else alert("Erro ao atualizar memorial: " + error.message);
     } else {
       const { error } = await supabase.from("memorial_falecidas").insert([novoMemorial]);
       if (!error) {
-        setNovoMemorial({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "", pos_x: 0, pos_y: 0, zoom: 1 });
+        cancelarEdicaoMemorial();
         fetchTabData("memorial");
         triggerSuccess();
-      } else {
-        alert("Erro ao cadastrar registro no memorial: " + error.message);
-      }
+      } else alert("Erro ao cadastrar no memorial: " + error.message);
     }
   }
 
@@ -341,21 +363,20 @@ export default function AdminDashboard({ onLogout }) {
     setNovoMemorial({ nome: "", foto_url: "", data_nascimento: "", data_falecimento: "", localizacao: "", biografia_breve: "", pos_x: 0, pos_y: 0, zoom: 1 });
   }
 
-  // Função para salvar Reflexão Litúrgica
+  // --- REFLEXÃO LITÚRGICA ---
   async function handleSaveReflexao(e) {
     e.preventDefault();
     const { error } = await supabase.from("liturgia_reflexao").insert([novaReflexao]);
     if (!error) {
-      alert("Reflexão agendada com sucesso!");
       setNovaReflexao({ data: "", texto_reflexao: "" });
       fetchTabData("liturgia");
       triggerSuccess();
     } else {
-      alert("Erro ao salvar reflexão (verifique se já existe um registro para esta data): " + error.message);
+      alert("Erro ao salvar reflexão: " + error.message);
     }
   }
 
-  // Dom Campelo
+  // --- CAUSA DOM CAMPELO ---
   async function handleSaveDomCampelo() {
     await supabase.from("causa_dom_campelo").update({
       foto_url: domCampeloData.foto_url,
@@ -365,16 +386,16 @@ export default function AdminDashboard({ onLogout }) {
     triggerSuccess();
   }
 
+  // --- REMOÇÃO GERAL ---
   async function handleDelete(table, id, reloadTab) {
     if (window.confirm("Deseja realmente excluir este registro?")) {
       await supabase.from(table).delete().eq("id", id);
-      if (table === "mensagens_contato") {
-        setMensagemSelecionada(null);
-      }
+      if (table === "mensagens_contato") setMensagemSelecionada(null);
       fetchTabData(reloadTab);
     }
   }
 
+  // --- ALTERAR SENHA ---
   async function handleAlterarSenha(e) {
     e.preventDefault();
     setErroSenha("");
@@ -411,12 +432,13 @@ export default function AdminDashboard({ onLogout }) {
   }
 
   const menuItems = [
+    { id: "banners", label: "Banners (Carrossel)" },
     { id: "sobre", label: "Sobre Nós" },
     { id: "irmas", label: "Irmãs" },
     { id: "madres", label: "Madres Gerais" },
     { id: "memorial", label: "Memorial" },
     { id: "domcampelo", label: "Causa Dom Campelo" },
-    { id: "liturgia", label: "Reflexão Litúrgica" }, // <-- Aba adicionada no menu lateral
+    { id: "liturgia", label: "Reflexão Litúrgica" },
     { id: "gracas", label: "Graças Alcançadas" },
     { id: "contatos", label: "Mensagens de Contato" },
     { id: "senha", label: "Alterar Senha" },
@@ -424,6 +446,7 @@ export default function AdminDashboard({ onLogout }) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12" onMouseUp={handleMouseUp} onMouseMove={handleMouseMove}>
+      {/* Cabeçalho do Painel */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div className="flex items-center gap-3">
           <Shield className="w-8 h-8 text-[#005a8d]" />
@@ -432,27 +455,31 @@ export default function AdminDashboard({ onLogout }) {
             <p className="text-gray-600 text-sm">Gerencie todo o conteúdo, fotos e mensagens institucionais.</p>
           </div>
         </div>
-        <button onClick={handleSair} className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2.5 rounded-2xl font-bold text-sm transition-colors border border-red-100">
+        <button onClick={handleSair} className="flex items-center gap-2 bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2.5 rounded-2xl font-bold text-sm transition-colors border border-red-100 cursor-pointer">
           <LogOut className="w-4 h-4" /> Sair do Painel
         </button>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-8">
-        {/* Menu Lateral */}
+        {/* Menu Lateral de Navegação */}
         <div className="w-full lg:w-72 bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex flex-col gap-2 h-fit">
           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider px-3 mb-2">Seções do Site</span>
           {menuItems.map(item => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`text-left px-4 py-3 rounded-2xl font-medium transition-all ${activeTab === item.id ? "bg-[#005a8d] text-white shadow-md" : "text-gray-600 hover:bg-gray-50 hover:text-[#005a8d]"}`}
+              className={`text-left px-4 py-3 rounded-2xl font-medium transition-all cursor-pointer ${
+                activeTab === item.id 
+                  ? "bg-[#005a8d] text-white shadow-md" 
+                  : "text-gray-600 hover:bg-gray-50 hover:text-[#005a8d]"
+              }`}
             >
               {item.label}
             </button>
           ))}
         </div>
 
-        {/* Área de Conteúdo */}
+        {/* Área Principal de Conteúdo */}
         <div className="flex-1 bg-white p-6 sm:p-10 rounded-3xl shadow-sm border border-gray-100">
           {success && (
             <div className="bg-emerald-50 text-emerald-700 p-4 rounded-2xl mb-6 flex items-center gap-2 font-medium">
@@ -460,21 +487,129 @@ export default function AdminDashboard({ onLogout }) {
             </div>
           )}
 
+          {uploading && (
+            <div className="bg-blue-50 text-[#005a8d] p-4 rounded-2xl mb-6 flex items-center gap-2 font-medium">
+              <Loader2 className="w-5 h-5 animate-spin shrink-0" /> Fazendo upload da imagem...
+            </div>
+          )}
+
           {loading && activeTab !== "senha" ? (
             <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#005a8d]" /></div>
           ) : (
             <>
-              {/* 1. SOBRE NÓS */}
+              {/* 1. BANNERS DO CARROSSEL */}
+              {activeTab === "banners" && (
+                <div className="space-y-8">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-serif font-bold text-[#005a8d]">
+                      {editandoBannerId ? "Editar Banner do Carrossel" : "Cadastrar Novo Banner"}
+                    </h2>
+                    {editandoBannerId && (
+                      <button onClick={cancelarEdicaoBanner} className="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1.5 rounded-xl font-bold text-gray-700 flex items-center gap-1 cursor-pointer">
+                        <X className="w-3.5 h-3.5" /> Cancelar Edição
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    <form onSubmit={handleSaveBanner} className="lg:col-span-7 bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Título do Banner</label>
+                        <input type="text" required placeholder="Ex: Festa da Padroeira" value={novoBanner.titulo} onChange={e => setNovoBanner({...novoBanner, titulo: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Link de Destino (Opcional)</label>
+                        <input type="text" placeholder="Ex: /agenda ou https://..." value={novoBanner.link} onChange={e => setNovoBanner({...novoBanner, link: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 mb-1">Foto do Banner</label>
+                        <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setNovoBanner({...novoBanner, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#005a8d] file:text-white w-full cursor-pointer" />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-500 mb-1">Ordem de Exibição</label>
+                          <input type="number" value={novoBanner.order} onChange={e => setNovoBanner({...novoBanner, order: parseInt(e.target.value) || 0})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+                        </div>
+                        <div className="flex items-center pt-5">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" checked={novoBanner.active} onChange={e => setNovoBanner({...novoBanner, active: e.target.checked})} className="w-4 h-4 accent-[#005a8d]" />
+                            <span className="text-xs font-bold text-gray-700">Banner Ativo no Site</span>
+                          </label>
+                        </div>
+                      </div>
+
+                      <button type="submit" className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 text-white cursor-pointer ${editandoBannerId ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#005a8d] hover:bg-[#004068]"}`}>
+                        <Save className="w-5 h-5" /> {editandoBannerId ? "Salvar Alterações" : "Adicionar Banner"}
+                      </button>
+                    </form>
+
+                    {/* Moldura de Ajuste com Zoom e Arraste */}
+                    <div className="lg:col-span-5 bg-white p-6 rounded-3xl border-2 border-dashed border-[#c5a059]/40 flex flex-col items-center select-none">
+                      <div className="flex items-center gap-2 text-xs font-bold text-[#c5a059] uppercase tracking-wider mb-2">
+                        <Move className="w-4 h-4" /> Enquadramento da Imagem
+                      </div>
+                      <p className="text-[11px] text-gray-400 mb-3 text-center">Arraste a foto para ajustar a posição de destaque.</p>
+
+                      {novoBanner.foto_url && (
+                        <div className="w-full max-w-xs mb-3 flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl border border-gray-200">
+                          <ZoomIn className="w-4 h-4 text-gray-500 shrink-0" />
+                          <input type="range" min="0.5" max="3" step="0.05" value={novoBanner.zoom} onChange={e => setNovoBanner({...novoBanner, zoom: parseFloat(e.target.value)})} className="w-full h-1.5 bg-gray-300 rounded-lg accent-[#005a8d]" />
+                          <span className="text-[11px] font-bold text-gray-600 w-8 text-right">{Math.round(novoBanner.zoom * 100)}%</span>
+                        </div>
+                      )}
+
+                      <div className="w-full max-w-xs bg-gray-900 rounded-3xl shadow-md overflow-hidden flex flex-col">
+                        <div className="h-56 w-full flex items-center justify-center overflow-hidden relative cursor-grab active:cursor-grabbing" onMouseDown={(e) => handleMouseDown(e, 'banner')}>
+                          {novoBanner.foto_url ? (
+                            <img src={novoBanner.foto_url} alt="Antevisão Banner" style={{ transform: `translate(${novoBanner.pos_x}px, ${novoBanner.pos_y}px) scale(${novoBanner.zoom})`, transformOrigin: 'center center' }} className="w-full h-full object-cover pointer-events-none" />
+                          ) : (
+                            <div className="text-center p-4 text-gray-500 text-xs pointer-events-none">
+                              <ImageIcon className="w-10 h-10 mx-auto text-gray-600 mb-1" />
+                              Envie uma imagem para antever
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 pt-6 border-t border-gray-100">
+                    <h3 className="font-bold text-lg text-[#005a8d]">Banners Cadastrados ({bannersList.length})</h3>
+                    {bannersList.map(item => (
+                      <div key={item.id} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-gray-200">
+                        <div className="flex items-center gap-4">
+                          <div className="w-16 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0">
+                            {item.foto_url ? <img src={item.foto_url} alt="" className="w-full h-full object-cover" /> : <ImageIcon className="w-6 h-6 text-gray-400 m-3" />}
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-gray-800">{item.titulo}</h4>
+                            <p className="text-xs text-gray-500">Ordem: {item.order} • Status: {item.active ? "Ativo" : "Inativo"}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button onClick={() => carregarBannerParaEdicao(item)} className="bg-blue-50 text-[#005a8d] p-2 rounded-xl hover:bg-blue-100 transition-colors" title="Editar"><Edit3 className="w-4 h-4" /></button>
+                          <button onClick={() => handleDelete("banners", item.id, "banners")} className="text-red-500 p-2 rounded-xl hover:bg-red-50 transition-colors" title="Apagar"><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 2. SOBRE NÓS */}
               {activeTab === "sobre" && (
                 <div className="space-y-8">
                   <div>
-                    <h2 className="text-2xl font-serif font-bold text-[#005a8d] mb-4">Editar Sobre Nós</h2>
+                    <h2 className="text-2xl font-serif font-bold text-[#005a8d] mb-4">Editar História da Congregação</h2>
                     <label className="block font-semibold text-gray-700 mb-2">Breve História</label>
                     <textarea 
                       rows="8" 
                       value={sobreData.historia || ""} 
                       onChange={e => setSobreData({...sobreData, historia: e.target.value})}
-                      className="w-full p-4 rounded-2xl border border-gray-200 focus:outline-none focus:border-[#005a8d] font-sans text-gray-700 leading-relaxed"
+                      className="w-full p-4 rounded-2xl border border-gray-200 font-sans text-gray-700 leading-relaxed"
                     />
                   </div>
 
@@ -487,8 +622,8 @@ export default function AdminDashboard({ onLogout }) {
                         <input type="text" placeholder="Ano (ex: 1968)" value={novoEvento.ano} onChange={e => setNovoEvento({...novoEvento, ano: e.target.value})} className="p-3 rounded-xl border border-gray-300 text-sm bg-white" />
                         <input type="text" placeholder="Título" value={novoEvento.titulo} onChange={e => setNovoEvento({...novoEvento, titulo: e.target.value})} className="p-3 rounded-xl border border-gray-300 text-sm bg-white sm:col-span-2" />
                       </div>
-                      <textarea rows="2" placeholder="Descrição..." value={novoEvento.descricao} onChange={e => setNovoEvento({...novoEvento, descricao: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 text-sm bg-white font-sans" />
-                      <button type="button" onClick={handleAddEvento} className="bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5">
+                      <textarea rows="2" placeholder="Descrição breve..." value={novoEvento.descricao} onChange={e => setNovoEvento({...novoEvento, descricao: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 text-sm bg-white font-sans" />
+                      <button type="button" onClick={handleAddEvento} className="bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-1.5 cursor-pointer">
                         <Plus className="w-4 h-4" /> Adicionar Evento
                       </button>
                     </div>
@@ -501,19 +636,19 @@ export default function AdminDashboard({ onLogout }) {
                             <h4 className="font-bold text-[#005a8d] mt-1">{item.titulo}</h4>
                             <p className="text-gray-600 text-sm mt-0.5">{item.descricao}</p>
                           </div>
-                          <button type="button" onClick={() => handleRemoveEvento(index)} className="text-red-500 hover:text-red-700 p-2"><Trash2 className="w-4 h-4" /></button>
+                          <button type="button" onClick={() => handleRemoveEvento(index)} className="text-red-500 hover:text-red-700 p-2 cursor-pointer"><Trash2 className="w-4 h-4" /></button>
                         </div>
                       ))}
                     </div>
                   </div>
 
-                  <button onClick={handleSaveSobre} className="bg-[#005a8d] text-white px-8 py-3.5 rounded-2xl font-bold flex items-center gap-2">
+                  <button onClick={handleSaveSobre} className="bg-[#005a8d] text-white px-8 py-3.5 rounded-2xl font-bold flex items-center gap-2 cursor-pointer">
                     <Save className="w-5 h-5" /> Salvar Alterações
                   </button>
                 </div>
               )}
 
-              {/* 2. IRMÃS */}
+              {/* 3. IRMÃS */}
               {activeTab === "irmas" && (
                 <div className="space-y-8">
                   <div className="flex justify-between items-center">
@@ -521,7 +656,7 @@ export default function AdminDashboard({ onLogout }) {
                       {editandoIrmaId ? "Editar Registro da Irmã" : "Cadastrar Nova Irmã"}
                     </h2>
                     {editandoIrmaId && (
-                      <button onClick={cancelarEdicaoIrma} className="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1.5 rounded-xl font-bold text-gray-700 flex items-center gap-1">
+                      <button onClick={cancelarEdicaoIrma} className="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1.5 rounded-xl font-bold text-gray-700 flex items-center gap-1 cursor-pointer">
                         <X className="w-3.5 h-3.5" /> Cancelar Edição
                       </button>
                     )}
@@ -534,14 +669,14 @@ export default function AdminDashboard({ onLogout }) {
                         
                         <div className="sm:col-span-2">
                           <label className="block text-xs font-bold text-gray-500 mb-1">Foto da Irmã</label>
-                          <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setNovaIrma({...novaIrma, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#005a8d] file:text-white w-full" />
+                          <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setNovaIrma({...novaIrma, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#005a8d] file:text-white w-full cursor-pointer" />
                         </div>
 
                         <div>
                           <label className="block text-xs font-bold text-gray-500 mb-1">Data de Nascimento</label>
                           <input type="date" value={novaIrma.data_nascimento} onChange={e => setNovaIrma({...novaIrma, data_nascimento: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
                         </div>
-                        <input type="text" placeholder="Local de Nascimento (Ex: Petrolina - PE)" value={novaIrma.local_nascimento} onChange={e => setNovaIrma({...novaIrma, local_nascimento: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
+                        <input type="text" placeholder="Local de Nascimento (Ex: Petrolina - PE)" value={novaIrma.local_nascimento} onChange={e => setNovaIrma({...novaIrma, local_nascimento: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white text-sm" />
                         
                         <div>
                           <label className="block text-xs font-bold text-gray-500 mb-1">Data Primeiros Votos</label>
@@ -553,7 +688,7 @@ export default function AdminDashboard({ onLogout }) {
                         </div>
                       </div>
 
-                      <button type="submit" className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 text-white ${editandoIrmaId ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#005a8d]"}`}>
+                      <button type="submit" className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 text-white cursor-pointer ${editandoIrmaId ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#005a8d] hover:bg-[#004068]"}`}>
                         {editandoIrmaId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                         {editandoIrmaId ? "Salvar Alterações" : "Adicionar Irmã"}
                       </button>
@@ -569,40 +704,27 @@ export default function AdminDashboard({ onLogout }) {
                         <div className="w-full max-w-xs mb-3 flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl border border-gray-200">
                           <ZoomIn className="w-4 h-4 text-gray-500 shrink-0" />
                           <input 
-                            type="range" 
-                            min="0.5" 
-                            max="3" 
-                            step="0.05" 
+                            type="range" min="0.5" max="3" step="0.05" 
                             value={novaIrma.zoom} 
                             onChange={e => setNovaIrma({...novaIrma, zoom: parseFloat(e.target.value)})}
-                            className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-[#005a8d]" 
+                            className="w-full h-1.5 bg-gray-300 rounded-lg accent-[#005a8d]" 
                           />
                           <span className="text-[11px] font-bold text-gray-600 w-8 text-right">{Math.round(novaIrma.zoom * 100)}%</span>
                         </div>
                       )}
 
                       <div className="w-full max-w-xs bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden flex flex-col">
-                        <div 
-                          className="h-72 w-full bg-gray-900 flex items-center justify-center overflow-hidden relative cursor-grab active:cursor-grabbing"
-                          onMouseDown={(e) => handleMouseDown(e, 'irma')}
-                        >
+                        <div className="h-72 w-full bg-gray-900 flex items-center justify-center overflow-hidden relative cursor-grab active:cursor-grabbing" onMouseDown={(e) => handleMouseDown(e, 'irma')}>
                           {novaIrma.foto_url ? (
-                            <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-                              <img 
-                                src={novaIrma.foto_url} 
-                                alt="Antevisão" 
-                                style={{ 
-                                  maxWidth: 'none',
-                                  maxHeight: 'none',
-                                  width: 'auto',
-                                  height: '100%',
-                                  transform: `translate(${novaIrma.pos_x}px, ${novaIrma.pos_y}px) scale(${novaIrma.zoom})`,
-                                  transformOrigin: 'center center',
-                                  transition: isDragging && dragTarget === 'irma' ? 'none' : 'transform 0.05s ease-out'
-                                }}
-                                className="pointer-events-none select-none" 
-                              />
-                            </div>
+                            <img 
+                              src={novaIrma.foto_url} alt="Antevisão" 
+                              style={{ 
+                                maxWidth: 'none', maxHeight: 'none', width: 'auto', height: '100%',
+                                transform: `translate(${novaIrma.pos_x}px, ${novaIrma.pos_y}px) scale(${novaIrma.zoom})`,
+                                transformOrigin: 'center center'
+                              }}
+                              className="pointer-events-none select-none" 
+                            />
                           ) : (
                             <div className="text-center p-4 text-gray-500 text-xs pointer-events-none">
                               <User className="w-12 h-12 mx-auto text-gray-600 mb-1" />
@@ -619,36 +741,19 @@ export default function AdminDashboard({ onLogout }) {
                     {irmasList.map(item => (
                       <div key={item.id} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-gray-200">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center relative">
+                          <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0 relative">
                             {item.foto_url ? (
-                              <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-                                <img 
-                                  src={item.foto_url} 
-                                  alt="" 
-                                  style={{ 
-                                    maxWidth: 'none',
-                                    maxHeight: 'none',
-                                    width: 'auto',
-                                    height: '100%',
-                                    transform: `translate(${item.pos_x || 0}px, ${item.pos_y || 0}px) scale(${item.zoom || 1})`,
-                                    transformOrigin: 'center center'
-                                  }}
-                                />
-                              </div>
-                            ) : <User className="w-6 h-6 text-gray-400" />}
+                              <img src={item.foto_url} alt="" style={{ transform: `translate(${item.pos_x || 0}px, ${item.pos_y || 0}px) scale(${item.zoom || 1})` }} className="w-full h-full object-cover" />
+                            ) : <User className="w-6 h-6 text-gray-400 m-3" />}
                           </div>
                           <div>
                             <h4 className="font-bold text-gray-800">{item.nome}</h4>
-                            <p className="text-xs text-gray-500">Nasc: {formatarDataVisual(item.data_nascimento)} ({item.local_nascimento}) • Votos: {formatarDataVisual(item.votos_perpetuos)}</p>
+                            <p className="text-xs text-gray-500">Nasc: {formatarDataVisual(item.data_nascimento)} ({item.local_nascimento})</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <button onClick={() => carregarIrmaParaEdicao(item)} className="bg-blue-50 text-[#005a8d] hover:bg-blue-100 p-2 rounded-xl" title="Editar irmã">
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => handleDelete("irmas", item.id, "irmas")} className="text-red-500 hover:text-red-700 p-2" title="Excluir irmã">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <button onClick={() => carregarIrmaParaEdicao(item)} className="bg-blue-50 text-[#005a8d] hover:bg-blue-100 p-2 rounded-xl" title="Editar"><Edit3 className="w-4 h-4" /></button>
+                          <button onClick={() => handleDelete("irmas", item.id, "irmas")} className="text-red-500 hover:bg-red-50 p-2 rounded-xl" title="Excluir"><Trash2 className="w-4 h-4" /></button>
                         </div>
                       </div>
                     ))}
@@ -656,7 +761,7 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               )}
 
-              {/* 3. MADRES GERAIS */}
+              {/* 4. MADRES GERAIS */}
               {activeTab === "madres" && (
                 <div className="space-y-8">
                   <div className="flex justify-between items-center">
@@ -664,7 +769,7 @@ export default function AdminDashboard({ onLogout }) {
                       {editandoMadreId ? "Editar Registro da Madre" : "Cadastrar Madre Geral"}
                     </h2>
                     {editandoMadreId && (
-                      <button onClick={cancelarEdicaoMadre} className="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1.5 rounded-xl font-bold text-gray-700 flex items-center gap-1">
+                      <button onClick={cancelarEdicaoMadre} className="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1.5 rounded-xl font-bold text-gray-700 flex items-center gap-1 cursor-pointer">
                         <X className="w-3.5 h-3.5" /> Cancelar Edição
                       </button>
                     )}
@@ -672,15 +777,15 @@ export default function AdminDashboard({ onLogout }) {
 
                   <form onSubmit={handleSaveMadre} className="bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <input type="text" placeholder="Nome da Madre" required value={novaMadre.nome} onChange={e => setNovaMadre({...novaMadre, nome: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white" />
+                      <input type="text" placeholder="Nome da Madre" required value={novaMadre.nome} onChange={e => setNovaMadre({...novaMadre, nome: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white text-sm" />
                       <div>
                         <label className="block text-xs font-bold text-gray-500 mb-1">Foto da Madre</label>
-                        <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setNovaMadre({...novaMadre, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#005a8d] file:text-white" />
+                        <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setNovaMadre({...novaMadre, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#005a8d] file:text-white w-full cursor-pointer" />
                       </div>
-                      <input type="text" placeholder="Período do Mandato (Ex: 1980 - 1990)" value={novaMadre.periodo_mandato} onChange={e => setNovaMadre({...novaMadre, periodo_mandato: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2" />
+                      <input type="text" placeholder="Período do Mandato (Ex: 1980 - 1990)" value={novaMadre.periodo_mandato} onChange={e => setNovaMadre({...novaMadre, periodo_mandato: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2 text-sm" />
                     </div>
-                    <textarea rows="3" placeholder="Biografia..." value={novaMadre.biografia} onChange={e => setNovaMadre({...novaMadre, biografia: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white font-sans" />
-                    <button type="submit" className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 text-white ${editandoMadreId ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#005a8d]"}`}>
+                    <textarea rows="3" placeholder="Biografia breve..." value={novaMadre.biografia} onChange={e => setNovaMadre({...novaMadre, biografia: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white font-sans text-sm" />
+                    <button type="submit" className={`px-6 py-3 rounded-xl font-bold flex items-center gap-2 text-white cursor-pointer ${editandoMadreId ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#005a8d] hover:bg-[#004068]"}`}>
                       {editandoMadreId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                       {editandoMadreId ? "Salvar Alterações" : "Adicionar Madre"}
                     </button>
@@ -691,8 +796,8 @@ export default function AdminDashboard({ onLogout }) {
                     {madresList.map(item => (
                       <div key={item.id} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-gray-200">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center">
-                            {item.foto_url ? <img src={item.foto_url} alt="" className="w-full h-full object-cover" /> : <User className="w-6 h-6 text-gray-400" />}
+                          <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0">
+                            {item.foto_url ? <img src={item.foto_url} alt="" className="w-full h-full object-cover" /> : <User className="w-6 h-6 text-gray-400 m-3" />}
                           </div>
                           <div>
                             <h4 className="font-bold text-gray-800">{item.nome}</h4>
@@ -700,12 +805,8 @@ export default function AdminDashboard({ onLogout }) {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <button onClick={() => carregarMadreParaEdicao(item)} className="bg-blue-50 text-[#005a8d] hover:bg-blue-100 p-2 rounded-xl" title="Editar madre">
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => handleDelete("madres_gerais", item.id, "madres")} className="text-red-500 hover:text-red-700 p-2" title="Excluir madre">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <button onClick={() => carregarMadreParaEdicao(item)} className="bg-blue-50 text-[#005a8d] p-2 rounded-xl hover:bg-blue-100" title="Editar"><Edit3 className="w-4 h-4" /></button>
+                          <button onClick={() => handleDelete("madres_gerais", item.id, "madres")} className="text-red-500 p-2 rounded-xl hover:bg-red-50" title="Excluir"><Trash2 className="w-4 h-4" /></button>
                         </div>
                       </div>
                     ))}
@@ -713,7 +814,7 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               )}
 
-              {/* 4. MEMORIAL */}
+              {/* 5. MEMORIAL */}
               {activeTab === "memorial" && (
                 <div className="space-y-8">
                   <div className="flex justify-between items-center">
@@ -721,7 +822,7 @@ export default function AdminDashboard({ onLogout }) {
                       {editandoMemorialId ? "Editar Registro do Memorial" : "Cadastrar Irmã Falecida (Memorial)"}
                     </h2>
                     {editandoMemorialId && (
-                      <button onClick={cancelarEdicaoMemorial} className="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1.5 rounded-xl font-bold text-gray-700 flex items-center gap-1">
+                      <button onClick={cancelarEdicaoMemorial} className="text-xs bg-gray-200 hover:bg-gray-300 px-3 py-1.5 rounded-xl font-bold text-gray-700 flex items-center gap-1 cursor-pointer">
                         <X className="w-3.5 h-3.5" /> Cancelar Edição
                       </button>
                     )}
@@ -730,11 +831,11 @@ export default function AdminDashboard({ onLogout }) {
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     <form onSubmit={handleSaveMemorial} className="lg:col-span-7 bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <input type="text" placeholder="Nome da Irmã" required value={novoMemorial.nome} onChange={e => setNovoMemorial({...novoMemorial, nome: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2" />
+                        <input type="text" placeholder="Nome da Irmã" required value={novoMemorial.nome} onChange={e => setNovoMemorial({...novoMemorial, nome: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2 text-sm" />
                         
                         <div className="sm:col-span-2">
                           <label className="block text-xs font-bold text-gray-500 mb-1">Foto da Irmã</label>
-                          <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setNovoMemorial({...novoMemorial, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#005a8d] file:text-white w-full" />
+                          <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setNovoMemorial({...novoMemorial, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#005a8d] file:text-white w-full cursor-pointer" />
                         </div>
                         
                         <div>
@@ -746,12 +847,12 @@ export default function AdminDashboard({ onLogout }) {
                           <input type="date" value={novoMemorial.data_falecimento} onChange={e => setNovoMemorial({...novoMemorial, data_falecimento: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white text-sm" />
                         </div>
 
-                        <input type="text" placeholder="Localização (Ex: Araripina - PE)" value={novoMemorial.localizacao} onChange={e => setNovoMemorial({...novoMemorial, localizacao: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2" />
+                        <input type="text" placeholder="Localização (Ex: Araripina - PE)" value={novoMemorial.localizacao} onChange={e => setNovoMemorial({...novoMemorial, localizacao: e.target.value})} className="p-3 rounded-xl border border-gray-300 bg-white sm:col-span-2 text-sm" />
                       </div>
 
-                      <textarea rows="3" placeholder="Biografia breve..." value={novoMemorial.biografia_breve} onChange={e => setNovoMemorial({...novoMemorial, biografia_breve: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white font-sans" />
+                      <textarea rows="3" placeholder="Biografia breve..." value={novoMemorial.biografia_breve} onChange={e => setNovoMemorial({...novoMemorial, biografia_breve: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white font-sans text-sm" />
                       
-                      <button type="submit" className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 text-white ${editandoMemorialId ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#005a8d]"}`}>
+                      <button type="submit" className={`w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 text-white cursor-pointer ${editandoMemorialId ? "bg-emerald-600 hover:bg-emerald-700" : "bg-[#005a8d] hover:bg-[#004068]"}`}>
                         {editandoMemorialId ? <Save className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
                         {editandoMemorialId ? "Salvar Alterações" : "Adicionar ao Memorial"}
                       </button>
@@ -766,41 +867,15 @@ export default function AdminDashboard({ onLogout }) {
                       {novoMemorial.foto_url && (
                         <div className="w-full max-w-xs mb-3 flex items-center gap-2 bg-gray-50 px-3 py-2 rounded-xl border border-gray-200">
                           <ZoomIn className="w-4 h-4 text-gray-500 shrink-0" />
-                          <input 
-                            type="range" 
-                            min="0.5" 
-                            max="3" 
-                            step="0.05" 
-                            value={novoMemorial.zoom} 
-                            onChange={e => setNovoMemorial({...novoMemorial, zoom: parseFloat(e.target.value)})}
-                            className="w-full h-1.5 bg-gray-300 rounded-lg appearance-none cursor-pointer accent-[#005a8d]" 
-                          />
+                          <input type="range" min="0.5" max="3" step="0.05" value={novoMemorial.zoom} onChange={e => setNovoMemorial({...novoMemorial, zoom: parseFloat(e.target.value)})} className="w-full h-1.5 bg-gray-300 rounded-lg accent-[#005a8d]" />
                           <span className="text-[11px] font-bold text-gray-600 w-8 text-right">{Math.round(novoMemorial.zoom * 100)}%</span>
                         </div>
                       )}
 
                       <div className="w-full max-w-xs bg-white rounded-3xl shadow-md border border-gray-100 overflow-hidden flex flex-col">
-                        <div 
-                          className="h-72 w-full bg-gray-900 flex items-center justify-center overflow-hidden relative cursor-grab active:cursor-grabbing"
-                          onMouseDown={(e) => handleMouseDown(e, 'memorial')}
-                        >
+                        <div className="h-72 w-full bg-gray-900 flex items-center justify-center overflow-hidden relative cursor-grab active:cursor-grabbing" onMouseDown={(e) => handleMouseDown(e, 'memorial')}>
                           {novoMemorial.foto_url ? (
-                            <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-                              <img 
-                                src={novoMemorial.foto_url} 
-                                alt="Antevisão" 
-                                style={{ 
-                                  maxWidth: 'none',
-                                  maxHeight: 'none',
-                                  width: 'auto',
-                                  height: '100%',
-                                  transform: `translate(${novoMemorial.pos_x}px, ${novoMemorial.pos_y}px) scale(${novoMemorial.zoom})`,
-                                  transformOrigin: 'center center',
-                                  transition: isDragging && dragTarget === 'memorial' ? 'none' : 'transform 0.05s ease-out'
-                                }}
-                                className="pointer-events-none select-none" 
-                              />
-                            </div>
+                            <img src={novoMemorial.foto_url} alt="Antevisão" style={{ transform: `translate(${novoMemorial.pos_x}px, ${novoMemorial.pos_y}px) scale(${novoMemorial.zoom})`, filter: 'grayscale(100%)' }} className="w-full h-full object-cover pointer-events-none select-none" />
                           ) : (
                             <div className="text-center p-4 text-gray-500 text-xs pointer-events-none">
                               <User className="w-12 h-12 mx-auto text-gray-600 mb-1" />
@@ -817,90 +892,18 @@ export default function AdminDashboard({ onLogout }) {
                     {memorialList.map(item => (
                       <div key={item.id} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-gray-200">
                         <div className="flex items-center gap-4">
-                          <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden flex items-center justify-center relative">
-                            {item.foto_url ? (
-                              <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-                                <img 
-                                  src={item.foto_url} 
-                                  alt="" 
-                                  style={{ 
-                                    maxWidth: 'none',
-                                    maxHeight: 'none',
-                                    width: 'auto',
-                                    height: '100%',
-                                    transform: `translate(${item.pos_x || 0}px, ${item.pos_y || 0}px) scale(${item.zoom || 1})`,
-                                    transformOrigin: 'center center'
-                                  }}
-                                />
-                              </div>
-                            ) : <User className="w-6 h-6 text-gray-400" />}
+                          <div className="w-12 h-12 rounded-xl bg-gray-100 overflow-hidden shrink-0">
+                            {item.foto_url ? <img src={item.foto_url} alt="" style={{ transform: `translate(${item.pos_x || 0}px, ${item.pos_y || 0}px) scale(${item.zoom || 1})`, filter: 'grayscale(100%)' }} className="w-full h-full object-cover" /> : <User className="w-6 h-6 text-gray-400 m-3" />}
                           </div>
                           <div>
                             <h4 className="font-bold text-gray-800">{item.nome}</h4>
-                            <p className="text-xs text-gray-500">Falecimento: {formatarDataVisual(item.data_falecimento)} {item.localizacao ? `• ${item.localizacao}` : ""}</p>
+                            <p className="text-xs text-gray-500">Falecimento: {formatarDataVisual(item.data_falecimento)}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <button onClick={() => carregarMemorialParaEdicao(item)} className="bg-blue-50 text-[#005a8d] hover:bg-blue-100 p-2 rounded-xl" title="Editar registro">
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                          <button onClick={() => handleDelete("memorial_falecidas", item.id, "memorial")} className="text-red-500 hover:text-red-700 p-2" title="Excluir registro">
-                            <Trash2 className="w-4 h-4" />
-                          </button>
+                          <button onClick={() => carregarMemorialParaEdicao(item)} className="bg-blue-50 text-[#005a8d] p-2 rounded-xl hover:bg-blue-100" title="Editar"><Edit3 className="w-4 h-4" /></button>
+                          <button onClick={() => handleDelete("memorial_falecidas", item.id, "memorial")} className="text-red-500 p-2 rounded-xl hover:bg-red-50" title="Excluir"><Trash2 className="w-4 h-4" /></button>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* 5. REFLEXÃO LITÚRGICA (NOVA ABA) */}
-              {activeTab === "liturgia" && (
-                <div className="space-y-8">
-                  <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Cadastrar Reflexão Litúrgica Diária</h2>
-                  
-                  <form onSubmit={handleSaveReflexao} className="bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-1">Data da Reflexão</label>
-                      <input 
-                        type="date" 
-                        required
-                        value={novaReflexao.data} 
-                        onChange={e => setNovaReflexao({...novaReflexao, data: e.target.value})} 
-                        className="w-full sm:w-72 p-3 rounded-xl border border-gray-300 bg-white text-sm" 
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-gray-500 mb-1">Texto da Reflexão</label>
-                      <textarea 
-                        rows="4" 
-                        required
-                        placeholder="Escreva a mensagem espiritual que aparecerá no site nesta data..." 
-                        value={novaReflexao.texto_reflexao} 
-                        onChange={e => setNovaReflexao({...novaReflexao, texto_reflexao: e.target.value})} 
-                        className="w-full p-3 rounded-xl border border-gray-300 bg-white font-sans text-sm" 
-                      />
-                    </div>
-
-                    <button type="submit" className="bg-[#005a8d] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 cursor-pointer">
-                      <Plus className="w-5 h-5" /> Agendar Reflexão
-                    </button>
-                  </form>
-
-                  <div className="space-y-3">
-                    <h3 className="font-bold text-lg text-[#005a8d]">Reflexões Agendadas ({reflexoesList.length})</h3>
-                    {reflexoesList.map(item => (
-                      <div key={item.id} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-gray-200 gap-4">
-                        <div className="space-y-1">
-                          <span className="text-xs font-bold text-[#c5a059] bg-[#c5a059]/10 px-2.5 py-1 rounded-full">
-                            {formatarDataVisual(item.data)}
-                          </span>
-                          <p className="text-gray-700 text-sm italic mt-1">"{item.texto_reflexao}"</p>
-                        </div>
-                        <button onClick={() => handleDelete("liturgia_reflexao", item.id, "liturgia")} className="text-red-500 hover:text-red-700 p-2 shrink-0 cursor-pointer" title="Excluir reflexão">
-                          <Trash2 className="w-5 h-5" />
-                        </button>
                       </div>
                     ))}
                   </div>
@@ -913,22 +916,58 @@ export default function AdminDashboard({ onLogout }) {
                   <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Causa Dom Campelo</h2>
                   <div>
                     <label className="block text-xs font-bold text-gray-500 mb-1">Foto de Dom Campelo</label>
-                    <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setDomCampeloData({...domCampeloData, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-[#005a8d] file:text-white mb-4" />
+                    <input type="file" accept="image/*" onChange={e => handleImageUpload(e, url => setDomCampeloData({...domCampeloData, foto_url: url}))} className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-[#005a8d] file:text-white mb-4 cursor-pointer" />
                     {domCampeloData.foto_url && <img src={domCampeloData.foto_url} alt="" className="w-32 h-32 object-cover rounded-2xl mb-4 border" />}
                   </div>
                   <div>
                     <label className="block font-semibold text-gray-700 mb-2">História e Biografia</label>
-                    <textarea rows="5" value={domCampeloData.historia_biografia || ""} onChange={e => setDomCampeloData({...domCampeloData, historia_biografia: e.target.value})} className="w-full p-4 rounded-2xl border border-gray-200 font-sans" />
+                    <textarea rows="5" value={domCampeloData.historia_biografia || ""} onChange={e => setDomCampeloData({...domCampeloData, historia_biografia: e.target.value})} className="w-full p-4 rounded-2xl border border-gray-200 font-sans text-sm" />
                   </div>
                   <div>
                     <label className="block font-semibold text-gray-700 mb-2">Sobre a Causa</label>
-                    <textarea rows="5" value={domCampeloData.sobre_a_causa || ""} onChange={e => setDomCampeloData({...domCampeloData, sobre_a_causa: e.target.value})} className="w-full p-4 rounded-2xl border border-gray-200 font-sans" />
+                    <textarea rows="5" value={domCampeloData.sobre_a_causa || ""} onChange={e => setDomCampeloData({...domCampeloData, sobre_a_causa: e.target.value})} className="w-full p-4 rounded-2xl border border-gray-200 font-sans text-sm" />
                   </div>
-                  <button onClick={handleSaveDomCampelo} className="bg-[#005a8d] text-white px-8 py-3.5 rounded-2xl font-bold flex items-center gap-2"><Save className="w-5 h-5" /> Salvar Alterações</button>
+                  <button onClick={handleSaveDomCampelo} className="bg-[#005a8d] text-white px-8 py-3.5 rounded-2xl font-bold flex items-center gap-2 cursor-pointer"><Save className="w-5 h-5" /> Salvar Alterações</button>
                 </div>
               )}
 
-              {/* 7. GRAÇAS ALCANÇADAS */}
+              {/* 7. REFLEXÃO LITÚRGICA */}
+              {activeTab === "liturgia" && (
+                <div className="space-y-8">
+                  <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Cadastrar Reflexão Litúrgica Diária</h2>
+                  
+                  <form onSubmit={handleSaveReflexao} className="bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 mb-1">Data da Reflexão</label>
+                      <input type="date" required value={novaReflexao.data} onChange={e => setNovaReflexao({...novaReflexao, data: e.target.value})} className="w-full sm:w-72 p-3 rounded-xl border border-gray-300 bg-white text-sm" />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-500 mb-1">Texto da Reflexão</label>
+                      <textarea rows="4" required placeholder="Mensagem espiritual para o site..." value={novaReflexao.texto_reflexao} onChange={e => setNovaReflexao({...novaReflexao, texto_reflexao: e.target.value})} className="w-full p-3 rounded-xl border border-gray-300 bg-white font-sans text-sm" />
+                    </div>
+
+                    <button type="submit" className="bg-[#005a8d] text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 cursor-pointer">
+                      <Plus className="w-5 h-5" /> Agendar Reflexão
+                    </button>
+                  </form>
+
+                  <div className="space-y-3">
+                    <h3 className="font-bold text-lg text-[#005a8d]">Reflexões Agendadas ({reflexoesList.length})</h3>
+                    {reflexoesList.map(item => (
+                      <div key={item.id} className="flex justify-between items-center p-4 bg-white rounded-2xl border border-gray-200 gap-4">
+                        <div className="space-y-1">
+                          <span className="text-xs font-bold text-[#c5a059] bg-[#c5a059]/10 px-2.5 py-1 rounded-full">{formatarDataVisual(item.data)}</span>
+                          <p className="text-gray-700 text-sm italic mt-1">"{item.texto_reflexao}"</p>
+                        </div>
+                        <button onClick={() => handleDelete("liturgia_reflexao", item.id, "liturgia")} className="text-red-500 p-2 cursor-pointer" title="Excluir"><Trash2 className="w-5 h-5" /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* 8. GRAÇAS ALCANÇADAS */}
               {activeTab === "gracas" && (
                 <div>
                   <h2 className="text-2xl font-serif font-bold text-[#005a8d] mb-6">Relatos de Graças Alcançadas ({gracasList.length})</h2>
@@ -939,113 +978,53 @@ export default function AdminDashboard({ onLogout }) {
                           <div>
                             <h3 className="font-bold text-[#005a8d]">{item.nome_devoto}</h3>
                             <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
-                              {item.telefone && (
-                                <span className="flex items-center gap-1 font-medium text-[#005a8d]">
-                                  <Phone className="w-3.5 h-3.5" /> {item.telefone}
-                                </span>
-                              )}
+                              {item.telefone && <span className="flex items-center gap-1 font-medium text-[#005a8d]"><Phone className="w-3.5 h-3.5" /> {item.telefone}</span>}
                               <span>{item.cidade_estado}</span>
-                              <span>• {new Date(item.data_envio).toLocaleDateString()}</span>
                             </div>
                           </div>
-                          <button onClick={() => handleDelete("gracas_dom_campelo", item.id, "gracas")} className="text-red-500 hover:text-red-700 p-1"><Trash2 className="w-4 h-4" /></button>
+                          <button onClick={() => handleDelete("gracas_dom_campelo", item.id, "gracas")} className="text-red-500 p-1 cursor-pointer"><Trash2 className="w-4 h-4" /></button>
                         </div>
                         <p className="text-gray-700 text-sm italic bg-white p-3 rounded-xl border border-gray-100">"{item.relato}"</p>
                       </div>
                     ))}
-                    {gracasList.length === 0 && <p className="text-gray-500 text-center py-8">Nenhum relato enviado ainda.</p>}
                   </div>
                 </div>
               )}
 
-              {/* 8. MENSAGENS DE CONTATO */}
+              {/* 9. MENSAGENS DE CONTATO */}
               {activeTab === "contatos" && (
                 <div className="space-y-6">
-                  <div className="border-b pb-4">
-                    <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Mensagens de Contato</h2>
-                    <p className="text-gray-600 text-sm">Visualize e gerencie os recados enviados pela página de contato do site.</p>
-                  </div>
-
+                  <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Mensagens Recebidas</h2>
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                     <div className="lg:col-span-5 space-y-2 max-h-[500px] overflow-y-auto pr-1">
-                      {mensagensList.length === 0 ? (
-                        <p className="text-gray-500 text-xs text-center py-12">Nenhuma mensagem recebida.</p>
-                      ) : (
-                        mensagensList.map(item => (
-                          <div
-                            key={item.id}
-                            onClick={() => setMensagemSelecionada(item)}
-                            className={`p-4 rounded-2xl border transition-all cursor-pointer ${
-                              mensagemSelecionada?.id === item.id
-                                ? "bg-[#005a8d] text-white border-[#005a8d] shadow-sm"
-                                : "bg-gray-50 hover:bg-gray-100 border-gray-200 text-gray-800"
-                            }`}
-                          >
-                            <div className="flex justify-between items-start">
-                              <h4 className="font-bold text-sm truncate">{item.nome}</h4>
-                              <span className={`text-[10px] ${mensagemSelecionada?.id === item.id ? "text-white/80" : "text-gray-400"}`}>
-                                {new Date(item.data_envio).toLocaleDateString('pt-BR')}
-                              </span>
-                            </div>
-                            <p className={`text-xs font-semibold mt-1 truncate ${mensagemSelecionada?.id === item.id ? "text-[#c5a059]" : "text-[#005a8d]"}`}>
-                              {item.assunto}
-                            </p>
-                          </div>
-                        ))
-                      )}
+                      {mensagensList.map(item => (
+                        <div key={item.id} onClick={() => setMensagemSelecionada(item)} className={`p-4 rounded-2xl border cursor-pointer ${mensagemSelecionada?.id === item.id ? "bg-[#005a8d] text-white" : "bg-gray-50 text-gray-800"}`}>
+                          <h4 className="font-bold text-sm truncate">{item.nome}</h4>
+                          <p className={`text-xs font-semibold ${mensagemSelecionada?.id === item.id ? "text-[#c5a059]" : "text-[#005a8d]"}`}>{item.assunto}</p>
+                        </div>
+                      ))}
                     </div>
 
-                    <div className="lg:col-span-7 bg-gray-50 p-6 rounded-3xl border border-gray-200 space-y-6">
+                    <div className="lg:col-span-7 bg-gray-50 p-6 rounded-3xl border space-y-4">
                       {mensagemSelecionada ? (
-                        <div className="space-y-4 animate-fadeIn">
-                          <div className="flex justify-between items-start border-b border-gray-200 pb-3">
-                            <div>
-                              <span className="text-xs font-bold text-[#c5a059] uppercase tracking-wider">{mensagemSelecionada.assunto}</span>
-                              <h3 className="text-xl font-serif font-bold text-[#005a8d] mt-0.5">{mensagemSelecionada.nome}</h3>
-                            </div>
-                            <button
-                              onClick={() => handleDelete("mensagens_contato", mensagemSelecionada.id, "contatos")}
-                              className="bg-red-50 text-red-600 hover:bg-red-100 p-2 rounded-xl transition-colors border border-red-100 flex items-center gap-1 text-xs font-bold"
-                              title="Excluir mensagem"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" /> Excluir
-                            </button>
+                        <div className="space-y-4">
+                          <h3 className="text-xl font-serif font-bold text-[#005a8d]">{mensagemSelecionada.nome}</h3>
+                          <div className="text-xs bg-white p-3 rounded-xl border space-y-1">
+                            <p><strong>E-mail:</strong> {mensagemSelecionada.email}</p>
+                            <p><strong>Telefone:</strong> {mensagemSelecionada.telefone || "Não informado"}</p>
                           </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs bg-white p-4 rounded-2xl border border-gray-200 text-gray-700">
-                            <div className="flex items-center gap-2">
-                              <Mail className="w-3.5 h-3.5 text-[#005a8d]" />
-                              <span><strong>E-mail:</strong> {mensagemSelecionada.email}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Phone className="w-3.5 h-3.5 text-[#005a8d]" />
-                              <span><strong>Telefone:</strong> {mensagemSelecionada.telefone || "Não informado"}</span>
-                            </div>
-                            <div className="flex items-center gap-2 sm:col-span-2">
-                              <Calendar className="w-3.5 h-3.5 text-[#005a8d]" />
-                              <span><strong>Data:</strong> {new Date(mensagemSelecionada.data_envio).toLocaleString('pt-BR')}</span>
-                            </div>
-                          </div>
-
-                          <div className="space-y-1.5">
-                            <h4 className="font-bold text-xs text-gray-700 uppercase tracking-wider">Conteúdo da Mensagem:</h4>
-                            <div className="bg-white p-4 rounded-2xl border border-gray-200 text-gray-700 text-sm leading-relaxed whitespace-pre-wrap">
-                              {mensagemSelecionada.mensagem}
-                            </div>
-                          </div>
+                          <div className="bg-white p-4 rounded-xl border text-sm leading-relaxed">{mensagemSelecionada.mensagem}</div>
+                          <button onClick={() => handleDelete("mensagens_contato", mensagemSelecionada.id, "contatos")} className="bg-red-50 text-red-600 p-2 rounded-xl border flex items-center gap-1 text-xs font-bold cursor-pointer">
+                            <Trash2 className="w-3.5 h-3.5" /> Excluir Mensagem
+                          </button>
                         </div>
-                      ) : (
-                        <div className="text-center py-16 space-y-2 text-gray-400">
-                          <MessageSquare className="w-10 h-10 mx-auto opacity-40" />
-                          <p className="text-sm font-medium">Selecione uma mensagem na lista ao lado.</p>
-                        </div>
-                      )}
+                      ) : <p className="text-gray-400 text-sm text-center py-12">Selecione uma mensagem para ler.</p>}
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* 9. ALTERAR SENHA */}
+              {/* 10. ALTERAR SENHA */}
               {activeTab === "senha" && (
                 <div className="space-y-6">
                   <div className="flex items-center gap-3 mb-4">
@@ -1068,27 +1047,13 @@ export default function AdminDashboard({ onLogout }) {
                   <form onSubmit={handleAlterarSenha} className="bg-gray-50 p-6 sm:p-8 rounded-3xl border border-gray-200 space-y-4 max-w-xl">
                     <div>
                       <label className="block text-xs font-bold text-gray-500 mb-1">Senha Atual</label>
-                      <input 
-                        type="password" 
-                        required 
-                        placeholder="Digite a senha atual" 
-                        value={senhaAtual} 
-                        onChange={e => setSenhaAtual(e.target.value)} 
-                        className="w-full p-3.5 rounded-xl border border-gray-300 bg-white text-sm"
-                      />
+                      <input type="password" required placeholder="Digite a senha atual" value={senhaAtual} onChange={e => setSenhaAtual(e.target.value)} className="w-full p-3.5 rounded-xl border border-gray-300 bg-white text-sm" />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-gray-500 mb-1">Nova Senha</label>
-                      <input 
-                        type="password" 
-                        required 
-                        placeholder="Digite a nova senha" 
-                        value={novaSenha} 
-                        onChange={e => setNovaSenha(e.target.value)} 
-                        className="w-full p-3.5 rounded-xl border border-gray-300 bg-white text-sm"
-                      />
+                      <input type="password" required placeholder="Digite a nova senha" value={novaSenha} onChange={e => setNovaSenha(e.target.value)} className="w-full p-3.5 rounded-xl border border-gray-300 bg-white text-sm" />
                     </div>
-                    <button type="submit" className="bg-[#005a8d] hover:bg-[#004068] text-white px-6 py-3.5 rounded-xl font-bold text-sm transition-colors shadow-sm">
+                    <button type="submit" className="bg-[#005a8d] hover:bg-[#004068] text-white px-6 py-3.5 rounded-xl font-bold text-sm transition-colors shadow-sm cursor-pointer">
                       Atualizar Senha
                     </button>
                   </form>
