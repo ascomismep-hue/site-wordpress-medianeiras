@@ -138,11 +138,9 @@ export default function Home() {
     return () => clearInterval(intervalo);
   }, [casasMissao.length]);
 
-  // Função auxiliar segura para formatar datas sem quebrar a aplicação
   function formatarDataSegura(dataStr) {
     if (!dataStr) return "Data não informada";
     try {
-      // Se a string vier no formato YYYY-MM-DD
       const partes = dataStr.split('T')[0].split('-');
       if (partes.length === 3) {
         const [ano, mes, dia] = partes;
@@ -188,72 +186,71 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfbf9]">
       
-      {/* Hero Section: Carrossel de Banners */}
-      <section className="relative w-full bg-[#002845] py-6 lg:py-10 px-4 sm:px-6 lg:px-8 shadow-inner">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-[#001d30] border border-white/10 rounded-3xl shadow-xl overflow-hidden relative h-[240px] sm:h-[380px] lg:h-[480px] flex items-center justify-center">
-            
-            {loadingBanners ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-[#002845]">
-                <Loader2 className="w-8 h-8 animate-spin text-[#c5a059]" />
-              </div>
-            ) : banners.length > 0 ? (
-              <div className="w-full h-full relative flex items-center justify-center bg-[#001d30]">
-                {banners.map((banner, index) => (
-                  <div
-                    key={banner.id}
-                    className={`absolute inset-0 transition-opacity duration-1000 overflow-hidden flex items-center justify-center ${
-                      index === indiceCarrosselBanners ? "opacity-100 z-10" : "opacity-0 z-0"
-                    }`}
-                  >
-                    <img
-                      src={banner.foto_url}
-                      alt={banner.titulo}
-                      style={{
-                        transform: `translate(${banner.pos_x || 0}px, ${banner.pos_y || 0}px) scale(${banner.zoom || 1})`,
-                        transformOrigin: 'center center'
-                      }}
-                      className="w-full h-full object-contain"
-                    />
-                    
-                    {banner.link && (
-                      <div className="absolute bottom-4 right-4 z-20">
-                        <a
-                          href={banner.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="bg-[#c5a059] hover:bg-[#b08c48] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg flex items-center gap-1.5 transition-all"
-                        >
-                          {banner.titulo || "Saiba Mais"} <ChevronRight className="w-4 h-4" />
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center text-white/70 text-sm">
-                Nenhum banner ativo no momento.
-              </div>
-            )}
-
-            {banners.length > 1 && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20">
-                {banners.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setIndiceCarrosselBanners(idx)}
-                    className={`h-2 rounded-full transition-all cursor-pointer ${
-                      idx === indiceCarrosselBanners 
-                        ? "w-6 bg-[#c5a059]" 
-                        : "w-2 bg-white/40 hover:bg-white/70"
-                    }`}
-                    title={`Ir para banner ${idx + 1}`}
+      {/* Hero Section: Banners de Largura Total (Full Width) */}
+      <section className="relative w-full bg-[#002845] overflow-hidden shadow-inner">
+        <div className="w-full relative h-[260px] sm:h-[400px] lg:h-[520px] flex items-center justify-center bg-[#002845]">
+          
+          {loadingBanners ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-[#002845]">
+              <Loader2 className="w-8 h-8 animate-spin text-[#c5a059]" />
+            </div>
+          ) : banners.length > 0 ? (
+            <div className="w-full h-full relative flex items-center justify-center">
+              {banners.map((banner, index) => (
+                <div
+                  key={banner.id}
+                  className={`absolute inset-0 transition-opacity duration-1000 overflow-hidden flex items-center justify-center ${
+                    index === indiceCarrosselBanners ? "opacity-100 z-10" : "opacity-0 z-0"
+                  }`}
+                >
+                  <img
+                    src={banner.foto_url}
+                    alt={banner.titulo}
+                    style={{
+                      transform: `translate(${banner.pos_x || 0}px, ${banner.pos_y || 0}px) scale(${banner.zoom || 1})`,
+                      transformOrigin: 'center center'
+                    }}
+                    className="w-full h-full object-cover md:object-contain bg-[#002845]"
                   />
-                ))}
-              </div>
-            )}
-          </div>
+                  
+                  {banner.link && (
+                    <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-8 z-20">
+                      <a
+                        href={banner.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-[#c5a059] hover:bg-[#b08c48] text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-xl flex items-center gap-2 transition-all"
+                      >
+                        {banner.titulo || "Saiba Mais"} <ChevronRight className="w-4 h-4" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-white/70 text-sm">
+              Nenhum banner ativo no momento.
+            </div>
+          )}
+
+          {/* Indicadores / Bolinhas do Carrossel */}
+          {banners.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20">
+              {banners.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setIndiceCarrosselBanners(idx)}
+                  className={`h-2 rounded-full transition-all cursor-pointer ${
+                    idx === indiceCarrosselBanners 
+                      ? "w-6 bg-[#c5a059]" 
+                      : "w-2 bg-white/40 hover:bg-white/70"
+                  }`}
+                  title={`Ir para banner ${idx + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
