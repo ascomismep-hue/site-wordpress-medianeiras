@@ -40,7 +40,7 @@ export default function FloatingDonationButton() {
 
         {/* BOTÃO 2: ISMEP SAÚDE / ACESSE O ISMEP (VERDE) */}
         <a
-          href="https://ismep.com.br" 
+          href="https://ismepsaude.org.br/" 
           target="_blank"
           rel="noopener noreferrer"
           className="group flex items-center bg-[#10b981] hover:bg-[#059669] text-white p-3.5 rounded-full shadow-lg transition-all duration-300 hover:shadow-xl border border-white/20"
