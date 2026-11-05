@@ -1,10 +1,34 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Plus, Trash2, Edit3, X, CheckCircle2, LogOut, Image as ImageIcon, Calendar } from "lucide-react";
+import { Loader2, Plus, Trash2, Edit3, X, CheckCircle2, LogOut, Image as ImageIcon, Calendar, AlignLeft, AlignCenter, AlignRight, Maximize2 } from "lucide-react";
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
+
+// Extensão personalizada do TipTap para suportar redimensionamento e alinhamento de imagens
+const CustomImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      width: {
+        default: '100%',
+        parseHTML: element => element.style.width || element.getAttribute('width'),
+        renderHTML: attributes => {
+          if (!attributes.width) return {};
+          return { style: `width: ${attributes.width}; height: auto; display: block; margin: 0 auto;` };
+        },
+      },
+      align: {
+        default: 'center',
+        parseHTML: element => element.getAttribute('data-align') || 'center',
+        renderHTML: attributes => {
+          return { 'data-align': attributes.align };
+        },
+      },
+    };
+  },
+});
 
 export default function AdminNoticias({ onLogout }) {
   const [loading, setLoading] = useState(false);
@@ -17,11 +41,11 @@ export default function AdminNoticias({ onLogout }) {
   const [subtitulo, setSubtitulo] = useState("");
   const [fotoCapaUrl, setFotoCapaUrl] = useState("");
 
-  // Configuração do Editor estilo Word (TipTap)
+  // Configuração do Editor estilo Word com suporte a redimensionamento
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Image,
+      CustomImage,
       Link.configure({ openOnClick: false }),
     ],
     content: '<p>Escreva o conteúdo da notícia aqui...</p>',
@@ -59,11 +83,10 @@ export default function AdminNoticias({ onLogout }) {
     setUploading(false);
   }
 
-  // Função para inserir imagem diretamente no editor de texto (corpo da notícia)
-  function adicionarImagemNoTexto() {
-    const url = prompt("Cole o link da imagem ou faça o upload:");
-    if (url && editor) {
-      editor.chain().focus().setImage({ src: url }).run();
+  // Funções para alterar o tamanho da imagem selecionada no editor
+  function redimensionarImagem(width) {
+    if (editor) {
+      editor.chain().focus().updateAttributes('image', { width }).run();
     }
   }
 
@@ -134,7 +157,7 @@ export default function AdminNoticias({ onLogout }) {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-serif font-bold text-[#005a8d]">Gerenciamento de Notícias e Avisos</h1>
-          <p className="text-gray-600 text-sm">Publique comunicados com editor completo estilo Word e imagens.</p>
+          <p className="text-gray-600 text-sm">Publique comunicados com editor completo e controlo avançado de imagens.</p>
         </div>
         {onLogout && (
           <button onClick={onLogout} className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2.5 rounded-2xl font-bold text-sm border border-red-100">
@@ -204,14 +227,14 @@ export default function AdminNoticias({ onLogout }) {
             {fotoCapaUrl && <p className="text-[10px] text-emerald-600 font-bold mt-1">✓ Capa carregada com sucesso</p>}
           </div>
 
-          {/* BARRA DE FERRAMENTAS DO EDITOR (Estilo Word) */}
+          {/* BARRA DE FERRAMENTAS DO EDITOR */}
           <div>
-            <label className="block text-xs font-bold text-gray-500 mb-2">Conteúdo da Notícia (Estilo Word)</label>
+            <label className="block text-xs font-bold text-gray-500 mb-2">Conteúdo da Notícia (Estilo Word com Gestão de Imagens)</label>
             
             {editor && (
               <div className="border border-gray-300 rounded-2xl bg-white overflow-hidden shadow-xs">
                 {/* Botões de Formatação */}
-                <div className="flex flex-wrap gap-1 p-2 bg-gray-100 border-b border-gray-200 text-xs font-bold text-gray-700">
+                <div className="flex flex-wrap gap-1 p-2 bg-gray-100 border-b border-gray-200 text-xs font-bold text-gray-700 items-center">
                   <button
                     type="button"
                     onClick={() => editor.chain().focus().toggleBold().run()}
@@ -242,15 +265,25 @@ export default function AdminNoticias({ onLogout }) {
                   </button>
                   
                   {/* Botão para inserir imagem no meio do texto */}
-                  <label className="px-3 py-1.5 rounded-lg border bg-white hover:bg-gray-50 cursor-pointer flex items-center gap-1">
-                    <ImageIcon className="w-3.5 h-3.5 text-[#005a8d]" /> Inserir Imagem no Texto
+                  <label className="px-3 py-1.5 rounded-lg border bg-white hover:bg-gray-50 cursor-pointer flex items-center gap-1 text-[#005a8d]">
+                    <ImageIcon className="w-3.5 h-3.5" /> Inserir Imagem
                     <input 
                       type="file" 
                       accept="image/*" 
                       className="hidden" 
-                      onChange={e => handleImageUpload(e, url => editor.chain().focus().setImage({ src: url }).run())} 
+                      onChange={e => handleImageUpload(e, url => editor.chain().focus().setImage({ src: url, width: '100%' }).run())} 
                     />
                   </label>
+
+                  {/* Controles de Tamanho de Imagem (Aparecem quando uma imagem está selecionada no editor) */}
+                  {editor.isActive('image') && (
+                    <div className="flex items-center gap-1 ml-auto bg-blue-50 px-2 py-1 rounded-lg border border-blue-200">
+                      <span className="text-[10px] text-[#005a8d] font-bold">Tamanho da Imagem:</span>
+                      <button type="button" onClick={() => redimensionarImagem('30%')} className="px-2 py-1 bg-white rounded border text-[10px] hover:bg-gray-50">Pequena (30%)</button>
+                      <button type="button" onClick={() => redimensionarImagem('60%')} className="px-2 py-1 bg-white rounded border text-[10px] hover:bg-gray-50">Média (60%)</button>
+                      <button type="button" onClick={() => redimensionarImagem('100%')} className="px-2 py-1 bg-white rounded border text-[10px] hover:bg-gray-50">Grande (100%)</button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Caixa de Texto Rica */}
