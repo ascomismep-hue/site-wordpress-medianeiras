@@ -120,7 +120,7 @@ export default function Home() {
     fetchAniversariantesHoje();
   }, []);
 
-  // Rotação automática dos banners a cada 10 segundos
+  // Rotação automática dos banners
   useEffect(() => {
     if (banners.length <= 1) return;
     const intervalo = setInterval(() => {
@@ -156,16 +156,15 @@ export default function Home() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfbf9]">
-      
-      {/* HERO SECTION DE LARGURA TOTAL COM INFORMAÇÕES À ESQUERDA E BANNER COMPLETO À DIREITA */}
-      <section className="relative bg-gradient-to-br from-[#005a8d] via-[#004068] to-[#002845] text-white py-16 lg:py-24 px-4 sm:px-6 lg:px-8 w-full overflow-hidden shadow-xl">
+      {/* Hero Section Organizada: Texto Fixo à Esquerda + Carrossel de Banner à Direita */}
+      <section className="relative bg-gradient-to-br from-[#005a8d] via-[#004068] to-[#002845] text-white py-16 lg:py-24 px-4 sm:px-6 lg:px-8 overflow-hidden shadow-xl">
         <div className="absolute top-0 right-0 w-96 h-96 bg-[#c5a059]/15 rounded-full blur-3xl pointer-events-none"></div>
         <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[#e31e24]/15 rounded-full blur-3xl pointer-events-none"></div>
 
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-12 gap-12 items-center relative z-10">
+        <div className="max-w-7xl mx-auto grid md:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
           
-          {/* LADO ESQUERDO: Informações Institucionais e Boas-Vindas */}
-          <div className="lg:col-span-6 space-y-6">
+          {/* LADO ESQUERDO: Boas-vindas e Institucional */}
+          <div className="md:col-span-7 lg:col-span-6 space-y-6">
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider text-[#c5a059] shadow-inner backdrop-blur-md">
               <Sparkles className="w-4 h-4 text-[#c5a059]" />
               Instituto Religioso das Medianeiras da Paz
@@ -195,17 +194,17 @@ export default function Home() {
             </div>
           </div>
 
-          {/* LADO DIREITO: Banner Completo e Visível (Carrossel) */}
-          <div className="lg:col-span-6">
+          {/* LADO DIREITO: Moldura do Banner Promocional com Ajuste de Imagem */}
+          <div className="md:col-span-5 lg:col-span-6">
             <div className="bg-white/10 border border-white/25 rounded-3xl backdrop-blur-xl shadow-2xl overflow-hidden relative h-[320px] sm:h-[380px] lg:h-[420px] flex items-center justify-center">
               {loadingBanners ? (
                 <Loader2 className="w-8 h-8 animate-spin text-[#c5a059]" />
               ) : banners.length > 0 ? (
-                <div className="w-full h-full relative flex items-center justify-center bg-[#001d30]">
+                <div className="w-full h-full relative">
                   {banners.map((banner, index) => (
                     <div
                       key={banner.id}
-                      className={`absolute inset-0 transition-opacity duration-1000 overflow-hidden flex items-center justify-center ${
+                      className={`absolute inset-0 transition-opacity duration-1000 overflow-hidden ${
                         index === indiceCarrosselBanners ? "opacity-100 z-10" : "opacity-0 z-0"
                       }`}
                     >
@@ -216,13 +215,13 @@ export default function Home() {
                           transform: `translate(${banner.pos_x || 0}px, ${banner.pos_y || 0}px) scale(${banner.zoom || 1})`,
                           transformOrigin: 'center center'
                         }}
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-cover"
                       />
 
                       {/* Barra Inferior com Título e Botão do Banner */}
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#002845]/95 via-[#002845]/60 to-transparent p-6 flex items-end justify-between gap-4">
                         <div>
-                          <span className="text-[10px] font-bold text-[#c5a059] uppercase tracking-wider block">Destaque Institucional</span>
+                          <span className="text-[10px] font-bold text-[#c5a059] uppercase tracking-wider block">Destaque Especial</span>
                           <h3 className="font-serif text-lg sm:text-xl font-bold text-white line-clamp-1">{banner.titulo}</h3>
                         </div>
 
@@ -240,7 +239,7 @@ export default function Home() {
                     </div>
                   ))}
 
-                  {/* Indicadores do Carrossel */}
+                  {/* Indicadores de Páginas do Carrossel */}
                   {banners.length > 1 && (
                     <div className="absolute top-4 right-4 z-20 flex gap-1.5 bg-black/30 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20">
                       {banners.map((_, idx) => (
@@ -257,7 +256,7 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="text-center p-6 text-white/80">
-                  <p className="text-sm font-medium">Portal oficial do IRIMEP</p>
+                  <p className="text-sm font-medium">Bem-vindo ao portal do IRIMEP</p>
                 </div>
               )}
             </div>
@@ -532,7 +531,7 @@ export default function Home() {
             </Link>
           </div>
 
-        {loadingEventos ? (
+          {loadingEventos ? (
             <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-[#005a8d]" /></div>
           ) : eventosHome.length === 0 ? (
             <div className="bg-gray-50 p-8 rounded-3xl border border-gray-100 text-center text-gray-500 shadow-sm">
