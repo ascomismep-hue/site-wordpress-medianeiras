@@ -194,6 +194,37 @@ export default function Home() {
         <div className="absolute top-0 right-0 w-96 h-96 bg-[#c5a059]/15 rounded-full blur-3xl pointer-events-none z-10"></div>
         <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-[#e31e24]/15 rounded-full blur-3xl pointer-events-none z-10"></div>
 
+         {/* Conteúdo Institucional sobreposto */}
+        <div className="max-w-7xl mx-auto w-full relative z-20">
+          <div className="max-w-2xl space-y-6">
+            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider text-[#c5a059] shadow-inner backdrop-blur-md">
+              <Sparkles className="w-4 h-4 text-[#c5a059]" />
+              Instituto Religioso das Medianeiras da Paz
+            </div>
+
+            {/* Caso o banner tenha título específico, mostra em destaque menor, mantendo o título da congregação */}
+            {banners.length > 0 && banners[indiceCarrosselBanners]?.titulo && (
+              <span className="block text-xs font-bold text-[#c5a059] uppercase tracking-widest">
+                Destaque: {banners[indiceCarrosselBanners].titulo}
+              </span>
+            )}
+
+            <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight tracking-wide drop-shadow-md">
+              Consagradas à paz, à <span className="text-[#c5a059]">oração</span> e ao <span className="text-[#ff4d53]">serviço</span>.
+            </h1>
+
+            <p className="text-lg text-white/90 leading-relaxed font-light drop-shadow-sm">
+              Bem-vindo ao portal oficial do IRIMEP. Um espaço de comunhão, fé e esperança onde compartilhamos nossa missão de amor ao próximo e edificação espiritual.
+            </p>
+
+            <div className="flex flex-wrap gap-4 pt-4">
+              <Link 
+                to="/institucional" 
+                className="bg-[#e31e24] hover:bg-[#c9181d] text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg hover:shadow-red-600/30 flex items-center gap-2 group"
+              >
+                Conheça Nossa História <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </Link>
+              
               {/* Botão Dinâmico do Banner se houver link cadastrado */}
               {banners.length > 0 && banners[indiceCarrosselBanners]?.link ? (
                 <a
