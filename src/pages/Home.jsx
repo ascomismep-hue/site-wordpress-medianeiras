@@ -186,9 +186,9 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfbf9]">
       
-      {/* Hero Section: Banners de Largura Total (Full Width) */}
+      {/* Hero Section: Banners de Largura Total otimizados para Mobile e Desktop */}
       <section className="relative w-full bg-[#002845] overflow-hidden shadow-inner">
-        <div className="w-full relative h-[260px] sm:h-[400px] lg:h-[520px] flex items-center justify-center bg-[#002845]">
+        <div className="w-full relative h-[200px] sm:h-[380px] lg:h-[520px] flex items-center justify-center bg-[#002845]">
           
           {loadingBanners ? (
             <div className="absolute inset-0 flex items-center justify-center bg-[#002845]">
@@ -203,6 +203,7 @@ export default function Home() {
                     index === indiceCarrosselBanners ? "opacity-100 z-10" : "opacity-0 z-0"
                   }`}
                 >
+                  {/* object-contain no telemóvel para evitar cortes, object-cover em md+ */}
                   <img
                     src={banner.foto_url}
                     alt={banner.titulo}
@@ -210,18 +211,18 @@ export default function Home() {
                       transform: `translate(${banner.pos_x || 0}px, ${banner.pos_y || 0}px) scale(${banner.zoom || 1})`,
                       transformOrigin: 'center center'
                     }}
-                    className="w-full h-full object-cover md:object-contain bg-[#002845]"
+                    className="w-full h-full object-contain md:object-cover bg-[#002845]"
                   />
                   
                   {banner.link && (
-                    <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-8 z-20">
+                    <div className="absolute bottom-2 right-2 sm:bottom-4 sm:right-8 z-20">
                       <a
                         href={banner.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="bg-[#c5a059] hover:bg-[#b08c48] text-white px-5 py-2.5 rounded-xl text-xs sm:text-sm font-bold shadow-xl flex items-center gap-2 transition-all"
+                        className="bg-[#c5a059] hover:bg-[#b08c48] text-white px-3 py-1.5 sm:px-5 sm:py-2.5 rounded-xl text-[10px] sm:text-sm font-bold shadow-xl flex items-center gap-1.5 transition-all"
                       >
-                        {banner.titulo || "Saiba Mais"} <ChevronRight className="w-4 h-4" />
+                        {banner.titulo || "Saiba Mais"} <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </a>
                     </div>
                   )}
@@ -229,22 +230,22 @@ export default function Home() {
               ))}
             </div>
           ) : (
-            <div className="absolute inset-0 flex items-center justify-center text-white/70 text-sm">
+            <div className="absolute inset-0 flex items-center justify-center text-white/70 text-xs sm:text-sm">
               Nenhum banner ativo no momento.
             </div>
           )}
 
           {/* Indicadores / Bolinhas do Carrossel */}
           {banners.length > 1 && (
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/20">
+            <div className="absolute bottom-2 sm:bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 bg-black/40 backdrop-blur-md px-3 py-1 rounded-full border border-white/20">
               {banners.map((_, idx) => (
                 <button
                   key={idx}
                   onClick={() => setIndiceCarrosselBanners(idx)}
-                  className={`h-2 rounded-full transition-all cursor-pointer ${
+                  className={`h-1.5 rounded-full transition-all cursor-pointer ${
                     idx === indiceCarrosselBanners 
-                      ? "w-6 bg-[#c5a059]" 
-                      : "w-2 bg-white/40 hover:bg-white/70"
+                      ? "w-5 bg-[#c5a059]" 
+                      : "w-1.5 bg-white/40 hover:bg-white/70"
                   }`}
                   title={`Ir para banner ${idx + 1}`}
                 />
