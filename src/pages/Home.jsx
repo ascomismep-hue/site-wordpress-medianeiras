@@ -157,71 +157,76 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfbf9]">
       
-      {/* Hero Section: Banner cobrindo a área azul com ajuste responsivo para mobile */}
-      <section className="relative min-h-[220px] sm:min-h-[420px] lg:min-h-[520px] flex items-center bg-[#002845] text-white py-6 sm:py-12 px-4 sm:px-6 lg:px-8 overflow-hidden shadow-xl">
-        
-        {/* Camada de Banners em Segundo Plano */}
-        {loadingBanners ? (
-          <div className="absolute inset-0 bg-gradient-to-br from-[#005a8d] via-[#004068] to-[#002845] flex items-center justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-[#c5a059]" />
-          </div>
-        ) : banners.length > 0 ? (
-          <div className="absolute inset-0 z-0">
-            {banners.map((banner, index) => (
-              <div
-                key={banner.id}
-                className={`absolute inset-0 transition-opacity duration-1000 overflow-hidden flex items-center justify-center ${
-                  index === indiceCarrosselBanners ? "opacity-100 z-10" : "opacity-0 z-0"
-                }`}
-              >
-                {/* Imagem do Banner: object-contain no telemóvel para não cortar nada, object-cover em md+ */}
-                <img
-                  src={banner.foto_url}
-                  alt={banner.titulo}
-                  style={{
-                    transform: `translate(${banner.pos_x || 0}px, ${banner.pos_y || 0}px) scale(${banner.zoom || 1})`,
-                    transformOrigin: 'center center'
-                  }}
-                  className="w-full h-full object-contain md:object-cover bg-[#002845]"
-                />
-                
-                {/* Barra Inferior com Título e Botão do Banner */}
-                {banner.link && (
-                  <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-20">
-                    <a
-                      href={banner.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-[#c5a059] hover:bg-[#b08c48] text-white px-3.5 py-1.5 sm:px-5 sm:py-2.5 rounded-xl text-[11px] sm:text-xs font-bold shadow-lg flex items-center gap-2 transition-all"
-                    >
-                      {banner.titulo || "Saiba Mais"} <ChevronRight className="w-4 h-4" />
-                    </a>
-                  </div>
-                )}
+      {/* Hero Section: Carrossel de Banners com largura controlada e sem cortes */}
+      <section className="relative w-full bg-[#002845] py-6 lg:py-10 px-4 sm:px-6 lg:px-8 shadow-inner">
+        <div className="max-w-7xl mx-auto">
+          <div className="bg-[#001d30] border border-white/10 rounded-3xl shadow-xl overflow-hidden relative h-[240px] sm:h-[380px] lg:h-[480px] flex items-center justify-center">
+            
+            {loadingBanners ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-[#002845]">
+                <Loader2 className="w-8 h-8 animate-spin text-[#c5a059]" />
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-[#005a8d] via-[#004068] to-[#002845]"></div>
-        )}
+            ) : banners.length > 0 ? (
+              <div className="w-full h-full relative flex items-center justify-center bg-[#001d30]">
+                {banners.map((banner, index) => (
+                  <div
+                    key={banner.id}
+                    className={`absolute inset-0 transition-opacity duration-1000 overflow-hidden flex items-center justify-center ${
+                      index === indiceCarrosselBanners ? "opacity-100 z-10" : "opacity-0 z-0"
+                    }`}
+                  >
+                    {/* Imagem ajustada com object-contain para nunca cortar em zoom alto ou ecrãs largos */}
+                    <img
+                      src={banner.foto_url}
+                      alt={banner.titulo}
+                      style={{
+                        transform: `translate(${banner.pos_x || 0}px, ${banner.pos_y || 0}px) scale(${banner.zoom || 1})`,
+                        transformOrigin: 'center center'
+                      }}
+                      className="w-full h-full object-contain"
+                    />
+                    
+                    {/* Botão de Saiba Mais / Link do Banner */}
+                    {banner.link && (
+                      <div className="absolute bottom-4 right-4 z-20">
+                        <a
+                          href={banner.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="bg-[#c5a059] hover:bg-[#b08c48] text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg flex items-center gap-1.5 transition-all"
+                        >
+                          {banner.titulo || "Saiba Mais"} <ChevronRight className="w-4 h-4" />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center text-white/70 text-sm">
+                Nenhum banner ativo no momento.
+              </div>
+            )}
 
-        {/* Indicadores numéricos/bolinhas dos Banners se houver mais de um */}
-        {banners.length > 1 && (
-          <div className="absolute bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 sm:gap-2 bg-black/30 backdrop-blur-md px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-white/20">
-            {banners.map((_, idx) => (
-              <button
-                key={idx}
-                onClick={() => setIndiceCarrosselBanners(idx)}
-                className={`h-1.5 sm:h-2 rounded-full transition-all cursor-pointer ${
-                  idx === indiceCarrosselBanners 
-                    ? "w-6 sm:w-8 bg-[#c5a059]" 
-                    : "w-1.5 sm:w-2 bg-white/40 hover:bg-white/70"
-                }`}
-                title={`Ir para banner ${idx + 1}`}
-              />
-            ))}
+            {/* Indicadores / Bolinhas do Carrossel */}
+            {banners.length > 1 && (
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20">
+                {banners.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setIndiceCarrosselBanners(idx)}
+                    className={`h-2 rounded-full transition-all cursor-pointer ${
+                      idx === indiceCarrosselBanners 
+                        ? "w-6 bg-[#c5a059]" 
+                        : "w-2 bg-white/40 hover:bg-white/70"
+                    }`}
+                    title={`Ir para banner ${idx + 1}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </section>
 
       {/* SEÇÃO DE ANIVERSARIANTES DO DIA */}
@@ -499,7 +504,7 @@ export default function Home() {
                 const dataFormatada = new Date(evento.data_evento + 'T00:00:00').toLocaleDateString('pt-BR', {
                   day: '2-digit',
                   month: 'long',
-                  year: 'numeric'
+                  year: 'motion' || 'numeric'
                 });
 
                 return (
