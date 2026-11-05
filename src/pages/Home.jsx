@@ -138,17 +138,48 @@ export default function Home() {
     return () => clearInterval(intervalo);
   }, [casasMissao.length]);
 
-  function isSemanaAtual(dataStr) {
-    const hoje = new Date();
-    const dataEvento = new Date(dataStr + 'T00:00:00');
-    const primeiroDia = new Date(hoje);
-    primeiroDia.setDate(hoje.getDate() - hoje.getDay());
-    primeiroDia.setHours(0, 0, 0, 0);
+  // Função auxiliar segura para formatar datas sem quebrar a aplicação
+  function formatarDataSegura(dataStr) {
+    if (!dataStr) return "Data não informada";
+    try {
+      // Se a string vier no formato YYYY-MM-DD
+      const partes = dataStr.split('T')[0].split('-');
+      if (partes.length === 3) {
+        const [ano, mes, dia] = partes;
+        const dataObj = new Date(ano, mes - 1, dia);
+        if (!isNaN(dataObj.getTime())) {
+          return dataObj.toLocaleDateString('pt-BR', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric'
+          });
+        }
+      }
+      return dataStr;
+    } catch (e) {
+      console.error("Erro ao formatar data:", e);
+      return "Data inválida";
+    }
+  }
 
-    const ultimoDia = new Date(primeiroDia);
-    ultimoDia.setDate(primeiroDia.getDate() + 6);
-    ultimoDia.setHours(23, 59, 59, 999);
-    return dataEvento >= primeiroDia && dataEvento <= ultimoDia;
+  function isSemanaAtual(dataStr) {
+    if (!dataStr) return false;
+    try {
+      const hoje = new Date();
+      const dataEvento = new Date(dataStr.split('T')[0] + 'T00:00:00');
+      if (isNaN(dataEvento.getTime())) return false;
+
+      const primeiroDia = new Date(hoje);
+      primeiroDia.setDate(hoje.getDate() - hoje.getDay());
+      primeiroDia.setHours(0, 0, 0, 0);
+
+      const ultimoDia = new Date(primeiroDia);
+      ultimoDia.setDate(primeiroDia.getDate() + 6);
+      ultimoDia.setHours(23, 59, 59, 999);
+      return dataEvento >= primeiroDia && dataEvento <= ultimoDia;
+    } catch {
+      return false;
+    }
   }
 
   const proximaCasa = () => setIndiceCarrosselCasas((prev) => (prev + 1) % casasMissao.length);
@@ -157,7 +188,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfbf9]">
       
-      {/* Hero Section: Carrossel de Banners com largura controlada e sem cortes */}
+      {/* Hero Section: Carrossel de Banners */}
       <section className="relative w-full bg-[#002845] py-6 lg:py-10 px-4 sm:px-6 lg:px-8 shadow-inner">
         <div className="max-w-7xl mx-auto">
           <div className="bg-[#001d30] border border-white/10 rounded-3xl shadow-xl overflow-hidden relative h-[240px] sm:h-[380px] lg:h-[480px] flex items-center justify-center">
@@ -175,7 +206,6 @@ export default function Home() {
                       index === indiceCarrosselBanners ? "opacity-100 z-10" : "opacity-0 z-0"
                     }`}
                   >
-                    {/* Imagem ajustada com object-contain para nunca cortar em zoom alto ou ecrãs largos */}
                     <img
                       src={banner.foto_url}
                       alt={banner.titulo}
@@ -186,7 +216,6 @@ export default function Home() {
                       className="w-full h-full object-contain"
                     />
                     
-                    {/* Botão de Saiba Mais / Link do Banner */}
                     {banner.link && (
                       <div className="absolute bottom-4 right-4 z-20">
                         <a
@@ -208,7 +237,6 @@ export default function Home() {
               </div>
             )}
 
-            {/* Indicadores / Bolinhas do Carrossel */}
             {banners.length > 1 && (
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 bg-black/40 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/20">
                 {banners.map((_, idx) => (
@@ -444,11 +472,7 @@ export default function Home() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {noticiasHome.map((item) => {
-              const dataFormatada = new Date(item.data_publicacao + 'T00:00:00').toLocaleDateString('pt-BR', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric'
-              });
+              const dataFormatada = formatarDataSegura(item.data_publicacao);
 
               return (
                 <div key={item.id} className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden flex flex-col justify-between transition-all hover:shadow-md">
@@ -501,11 +525,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {eventosHome.map((evento) => {
                 const eDaSemana = isSemanaAtual(evento.data_evento);
-                const dataFormatada = new Date(evento.data_evento + 'T00:00:00').toLocaleDateString('pt-BR', {
-                  day: '2-digit',
-                  month: 'long',
-                  year: 'motion' || 'numeric'
-                });
+                const dataFormatada = formatarDataSegura(evento.data_evento);
 
                 return (
                   <div key={evento.id} className={`bg-gray-50 p-7 rounded-3xl shadow-sm border transition-all flex flex-col justify-between ${eDaSemana ? "border-[#c5a059] ring-2 ring-[#c5a059]/20 bg-white" : "border-gray-200"}`}>
