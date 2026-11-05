@@ -20,6 +20,7 @@ import MadresGerais from "./pages/institucional/MadresGerais";
 import Irmas from "./pages/institucional/Irmas";
 import Memorial from "./pages/institucional/Memorial";
 import CausaDomCampelo from "./pages/institucional/CausaDomCampelo";
+import Simbolo from "./pages/institucional/Simbolo";
 
 function LayoutInstitucional({ children }) {
   return (
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="/institucional/irmas" element={<LayoutInstitucional><Irmas /></LayoutInstitucional>} />
             <Route path="/institucional/memorial" element={<LayoutInstitucional><Memorial /></LayoutInstitucional>} />
             <Route path="/institucional/causa-dom-campelo" element={<LayoutInstitucional><CausaDomCampelo /></LayoutInstitucional>} />
+            <Route path="/institucional/simbolo" element={<LayoutInstitucional><Simbolo /></LayoutInstitucional>} />
 
             <Route path="/agenda" element={<Agenda />} />
             
