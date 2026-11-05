@@ -7,7 +7,7 @@ export default function InstitucionalSubNav() {
     { name: "Sobre nós", path: "/institucional/sobre-nos" },
     { name: "Símbolo", path: "/institucional/simbolo" },
     { name: "Madres Gerais", path: "/institucional/madres-gerais" },
-    { name: "Irmás", path: "/institucional/irmas" },
+    { name: "Irmãs", path: "/institucional/irmas" },
     { name: "Memorial", path: "/institucional/memorial" },
     { name: "Causa Dom Campelo", path: "/institucional/causa-dom-campelo" },
   ];
