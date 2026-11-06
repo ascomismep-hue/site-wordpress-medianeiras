@@ -7,6 +7,7 @@ import Home from "./pages/Home";
 import InstitucionalSubNav from "./components/InstitucionalSubNav";
 import LoginUnificado from "./admin/LoginUnificado";
 import AdminCorridinha from "./admin/AdminCorridinha";
+import AdminCIPAA from "./admin/AdminCIPAA"; // Importa o painel admin da CIPAA
 import Agenda from "./pages/Agenda";
 import ObrasMissoes from "./pages/ObrasMissoes";
 import Noticias from "./pages/Noticias";
@@ -15,6 +16,7 @@ import Contato from "./pages/Contato";
 import Doacoes from "./pages/Doacoes";
 import Pastoral from "./pages/Pastoral";
 import InscricaoCorridinha from "./pages/InscricaoCorridinha";
+import VotacaoCIPAA from "./pages/VotacaoCIPAA"; // Importa a página de votação pública da CIPAA
 
 // Import das subpáginas institucionais
 import SobreNos from "./pages/institucional/SobreNos";
@@ -66,6 +68,10 @@ export default function App() {
             {/* Rotas para a Corridinha da Prematuridade */}
             <Route path="/inscricao-corridinha" element={<InscricaoCorridinha />} />
             <Route path="/admin/corridinha" element={<AdminCorridinha />} />
+
+            {/* Rotas para a Eleição da CIPAA */}
+            <Route path="/votacao-cipaa" element={<VotacaoCIPAA />} />
+            <Route path="/admin/cipaa" element={<AdminCIPAA />} />
 
             <Route path="/vocacional" element={<Vocacional />} />
             <Route path="/pastoral" element={<Pastoral />} />
