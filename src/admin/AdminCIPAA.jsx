@@ -1,6 +1,18 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Download, Users, BarChart3, PlusCircle, Trash2, UserCheck, FileCheck, FileX } from "lucide-react";
+import { 
+  Loader2, 
+  Download, 
+  Users, 
+  BarChart3, 
+  PlusCircle, 
+  Trash2, 
+  UserCheck, 
+  FileCheck, 
+  FileX,
+  AlertTriangle,
+  CheckCircle2
+} from "lucide-react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
@@ -15,6 +27,9 @@ export default function AdminCIPAA({ onLogout }) {
   const [nome, setNome] = useState("");
   const [matricula, setMatricula] = useState("");
   const [fotoFile, setFotoFile] = useState(null);
+
+  // Regra do Edital: Controlo de Quórum Eleitoral (1º Dia, 2º Dia ou 3º Dia)
+  const [diaVotacao, setDiaVotacao] = useState(1); // 1 = 1º Dia (50%), 2 = 2º Dia (33.33%), 3 = 3º Dia (Sem mínimo)
 
   const carregarDados = async () => {
     setLoading(true);
@@ -32,7 +47,6 @@ export default function AdminCIPAA({ onLogout }) {
     carregarDados();
   }, []);
 
-  // Função auxiliar para converter imagem em String Base64 se o storage falhar
   const converterParaBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -42,7 +56,6 @@ export default function AdminCIPAA({ onLogout }) {
     });
   };
 
-  // Cadastrar Candidato com upload seguro e fallback para Base64
   const handleCadastrarCandidato = async (e) => {
     e.preventDefault();
     setUploading(true);
@@ -99,30 +112,48 @@ export default function AdminCIPAA({ onLogout }) {
     }
   };
 
-  // 1. Contagem de Votos por Candidato
+  // 📊 CÁLCULOS DE APURAÇÃO E QUÓRUM ELEITORAL (EDITAL SEÇÃO 8)
+  const totalGeralVotos = votos.length;
+  const eleitoresVotantes = eleitores.filter((e) => e.ja_votou);
+  const totalEleitoresAptos = eleitores.length;
+
+  // Calculo percentual de quorum
+  const percentualParticipacao = totalEleitoresAptos > 0 
+    ? (eleitoresVotantes.length / totalEleitoresAptos) * 100 
+    : 0;
+
+  // Verificação de Quórum de acordo com o dia
+  const metaQuorumPercentual = diaVotacao === 1 ? 50 : diaVotacao === 2 ? 33.33 : 0;
+  const quorumAtingido = diaVotacao === 3 ? true : percentualParticipacao >= metaQuorumPercentual;
+
   const resultadosCandidatos = candidatos.map((cand) => {
     const totalVotos = votos.filter((v) => v.candidato_id === cand.id).length;
     return { ...cand, totalVotos };
   }).sort((a, b) => b.totalVotos - a.totalVotos);
 
-  // 2. Contagem de Votos em Branco (candidato_id é null ou undefined)
   const totalVotosBrancos = votos.filter((v) => !v.candidato_id).length;
 
-  const totalGeralVotos = votos.length;
-  const eleitoresVotantes = eleitores.filter((e) => e.ja_votou);
-
-  // Exportar PDF Consolidado de Apuração (Incluindo Votos em Branco)
+  // PDF de Apuração Consolidado com Validação de Quórum
   const exportarPDFResultados = () => {
     const doc = new jsPDF();
     doc.setFontSize(14);
     doc.setTextColor(0, 40, 69);
     doc.text("Relatório Consolidado de Apuração - CIPAA 2026/2027", 14, 15);
+    
     doc.setFontSize(10);
-    doc.text(`Total de Votos Computados: ${totalGeralVotos}`, 14, 22);
+    doc.text(`Total de Eleitores Aptos: ${totalEleitoresAptos}`, 14, 22);
+    doc.text(`Total de Votos Computados: ${totalGeralVotos} (${percentualParticipacao.toFixed(2)}% de participação)`, 14, 27);
+    
+    // Status do Quórum no PDF
+    doc.setTextColor(quorumAtingido ? 16 : 185, quorumAtingido ? 185 : 28, quorumAtingido ? 129 : 28);
+    const textoQuorum = quorumAtingido 
+      ? `STATUS DO QUÓRUM (${diaVotacao}º Dia): ATINGIDO (${percentualParticipacao.toFixed(2)}% >= Meta ${metaQuorumPercentual}%)`
+      : `STATUS DO QUÓRUM (${diaVotacao}º Dia): NÃO ATINGIDO (${percentualParticipacao.toFixed(2)}% < Meta ${metaQuorumPercentual}%). PRORROGAR VOTAÇÃO.`;
+    doc.text(textoQuorum, 14, 32);
 
+    doc.setTextColor(0, 40, 69);
     const tableColumn = ["Classificação", "Candidato / Opção", "Matrícula", "Total de Votos"];
     
-    // Lista de candidatos ordenada
     const tableRows = resultadosCandidatos.map((res, index) => [
       `#${index + 1}`,
       res.nome,
@@ -130,20 +161,19 @@ export default function AdminCIPAA({ onLogout }) {
       `${res.totalVotos} voto(s)`
     ]);
 
-    // Adiciona a linha de Votos em Branco no final do relatório
     tableRows.push(["-", "Votos em Branco", "N/A", `${totalVotosBrancos} voto(s)`]);
 
     doc.autoTable({
       head: [tableColumn],
       body: tableRows,
-      startY: 28,
+      startY: 38,
       headStyles: { fillColor: [0, 90, 141] }
     });
 
-    doc.save(`Apuracao_CIPAA_2026_${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`Apuracao_CIPAA_Dia_${diaVotacao}_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
-  // Exportar PDF da Lista de Presença de Votantes
+  // PDF de Lista de Presença
   const exportarPDFListaPresenca = () => {
     const doc = new jsPDF();
     doc.setFontSize(14);
@@ -202,6 +232,77 @@ export default function AdminCIPAA({ onLogout }) {
         </div>
       </div>
 
+      {/* BLOCO DE VALIDAÇÃO DE QUÓRUM ELEITORAL (SEÇÃO 8 DO EDITAL) */}
+      <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
+        <div className="flex flex-wrap justify-between items-center gap-4 border-b border-gray-100 pb-4">
+          <div>
+            <h3 className="font-serif font-bold text-lg text-[#005a8d]">Validação de Quórum Eleitoral (Edital Seção 8)</h3>
+            <p className="text-xs text-gray-500">Selecione o dia do pleito para verificar a validade do quorum legal.</p>
+          </div>
+          
+          {/* Seletor do Dia de Votação */}
+          <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl border border-gray-200">
+            <button 
+              onClick={() => setDiaVotacao(1)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                diaVotacao === 1 ? "bg-[#005a8d] text-white shadow-sm" : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              1º Dia (Mín. 50%)
+            </button>
+            <button 
+              onClick={() => setDiaVotacao(2)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                diaVotacao === 2 ? "bg-[#005a8d] text-white shadow-sm" : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              2º Dia (Mín. 1/3)
+            </button>
+            <button 
+              onClick={() => setDiaVotacao(3)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                diaVotacao === 3 ? "bg-[#005a8d] text-white shadow-sm" : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              3º Dia (Qualquer N.º)
+            </button>
+          </div>
+        </div>
+
+        {/* Indicador de Status do Quórum */}
+        <div className={`p-5 rounded-2xl flex items-center justify-between border ${
+          quorumAtingido 
+            ? "bg-emerald-50/70 border-emerald-200 text-emerald-900" 
+            : "bg-amber-50/70 border-amber-200 text-amber-900"
+        }`}>
+          <div className="flex items-center gap-3">
+            {quorumAtingido ? (
+              <CheckCircle2 className="w-8 h-8 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertTriangle className="w-8 h-8 text-amber-600 shrink-0" />
+            )}
+            <div>
+              <h4 className="font-bold text-sm">
+                {quorumAtingido 
+                  ? `Quórum Legal Atingido (${percentualParticipacao.toFixed(1)}% de participação)` 
+                  : `Quórum Insuficiente (${percentualParticipacao.toFixed(1)}% de participação)`
+                }
+              </h4>
+              <p className="text-xs opacity-90 mt-0.5">
+                {diaVotacao === 1 && (quorumAtingido ? "O pleito atingiu os 50% necessários no 1º dia. A apuração pode ser concluída." : "Falta atingir 50% dos colaboradores. Conforme o edital, a votação deve ser prorrogada para o dia seguinte.")}
+                {diaVotacao === 2 && (quorumAtingido ? "O pleito atingiu 1/3 (33,33%) de participação no 2º dia. Apuração válida." : "Falta atingir 1/3 dos colaboradores no 2º dia. A votação deve ser prorrogada para o 3º dia.")}
+                {diaVotacao === 3 && "No 3º dia a votação é válida com qualquer número de participantes."}
+              </p>
+            </div>
+          </div>
+
+          <div className="text-right shrink-0">
+            <span className="text-2xl font-bold">{percentualParticipacao.toFixed(1)}%</span>
+            <p className="text-[10px] opacity-75">Meta: {metaQuorumPercentual === 0 ? "Livre" : `${metaQuorumPercentual}%`}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Métricas do Dashboard */}
       <div className="grid sm:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
@@ -224,7 +325,6 @@ export default function AdminCIPAA({ onLogout }) {
           </div>
         </div>
 
-        {/* Métrica de Votos em Branco */}
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 bg-gray-100 text-gray-600 rounded-2xl flex items-center justify-center">
             <FileX className="w-6 h-6" />
@@ -241,7 +341,7 @@ export default function AdminCIPAA({ onLogout }) {
           </div>
           <div>
             <p className="text-xs text-gray-500 font-medium">Votantes / Aptos</p>
-            <h3 className="text-2xl font-bold text-emerald-900">{eleitoresVotantes.length} / {eleitores.length}</h3>
+            <h3 className="text-2xl font-bold text-emerald-900">{eleitoresVotantes.length} / {totalEleitoresAptos}</h3>
           </div>
         </div>
       </div>
@@ -260,7 +360,6 @@ export default function AdminCIPAA({ onLogout }) {
               </tr>
             </thead>
             <tbody className="divide-y text-sm">
-              {/* Candidatos Individuais */}
               {resultadosCandidatos.map((res, index) => (
                 <tr key={res.id} className="hover:bg-gray-50">
                   <td className="p-4 font-bold text-gray-400">#{index + 1}</td>
@@ -273,7 +372,6 @@ export default function AdminCIPAA({ onLogout }) {
                 </tr>
               ))}
 
-              {/* Linha Destacada de Votos em Branco */}
               <tr className="bg-gray-50/70 hover:bg-gray-100/70">
                 <td className="p-4 font-bold text-gray-400">-</td>
                 <td className="p-4 font-bold text-gray-600 flex items-center gap-3">
