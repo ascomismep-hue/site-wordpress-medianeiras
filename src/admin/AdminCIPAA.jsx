@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Download, Users, BarChart3, PlusCircle, Trash2, UserCheck } from "lucide-react";
+import { Loader2, Download, Users, BarChart3, PlusCircle, Trash2, UserCheck, FileCheck } from "lucide-react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
@@ -10,16 +10,11 @@ export default function AdminCIPAA({ onLogout }) {
   const [eleitores, setEleitores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [cadastrandoEleitor, setCadastrandoEleitor] = useState(false);
 
   // Form de cadastro de novo candidato
   const [nome, setNome] = useState("");
   const [matricula, setMatricula] = useState("");
   const [fotoFile, setFotoFile] = useState(null);
-
-  // Form de cadastro de novo eleitor votante
-  const [nomeEleitor, setNomeEleitor] = useState("");
-  const [matriculaEleitor, setMatriculaEleitor] = useState("");
 
   const carregarDados = async () => {
     setLoading(true);
@@ -61,7 +56,7 @@ export default function AdminCIPAA({ onLogout }) {
               .getPublicUrl(filePath);
             fotoUrl = publicURLData.publicUrl;
           } else {
-            // Fallback para Base64 se o storage falhar
+            // Fallback para Base64 se o storage falhar por RLS
             const reader = new FileReader();
             fotoUrl = await new Promise((resolve) => {
               reader.readAsDataURL(fotoFile);
@@ -90,33 +85,9 @@ export default function AdminCIPAA({ onLogout }) {
       carregarDados();
     } catch (err) {
       console.error("Erro ao cadastrar candidato:", err);
-      alert("Erro ao cadastrar candidato. Verifique se os dados estão preenchidos.");
+      alert("Erro ao cadastrar candidato. Verifique os dados introduzidos.");
     } finally {
       setUploading(false);
-    }
-  };
-
-  // Cadastrar Eleitor Apto a Votar
-  const handleCadastrarEleitor = async (e) => {
-    e.preventDefault();
-    setCadastrandoEleitor(true);
-
-    try {
-      const { error } = await supabase.from("cipaa_eleitores_aptos").insert([
-        { nome: nomeEleitor.trim(), matricula: matriculaEleitor.trim(), ja_votou: false }
-      ]);
-
-      if (error) throw error;
-
-      setNomeEleitor("");
-      setMatriculaEleitor("");
-      carregarDados();
-      alert("Colaborador votante cadastrado com sucesso!");
-    } catch (err) {
-      console.error("Erro ao cadastrar eleitor:", err);
-      alert("Erro ao cadastrar eleitor. A matrícula já pode estar registada.");
-    } finally {
-      setCadastrandoEleitor(false);
     }
   };
 
@@ -127,25 +98,21 @@ export default function AdminCIPAA({ onLogout }) {
     }
   };
 
-  const handleExcluirEleitor = async (id) => {
-    if (confirm("Deseja remover este eleitor da lista de aptos?")) {
-      await supabase.from("cipaa_eleitores_aptos").delete().eq("id", id);
-      carregarDados();
-    }
-  };
-
+  // Consolidar resultados de apuração (preservando o sigilo absoluto)
   const resultados = candidatos.map((cand) => {
     const totalVotos = votos.filter((v) => v.candidato_id === cand.id).length;
     return { ...cand, totalVotos };
   }).sort((a, b) => b.totalVotos - a.totalVotos);
 
   const totalGeralVotos = votos.length;
+  const eleitoresVotantes = eleitores.filter((e) => e.ja_votou);
 
-  const exportarPDF = () => {
+  // 1. Exportar PDF Consolidado de Apuração
+  const exportarPDFResultados = () => {
     const doc = new jsPDF();
     doc.setFontSize(14);
     doc.setTextColor(0, 40, 69);
-    doc.text("Relatório Consolidado - Eleição CIPAA Gestão 2026/2027", 14, 15);
+    doc.text("Relatório Consolidado de Apuração - CIPAA 2026/2027", 14, 15);
     doc.setFontSize(10);
     doc.text(`Total de Votos Computados: ${totalGeralVotos}`, 14, 22);
 
@@ -164,7 +131,34 @@ export default function AdminCIPAA({ onLogout }) {
       headStyles: { fillColor: [0, 90, 141] }
     });
 
-    doc.save(`Resultado_CIPAA_2026_${new Date().toISOString().split('T')[0]}.pdf`);
+    doc.save(`Apuracao_CIPAA_2026_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
+  // 2. Exportar PDF da Lista de Presença de Votantes (Preservando Sigilo do Voto)
+  const exportarPDFListaPresenca = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.setTextColor(0, 40, 69);
+    doc.text("Lista de Presença / Votantes - Eleição CIPAA 2026/2027", 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Total de Colaboradores Participantes: ${eleitoresVotantes.length}`, 14, 22);
+
+    const tableColumn = ["Nº", "Nome do Colaborador", "Matrícula", "Status"];
+    const tableRows = eleitoresVotantes.map((el, index) => [
+      index + 1,
+      el.nome,
+      el.matricula,
+      "Voto Registado"
+    ]);
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 28,
+      headStyles: { fillColor: [16, 185, 129] } // Cor verde-esmeralda para presença
+    });
+
+    doc.save(`Lista_Presenca_Votantes_CIPAA_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   if (loading) {
@@ -174,15 +168,24 @@ export default function AdminCIPAA({ onLogout }) {
   return (
     <div className="max-w-7xl mx-auto py-12 px-4 space-y-8">
       
-      {/* Cabeçalho */}
-      <div className="flex justify-between items-center bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
+      {/* Cabeçalho do Painel */}
+      <div className="flex flex-wrap justify-between items-center bg-white p-6 rounded-3xl border border-gray-100 shadow-sm gap-4">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-[#c5a059]">Painel Administrativo</span>
           <h1 className="text-2xl font-serif font-bold text-[#005a8d]">Gestão e Apuração da CIPAA</h1>
         </div>
-        <div className="flex gap-3">
-          <button onClick={exportarPDF} className="bg-[#005a8d] hover:bg-[#004068] text-white px-5 py-3 rounded-2xl font-bold text-sm shadow-md flex items-center gap-2 cursor-pointer">
-            <Download className="w-4 h-4" /> Baixar PDF Consolidado
+        <div className="flex flex-wrap gap-3">
+          <button 
+            onClick={exportarPDFListaPresenca} 
+            className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-3 rounded-2xl font-bold text-sm shadow-sm flex items-center gap-2 cursor-pointer transition-all"
+          >
+            <FileCheck className="w-4 h-4" /> Baixar Lista de Presença (PDF)
+          </button>
+          <button 
+            onClick={exportarPDFResultados} 
+            className="bg-[#005a8d] hover:bg-[#004068] text-white px-4 py-3 rounded-2xl font-bold text-sm shadow-sm flex items-center gap-2 cursor-pointer transition-all"
+          >
+            <Download className="w-4 h-4" /> Baixar Resultado Final (PDF)
           </button>
           {onLogout && (
             <button onClick={onLogout} className="bg-red-50 text-red-600 px-4 py-3 rounded-2xl font-bold text-sm cursor-pointer">Sair</button>
@@ -190,14 +193,14 @@ export default function AdminCIPAA({ onLogout }) {
         </div>
       </div>
 
-      {/* Métricas */}
+      {/* Métricas do Dashboard */}
       <div className="grid sm:grid-cols-3 gap-6">
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 bg-blue-50 text-[#005a8d] rounded-2xl flex items-center justify-center">
             <BarChart3 className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs text-gray-500 font-medium">Total de Votos</p>
+            <p className="text-xs text-gray-500 font-medium">Total de Votos Registados</p>
             <h3 className="text-2xl font-bold text-[#005a8d]">{totalGeralVotos}</h3>
           </div>
         </div>
@@ -206,7 +209,7 @@ export default function AdminCIPAA({ onLogout }) {
             <Users className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs text-gray-500 font-medium">Candidatos</p>
+            <p className="text-xs text-gray-500 font-medium">Candidatos Inscritos</p>
             <h3 className="text-2xl font-bold text-purple-900">{candidatos.length}</h3>
           </div>
         </div>
@@ -215,59 +218,13 @@ export default function AdminCIPAA({ onLogout }) {
             <UserCheck className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs text-gray-500 font-medium">Eleitores Aptos</p>
-            <h3 className="text-2xl font-bold text-emerald-900">{eleitores.length}</h3>
+            <p className="text-xs text-gray-500 font-medium">Votantes / Participação</p>
+            <h3 className="text-2xl font-bold text-emerald-900">{eleitoresVotantes.length} / {eleitores.length}</h3>
           </div>
         </div>
       </div>
 
-      {/* Cadastro de Eleitores Aptos */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-6">
-        <h3 className="font-serif font-bold text-lg text-[#005a8d]">Cadastrar Colaborador Votante (Eleitor Apto)</h3>
-        <form onSubmit={handleCadastrarEleitor} className="grid sm:grid-cols-3 gap-4 items-center">
-          <input
-            type="text"
-            placeholder="Nome Completo do Colaborador"
-            required
-            value={nomeEleitor}
-            onChange={(e) => setNomeEleitor(e.target.value)}
-            className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#005a8d]"
-          />
-          <input
-            type="text"
-            placeholder="Matrícula (ex: 002)"
-            required
-            value={matriculaEleitor}
-            onChange={(e) => setMatriculaEleitor(e.target.value)}
-            className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#005a8d]"
-          />
-          <button 
-            type="submit" 
-            disabled={cadastrandoEleitor}
-            className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-2xl px-4 py-3 text-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-          >
-            {cadastrandoEleitor ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserCheck className="w-4 h-4" />}
-            Cadastrar Eleitor
-          </button>
-        </form>
-
-        {/* Lista de Eleitores Cadastrados */}
-        <div className="grid sm:grid-cols-4 gap-3 pt-2">
-          {eleitores.map((el) => (
-            <div key={el.id} className="border border-gray-200 p-3 rounded-2xl flex items-center justify-between bg-gray-50/50 text-xs">
-              <div>
-                <p className="font-bold text-gray-800">{el.nome}</p>
-                <p className="text-gray-500">Mat: {el.matricula} • {el.ja_votou ? <span className="text-red-600 font-bold">Já votou</span> : <span className="text-emerald-600 font-bold">Não votou</span>}</p>
-              </div>
-              <button onClick={() => handleExcluirEleitor(el.id)} className="text-red-500 hover:text-red-700 p-1 cursor-pointer" title="Remover eleitor">
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Resultados / Apuração */}
+      {/* Apuração Parcial / Final */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
         <h3 className="font-serif font-bold text-lg text-[#005a8d]">Apuração Parcial / Final (Classificação)</h3>
         <div className="overflow-x-auto">
@@ -297,7 +254,7 @@ export default function AdminCIPAA({ onLogout }) {
         </div>
       </div>
 
-      {/* Gestão de Candidatos */}
+      {/* Cadastrar Novo Candidato */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-6">
         <h3 className="font-serif font-bold text-lg text-[#005a8d]">Cadastrar Novo Candidato</h3>
         <form onSubmit={handleCadastrarCandidato} className="grid sm:grid-cols-4 gap-4 items-center">
