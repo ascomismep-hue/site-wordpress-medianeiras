@@ -78,10 +78,10 @@ export default function PopupNovena() {
             <X className="w-5 h-5" />
           </button>
 
-          {/* Coluna Esquerda: Imagem da Nossa Senhora */}
+          {/* Coluna Esquerda: Imagem atualizada para novena.png */}
           <div className="md:col-span-6 bg-[#005a8d] relative min-h-[300px] md:min-h-[450px] flex items-center justify-center overflow-hidden">
             <img 
-              src="/images/image_24a63a.jpg" 
+              src="/images/novena.png" 
               alt="Novena de Nossa Sra. Medianeira da Paz" 
               className="absolute inset-0 w-full h-full object-cover"
             />
@@ -92,7 +92,7 @@ export default function PopupNovena() {
             </div>
           </div>
 
-          {/* Coluna Direita: Oração da Novena (Fundo Azul Claro conforme a imagem de referência) */}
+          {/* Coluna Direita: Oração da Novena */}
           <div className="md:col-span-6 bg-[#b2f2ff]/30 p-8 sm:p-10 flex flex-col justify-between space-y-6">
             <div className="space-y-4 text-center">
               <div className="flex justify-center">
