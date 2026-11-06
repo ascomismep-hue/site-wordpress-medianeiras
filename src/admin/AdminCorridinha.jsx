@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Download, Users, RefreshCw, Baby, CheckCircle, Phone } from "lucide-react";
+import { Loader2, Download, Users, RefreshCw, LogOut } from "lucide-react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
-export default function AdminCorridinha() {
+export default function AdminCorridinha({ onLogout }) {
   const [inscritos, setInscritos] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -83,7 +83,7 @@ export default function AdminCorridinha() {
     <div className="min-h-screen bg-[#fcfbf9] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
         
-        {/* Cabeçalho do Painel */}
+        {/* Cabeçalho do Painel com Botão de Sair */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-6 rounded-3xl border border-gray-100 shadow-sm">
           <div>
             <span className="text-xs font-bold uppercase tracking-wider text-[#c5a059]">Painel Administrativo</span>
@@ -105,6 +105,16 @@ export default function AdminCorridinha() {
             >
               <Download className="w-4 h-4" /> Baixar PDF Consolidado
             </button>
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                className="bg-red-50 hover:bg-red-100 text-red-600 p-3 rounded-2xl transition-all flex items-center gap-2 font-bold text-sm"
+                title="Sair do painel"
+              >
+                <LogOut className="w-5 h-5" />
+                <span className="hidden sm:inline">Sair</span>
+              </button>
+            )}
           </div>
         </div>
 
