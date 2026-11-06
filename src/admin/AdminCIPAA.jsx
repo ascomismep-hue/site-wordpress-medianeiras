@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Download, Users, BarChart3, PlusCircle, Trash2 } from "lucide-react";
+import { Loader2, Download, Users, BarChart3, PlusCircle, Trash2, Upload } from "lucide-react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
@@ -8,11 +8,12 @@ export default function AdminCIPAA({ onLogout }) {
   const [candidatos, setCandidatos] = useState([]);
   const [votos, setVotos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
 
   // Form de cadastro de novo candidato
   const [nome, setNome] = useState("");
   const [matricula, setMatricula] = useState("");
-  const [fotoUrl, setFotoUrl] = useState("");
+  const [fotoFile, setFotoFile] = useState(null);
 
   const carregarDados = async () => {
     setLoading(true);
@@ -29,14 +30,51 @@ export default function AdminCIPAA({ onLogout }) {
 
   const handleCadastrarCandidato = async (e) => {
     e.preventDefault();
-    const { error } = await supabase.from("cipaa_candidatos").insert([{ nome, matricula, foto_url: fotoUrl }]);
-    if (!error) {
+    setUploading(true);
+
+    try {
+      let fotoUrl = "";
+
+      // Se o utilizador selecionou uma imagem, fazemos o upload para o Supabase Storage
+      if (fotoFile) {
+        const fileExt = fotoFile.name.split(".").pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const filePath = `candidatos/${fileName}`;
+
+        // Nota: Certifica-te de criar um bucket público chamado 'cipaa-fotos' no teu Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from("cipaa-fotos")
+          .upload(filePath, fotoFile);
+
+        if (uploadError) {
+          throw uploadError;
+        }
+
+        // Obter o URL público da imagem carregada
+        const { data: publicURLData } = supabase.storage
+          .from("cipaa-fotos")
+          .getPublicUrl(filePath);
+
+        fotoUrl = publicURLData.publicUrl;
+      }
+
+      // Inserir o candidato na tabela com o URL da foto gerado pelo storage
+      const { error } = await supabase.from("cipaa_candidatos").insert([
+        { nome, matricula, foto_url: fotoUrl }
+      ]);
+
+      if (error) throw error;
+
+      // Limpar formulário
       setNome("");
       setMatricula("");
-      setFotoUrl("");
+      setFotoFile(null);
       carregarDados();
-    } else {
-      alert("Erro ao cadastrar candidato (verifique se a matrícula já existe).");
+    } catch (err) {
+      console.error("Erro ao cadastrar candidato:", err);
+      alert("Erro ao cadastrar candidato ou fazer upload da imagem. Verifique se o bucket 'cipaa-fotos' existe no Supabase Storage.");
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -144,7 +182,10 @@ export default function AdminCIPAA({ onLogout }) {
               {resultados.map((res, index) => (
                 <tr key={res.id} className="hover:bg-gray-50">
                   <td className="p-4 font-bold text-gray-400">#{index + 1}</td>
-                  <td className="p-4 font-bold text-[#005a8d]">{res.nome}</td>
+                  <td className="p-4 font-bold text-[#005a8d] flex items-center gap-3">
+                    <img src={res.foto_url || "https://via.placeholder.com/150"} alt="" className="w-8 h-8 rounded-full object-cover border" />
+                    {res.nome}
+                  </td>
                   <td className="p-4">{res.matricula}</td>
                   <td className="p-4 font-bold text-emerald-700">{res.totalVotos} votos</td>
                 </tr>
@@ -154,17 +195,17 @@ export default function AdminCIPAA({ onLogout }) {
         </div>
       </div>
 
-      {/* Gestão de Candidatos */}
+      {/* Gestão de Candidatos com Upload de Ficheiro */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-6">
         <h3 className="font-serif font-bold text-lg text-[#005a8d]">Cadastrar Novo Candidato</h3>
-        <form onSubmit={handleCadastrarCandidato} className="grid sm:grid-cols-4 gap-4">
+        <form onSubmit={handleCadastrarCandidato} className="grid sm:grid-cols-4 gap-4 items-center">
           <input
             type="text"
             placeholder="Nome Completo"
             required
             value={nome}
             onChange={(e) => setNome(e.target.value)}
-            className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm"
+            className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#005a8d]"
           />
           <input
             type="text"
@@ -172,31 +213,37 @@ export default function AdminCIPAA({ onLogout }) {
             required
             value={matricula}
             onChange={(e) => setMatricula(e.target.value)}
-            className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm"
+            className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#005a8d]"
           />
-          <input
-            type="url"
-            placeholder="URL da Foto (opcional)"
-            value={fotoUrl}
-            onChange={(e) => setFotoUrl(e.target.value)}
-            className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm"
-          />
-          <button type="submit" className="bg-[#005a8d] hover:bg-[#004068] text-white font-bold rounded-2xl px-4 py-3 text-sm flex items-center justify-center gap-2">
-            <PlusCircle className="w-4 h-4" /> Cadastrar
+          <div className="relative">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setFotoFile(e.target.files[0])}
+              className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-500 file:mr-3 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#005a8d] file:text-white hover:file:bg-[#004068] cursor-pointer"
+            />
+          </div>
+          <button 
+            type="submit" 
+            disabled={uploading}
+            className="bg-[#005a8d] hover:bg-[#004068] text-white font-bold rounded-2xl px-4 py-3 text-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+          >
+            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlusCircle className="w-4 h-4" />}
+            {uploading ? "A enviar..." : "Cadastrar"}
           </button>
         </form>
 
         <div className="grid sm:grid-cols-3 gap-4 pt-4">
           {candidatos.map((c) => (
-            <div key={c.id} className="border border-gray-200 p-4 rounded-2xl flex items-center justify-between">
+            <div key={c.id} className="border border-gray-200 p-4 rounded-2xl flex items-center justify-between bg-gray-50/50">
               <div className="flex items-center gap-3">
-                <img src={c.foto_url || "https://via.placeholder.com/150"} alt={c.nome} className="w-10 h-10 rounded-full object-cover" />
+                <img src={c.foto_url || "https://via.placeholder.com/150"} alt={c.nome} className="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm" />
                 <div>
                   <p className="font-bold text-xs text-gray-800">{c.nome}</p>
                   <p className="text-[10px] text-gray-500">Mat: {c.matricula}</p>
                 </div>
               </div>
-              <button onClick={() => handleExcluirCandidato(c.id)} className="text-red-500 hover:text-red-700 p-2">
+              <button onClick={() => handleExcluirCandidato(c.id)} className="text-red-500 hover:text-red-700 p-2 cursor-pointer" title="Excluir candidato">
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>
