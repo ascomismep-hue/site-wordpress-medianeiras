@@ -13,6 +13,7 @@ import Vocacional from "./pages/Vocacional";
 import Contato from "./pages/Contato";
 import Doacoes from "./pages/Doacoes";
 import Pastoral from "./pages/Pastoral";
+import InscricaoCorridinha from "./pages/InscricaoCorridinha";
 
 // Import das subpáginas institucionais
 import SobreNos from "./pages/institucional/SobreNos";
@@ -60,6 +61,9 @@ export default function App() {
             {/* Rotas de Notícias (Listagem geral e visualização de notícia individual por ID) */}
             <Route path="/noticias" element={<Noticias />} />
             <Route path="/noticias/:id" element={<Noticias />} />
+
+            {/* Rota para Inscrição da Corridinha da Prematuridade */}
+            <Route path="/inscricao-corridinha" element={<InscricaoCorridinha />} />
 
             <Route path="/vocacional" element={<Vocacional />} />
             <Route path="/pastoral" element={<Pastoral />} />
