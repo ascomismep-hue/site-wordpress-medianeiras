@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Download, Users, BarChart3, PlusCircle, Trash2, Upload } from "lucide-react";
+import { Loader2, Download, Users, BarChart3, PlusCircle, Trash2 } from "lucide-react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
@@ -28,6 +28,16 @@ export default function AdminCIPAA({ onLogout }) {
     carregarDados();
   }, []);
 
+  // Função auxiliar para converter o ficheiro de imagem em String Base64
+  const converterParaBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   const handleCadastrarCandidato = async (e) => {
     e.preventDefault();
     setUploading(true);
@@ -35,44 +45,48 @@ export default function AdminCIPAA({ onLogout }) {
     try {
       let fotoUrl = "";
 
-      // Se o utilizador selecionou uma imagem, fazemos o upload para o Supabase Storage
+      // 1. Tentar upload para o Supabase Storage
       if (fotoFile) {
-        const fileExt = fotoFile.name.split(".").pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const filePath = `candidatos/${fileName}`;
+        try {
+          const fileExt = fotoFile.name.split(".").pop();
+          const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+          const filePath = `candidatos/${fileName}`;
 
-        // Nota: Certifica-te de criar um bucket público chamado 'cipaa-fotos' no teu Supabase Storage
-        const { error: uploadError } = await supabase.storage
-          .from("cipaa-fotos")
-          .upload(filePath, fotoFile);
+          const { error: uploadError } = await supabase.storage
+            .from("cipaa-fotos")
+            .upload(filePath, fotoFile, { upsert: true });
 
-        if (uploadError) {
-          throw uploadError;
+          if (uploadError) {
+            console.warn("Upload no Storage falhou por RLS, utilizando conversao Base64 como fallback:", uploadError);
+            // Fallback imediato: converte para Base64 se o Storage falhar por RLS
+            fotoUrl = await converterParaBase64(fotoFile);
+          } else {
+            const { data: publicURLData } = supabase.storage
+              .from("cipaa-fotos")
+              .getPublicUrl(filePath);
+            fotoUrl = publicURLData.publicUrl;
+          }
+        } catch (storageErr) {
+          console.warn("Erro ao processar storage, a converter em Base64:", storageErr);
+          fotoUrl = await converterParaBase64(fotoFile);
         }
-
-        // Obter o URL público da imagem carregada
-        const { data: publicURLData } = supabase.storage
-          .from("cipaa-fotos")
-          .getPublicUrl(filePath);
-
-        fotoUrl = publicURLData.publicUrl;
       }
 
-      // Inserir o candidato na tabela com o URL da foto gerado pelo storage
+      // 2. Inserir o candidato na tabela do Supabase
       const { error } = await supabase.from("cipaa_candidatos").insert([
         { nome, matricula, foto_url: fotoUrl }
       ]);
 
       if (error) throw error;
 
-      // Limpar formulário
+      // Limpar campos
       setNome("");
       setMatricula("");
       setFotoFile(null);
       carregarDados();
     } catch (err) {
       console.error("Erro ao cadastrar candidato:", err);
-      alert("Erro ao cadastrar candidato ou fazer upload da imagem. Verifique se o bucket 'cipaa-fotos' existe no Supabase Storage.");
+      alert("Erro ao cadastrar candidato. Verifique os dados introduzidos.");
     } finally {
       setUploading(false);
     }
@@ -165,7 +179,7 @@ export default function AdminCIPAA({ onLogout }) {
         </div>
       </div>
 
-      {/* Tabela de Resultados (Garantindo Sigilo: Sem mostrar quem votou) */}
+      {/* Tabela de Resultados */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
         <h3 className="font-serif font-bold text-lg text-[#005a8d]">Apuração Parcial / Final (Classificação)</h3>
         <div className="overflow-x-auto">
@@ -195,7 +209,7 @@ export default function AdminCIPAA({ onLogout }) {
         </div>
       </div>
 
-      {/* Gestão de Candidatos com Upload de Ficheiro */}
+      {/* Gestão de Candidatos */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-6">
         <h3 className="font-serif font-bold text-lg text-[#005a8d]">Cadastrar Novo Candidato</h3>
         <form onSubmit={handleCadastrarCandidato} className="grid sm:grid-cols-4 gap-4 items-center">
