@@ -87,18 +87,18 @@ export default function InscricaoCorridinha() {
           </span>
           <h1 className="text-3xl sm:text-5xl font-serif font-bold mb-4">I Corridinha da Prematuridade</h1>
           <p className="text-white/90 text-sm sm:text-base max-w-xl mx-auto leading-relaxed mb-6">
-            UTI Neonatal Irmã Josefa — Um encontro cheio de amor e alegria para nossos pequenos guerreiros[cite: 11]!
+            UTI Neonatal Irmã Josefa — Um encontro cheio de amor e alegria para nossos pequenos guerreiros!
           </p>
 
           <div className="flex flex-wrap justify-center gap-4 text-xs sm:text-sm font-medium pt-4 border-t border-white/10">
             <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm">
-              <Calendar className="w-4 h-4 text-[#c5a059]" /> 29/11/2026[cite: 11]
+              <Calendar className="w-4 h-4 text-[#c5a059]" /> 29/11/2026
             </div>
             <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm">
-              <Clock className="w-4 h-4 text-[#c5a059]" /> 07h[cite: 11]
+              <Clock className="w-4 h-4 text-[#c5a059]" /> 07h
             </div>
             <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-sm">
-              <MapPin className="w-4 h-4 text-[#c5a059]" /> Praça do Hospital[cite: 11]
+              <MapPin className="w-4 h-4 text-[#c5a059]" /> Praça do Hospital
             </div>
           </div>
         </div>
@@ -131,7 +131,7 @@ export default function InscricaoCorridinha() {
                 O período de inscrições encerrou-se a 17 de novembro. Agradecemos imenso o carinho e participação de todos!
               </p>
               <p className="text-xs text-gray-500 pt-4 flex items-center justify-center gap-1">
-                <Phone className="w-3.5 h-3.5 text-[#c5a059]" /> Dúvidas? Contacte: 87 98809-1422[cite: 10]
+                <Phone className="w-3.5 h-3.5 text-[#c5a059]" /> Dúvidas? Contacte: 87 98809-1422
               </p>
             </div>
           ) : (
@@ -260,7 +260,7 @@ export default function InscricaoCorridinha() {
                     className="mt-1 text-[#005a8d] focus:ring-[#005a8d] rounded"
                   />
                   <span>
-                    <strong>DECLARAÇÃO:</strong> Estou ciente de que a criança deverá participar acompanhada de um responsável e utilizar um meio de deslocamento adequado à sua idade e às suas necessidades. *[cite: 11]
+                    <strong>DECLARAÇÃO:</strong> Estou ciente de que a criança deverá participar acompanhada de um responsável e utilizar um meio de deslocamento adequado à sua idade e às suas necessidades. *
                   </span>
                 </label>
               </div>
