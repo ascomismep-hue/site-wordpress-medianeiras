@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { ShieldCheck, UserCheck, Vote, CheckCircle2, Loader2, AlertCircle, ShieldAlert } from "lucide-react";
+import { ShieldCheck, UserCheck, Vote, CheckCircle2, Loader2, AlertCircle, ShieldAlert, FileX } from "lucide-react";
 
 export default function VotacaoCIPAA() {
   const [matricula, setMatricula] = useState("");
   const [eleitor, setEleitor] = useState(null);
   const [candidatos, setCandidatos] = useState([]);
-  const [candidatoSelecionado, setCandidatoSelecionado] = useState(null);
+  const [candidatoSelecionado, setCandidatoSelecionado] = useState(null); // Pode ser um ID ou "BRANCO"
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState("");
   const [votacaoConcluida, setVotacaoConcluida] = useState(false);
+  const [tempoRestante, setTempoRestante] = useState(10); // Temporizador de 10 segundos
 
   // Carregar candidatos ativos
   useEffect(() => {
@@ -19,6 +20,25 @@ export default function VotacaoCIPAA() {
     }
     carregarCandidatos();
   }, []);
+
+  // Temporizador de 10 segundos para reiniciar a votação
+  useEffect(() => {
+    let timer;
+    if (votacaoConcluida && tempoRestante > 0) {
+      timer = setInterval(() => {
+        setTempoRestante((prev) => prev - 1);
+      }, 1000);
+    } else if (votacaoConcluida && tempoRestante === 0) {
+      // Reiniciar formulário para o próximo eleitor
+      setVotacaoConcluida(false);
+      setEleitor(null);
+      setMatricula("");
+      setCandidatoSelecionado(null);
+      setTempoRestante(10);
+    }
+
+    return () => clearInterval(timer);
+  }, [votacaoConcluida, tempoRestante]);
 
   // Validar matrícula do colaborador
   const handleValidarMatricula = async (e) => {
@@ -51,7 +71,7 @@ export default function VotacaoCIPAA() {
   // Confirmar Voto com Sigilo Garantido
   const handleConfirmarVoto = async () => {
     if (!candidatoSelecionado) {
-      setErro("Por favor, selecione um candidato antes de confirmar.");
+      setErro("Por favor, selecione um candidato ou a opção de Voto em Branco.");
       return;
     }
 
@@ -59,10 +79,13 @@ export default function VotacaoCIPAA() {
     setErro("");
 
     try {
+      // Se a opção for "BRANCO", gravamos candidato_id como null
+      const candidatoIdParaGravar = candidatoSelecionado === "BRANCO" ? null : candidatoSelecionado;
+
       // 1. Registar o voto na tabela anónima de votos
       const { error: erroVoto } = await supabase
         .from("cipaa_votos")
-        .insert([{ candidato_id: candidatoSelecionado }]);
+        .insert([{ candidato_id: candidatoIdParaGravar }]);
 
       if (erroVoto) throw erroVoto;
 
@@ -75,6 +98,7 @@ export default function VotacaoCIPAA() {
       if (erroEleitor) throw erroEleitor;
 
       setVotacaoConcluida(true);
+      setTempoRestante(10); // Iniciar contagem regressiva de 10s
     } catch (err) {
       console.error("Erro ao votar:", err);
       setErro("Erro ao registar o voto. Tente novamente.");
@@ -86,14 +110,23 @@ export default function VotacaoCIPAA() {
   if (votacaoConcluida) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center space-y-4">
+        <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center space-y-6">
           <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Voto Registado com Sucesso!</h2>
-          <p className="text-gray-600 text-sm">
-            O seu voto foi computado com total sigilo e segurança para a CIPAA Gestão 2026/2027. Obrigado pela participação!
-          </p>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Voto Registado com Sucesso!</h2>
+            <p className="text-gray-600 text-sm">
+              O seu voto foi computado com total sigilo e segurança para a CIPAA Gestão 2026/2027. Obrigado pela participação!
+            </p>
+          </div>
+
+          {/* Temporizador Regressivo de 10s */}
+          <div className="bg-blue-50/70 border border-blue-100 p-4 rounded-2xl">
+            <p className="text-xs text-gray-500 font-medium">A reiniciar a cabina de votação em:</p>
+            <p className="text-3xl font-bold text-[#005a8d] my-1">{tempoRestante}s</p>
+            <p className="text-[11px] text-gray-400">O ecrã retornará automaticamente ao início para o próximo colaborador.</p>
+          </div>
         </div>
       </div>
     );
@@ -168,9 +201,28 @@ export default function VotacaoCIPAA() {
               </p>
             </div>
 
-            <h3 className="font-serif font-bold text-lg text-gray-800 pt-2">Escolha o seu candidato:</h3>
+            <h3 className="font-serif font-bold text-lg text-gray-800 pt-2">Escolha o seu candidato ou opção:</h3>
 
             <div className="grid sm:grid-cols-2 gap-4">
+              {/* Opção Voto em Branco */}
+              <div
+                onClick={() => setCandidatoSelecionado("BRANCO")}
+                className={`border-2 rounded-2xl p-4 flex items-center gap-4 cursor-pointer transition-all ${
+                  candidatoSelecionado === "BRANCO"
+                    ? "border-gray-500 bg-gray-100 shadow-sm"
+                    : "border-gray-100 hover:border-gray-200 bg-white"
+                }`}
+              >
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 border border-gray-200 shrink-0">
+                  <FileX className="w-8 h-8" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-800 text-sm">Votar em Branco</h4>
+                  <p className="text-xs text-gray-500">Não escolher nenhum candidato</p>
+                </div>
+              </div>
+
+              {/* Lista de Candidatos */}
               {candidatos.map((cand) => (
                 <div
                   key={cand.id}
@@ -200,7 +252,7 @@ export default function VotacaoCIPAA() {
               className="w-full bg-[#c5a059] hover:bg-[#b08c48] text-white font-bold py-4 rounded-2xl transition-all shadow-md text-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Vote className="w-5 h-5" />}
-              Confirmar Meu Voto Secretamente
+              {candidatoSelecionado === "BRANCO" ? "Confirmar Voto em Branco" : "Confirmar Meu Voto Secretamente"}
             </button>
           </div>
         )}
