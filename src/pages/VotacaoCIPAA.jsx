@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { ShieldCheck, UserCheck, Vote, CheckCircle2, Loader2, AlertCircle } from "lucide-react";
+import { ShieldCheck, UserCheck, Vote, CheckCircle2, Loader2, AlertCircle, ShieldAlert } from "lucide-react";
 
 export default function VotacaoCIPAA() {
   const [matricula, setMatricula] = useState("");
@@ -134,7 +134,7 @@ export default function VotacaoCIPAA() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#005a8d] hover:bg-[#004068] text-white font-bold py-3.5 rounded-2xl transition-colors shadow-sm text-sm flex items-center justify-center gap-2"
+              className="w-full bg-[#005a8d] hover:bg-[#004068] text-white font-bold py-3.5 rounded-2xl transition-colors shadow-sm text-sm flex items-center justify-center gap-2 cursor-pointer"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <UserCheck className="w-5 h-5" />}
               Aceder à Votação
@@ -142,15 +142,33 @@ export default function VotacaoCIPAA() {
           </form>
         ) : (
           <div className="space-y-6">
+            
+            {/* Bloco de Identificação do Eleitor */}
             <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-2xl flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500">Eleitor Identificado:</p>
-                <p className="font-bold text-[#005a8d]">{eleitor.nome}</p>
+                <p className="font-bold text-[#005a8d] text-base">{eleitor.nome}</p>
               </div>
-              <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-3 py-1 rounded-full">Apto para Votar</span>
+              <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-3.5 py-1.5 rounded-full flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4" /> Apto para Votar
+              </span>
             </div>
 
-            <h3 className="font-serif font-bold text-lg text-gray-800">Escolha o seu candidato:</h3>
+            {/* AVISO DE SIGILO ABSOLUTO DO VOTO */}
+            <div className="bg-amber-50/60 border border-amber-200/80 p-5 rounded-2xl text-amber-900 text-xs sm:text-sm space-y-1.5 leading-relaxed">
+              <div className="flex items-center gap-2 font-bold text-amber-900 uppercase tracking-wider text-xs">
+                <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+                Garantia de Sigilo Absoluto do Voto
+              </div>
+              <p>
+                Esta votação é <strong>totalmente sigilosa</strong>. A validação da sua matrícula serve unicamente para confirmar que está apto a votar e evitar votos duplicados.
+              </p>
+              <p className="text-amber-800/90 text-xs">
+                Os relatórios e a base de dados registam apenas que você já votou e computam o voto de forma anónima, <strong>sem qualquer ligação entre o seu nome/matrícula e o candidato escolhido</strong>.
+              </p>
+            </div>
+
+            <h3 className="font-serif font-bold text-lg text-gray-800 pt-2">Escolha o seu candidato:</h3>
 
             <div className="grid sm:grid-cols-2 gap-4">
               {candidatos.map((cand) => (
@@ -166,7 +184,7 @@ export default function VotacaoCIPAA() {
                   <img
                     src={cand.foto_url || "https://via.placeholder.com/150"}
                     alt={cand.nome}
-                    className="w-16 h-16 rounded-full object-cover border border-gray-200"
+                    className="w-16 h-16 rounded-full object-cover border border-gray-200 shrink-0"
                   />
                   <div>
                     <h4 className="font-bold text-gray-800 text-sm">{cand.nome}</h4>
@@ -179,7 +197,7 @@ export default function VotacaoCIPAA() {
             <button
               onClick={handleConfirmarVoto}
               disabled={loading || !candidatoSelecionado}
-              className="w-full bg-[#c5a059] hover:bg-[#b08c48] text-white font-bold py-4 rounded-2xl transition-all shadow-md text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full bg-[#c5a059] hover:bg-[#b08c48] text-white font-bold py-4 rounded-2xl transition-all shadow-md text-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Vote className="w-5 h-5" />}
               Confirmar Meu Voto Secretamente
