@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { 
   Shield, Lock, Calendar, Church, Heart, Loader2, Newspaper, 
-  Sparkles, Building2, Baby 
+  Sparkles, Building2, Baby, ShieldCheck 
 } from "lucide-react";
 import AdminDashboard from "./AdminDashboard";
 import AdminAgenda from "./AdminAgenda";
@@ -11,6 +11,7 @@ import AdminNoticias from "./AdminNoticias";
 import AdminVocacional from "./AdminVocacional";
 import AdminDoacoes from "./AdminDoacoes";
 import AdminCorridinha from "./AdminCorridinha";
+import AdminCIPAA from "./AdminCIPAA"; // Importa o painel administrativo da CIPAA
 
 export default function LoginUnificado() {
   const [tipoPainel, setTipoPainel] = useState("institucional");
@@ -77,6 +78,8 @@ export default function LoginUnificado() {
       return <AdminDoacoes onLogout={handleLogout} />;
     } else if (logado.tipo === "corridinha") {
       return <AdminCorridinha onLogout={handleLogout} />;
+    } else if (logado.tipo === "cipaa") {
+      return <AdminCIPAA onLogout={handleLogout} />;
     }
   }
 
@@ -172,17 +175,29 @@ export default function LoginUnificado() {
                 <Building2 className="w-4 h-4" /> Obras & Missões
               </button>
 
-              {/* Novo Botão para a Corridinha da Prematuridade */}
               <button
                 type="button"
                 onClick={() => { setTipoPainel("corridinha"); setErro(false); }}
-                className={`py-3 px-2 rounded-xl font-bold text-[11px] flex flex-col items-center justify-center gap-1.5 border transition-all sm:col-span-1 border-purple-200 ${
+                className={`py-3 px-2 rounded-xl font-bold text-[11px] flex flex-col items-center justify-center gap-1.5 border transition-all border-purple-200 ${
                   tipoPainel === "corridinha" 
                     ? "bg-purple-900 text-white border-purple-900 shadow-sm" 
                     : "bg-purple-50/50 text-purple-900 border-purple-100 hover:bg-purple-100"
                 }`}
               >
                 <Baby className="w-4 h-4 text-purple-600" /> Corridinha
+              </button>
+
+              {/* Novo Botão para o Painel da CIPAA */}
+              <button
+                type="button"
+                onClick={() => { setTipoPainel("cipaa"); setErro(false); }}
+                className={`py-3 px-2 rounded-xl font-bold text-[11px] flex flex-col items-center justify-center gap-1.5 border transition-all border-emerald-200 ${
+                  tipoPainel === "cipaa" 
+                    ? "bg-emerald-800 text-white border-emerald-800 shadow-sm" 
+                    : "bg-emerald-50/50 text-emerald-900 border-emerald-100 hover:bg-emerald-100"
+                }`}
+              >
+                <ShieldCheck className="w-4 h-4 text-emerald-600" /> Eleição CIPAA
               </button>
             </div>
           </div>
