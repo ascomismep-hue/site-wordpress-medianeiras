@@ -1,12 +1,16 @@
 import { useState } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Shield, Lock, Calendar, Church, Heart, Loader2, Newspaper, Sparkles, Building2 } from "lucide-react";
+import { 
+  Shield, Lock, Calendar, Church, Heart, Loader2, Newspaper, 
+  Sparkles, Building2, Baby 
+} from "lucide-react";
 import AdminDashboard from "./AdminDashboard";
 import AdminAgenda from "./AdminAgenda";
-import AdminObrasMissoes from "./AdminObrasMissoes"; // Importa o painel de Obras e Missões
+import AdminObrasMissoes from "./AdminObrasMissoes";
 import AdminNoticias from "./AdminNoticias";
 import AdminVocacional from "./AdminVocacional";
 import AdminDoacoes from "./AdminDoacoes";
+import AdminCorridinha from "./AdminCorridinha";
 
 export default function LoginUnificado() {
   const [tipoPainel, setTipoPainel] = useState("institucional");
@@ -57,6 +61,7 @@ export default function LoginUnificado() {
     window.location.reload();
   }
 
+  // Renderização condicional dos painéis após login
   if (logado) {
     if (logado.tipo === "institucional") {
       return <AdminDashboard onLogout={handleLogout} />;
@@ -70,12 +75,14 @@ export default function LoginUnificado() {
       return <AdminVocacional onLogout={handleLogout} />;
     } else if (logado.tipo === "doacoes") {
       return <AdminDoacoes onLogout={handleLogout} />;
+    } else if (logado.tipo === "corridinha") {
+      return <AdminCorridinha onLogout={handleLogout} />;
     }
   }
 
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-12">
-      <div className="max-w-md w-full bg-white p-8 sm:p-10 rounded-3xl shadow-sm border border-gray-100 text-center">
+      <div className="max-w-md sm:max-w-lg w-full bg-white p-8 sm:p-10 rounded-3xl shadow-sm border border-gray-100 text-center">
         <div className="w-16 h-16 bg-[#005a8d]/10 text-[#005a8d] rounded-2xl flex items-center justify-center mx-auto mb-6">
           <Shield className="w-8 h-8" />
         </div>
@@ -92,7 +99,7 @@ export default function LoginUnificado() {
         <form onSubmit={handleLogin} className="space-y-4 text-left">
           <div>
             <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Selecione o Painel</label>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => { setTipoPainel("institucional"); setErro(false); }}
@@ -104,6 +111,7 @@ export default function LoginUnificado() {
               >
                 <Church className="w-4 h-4" /> Institucional
               </button>
+              
               <button
                 type="button"
                 onClick={() => { setTipoPainel("noticias"); setErro(false); }}
@@ -115,6 +123,7 @@ export default function LoginUnificado() {
                >
                  <Newspaper className="w-4 h-4" /> Notícias
               </button>
+              
               <button
                 type="button"
                 onClick={() => { setTipoPainel("doacoes"); setErro(false); }}
@@ -126,6 +135,7 @@ export default function LoginUnificado() {
                >
                  <Heart className="w-4 h-4" /> Doações
               </button>
+              
               <button
                 type="button"
                 onClick={() => { setTipoPainel("vocacional"); setErro(false); }}
@@ -137,6 +147,7 @@ export default function LoginUnificado() {
                >
                   <Sparkles className="w-4 h-4" /> Vocacional
               </button>
+              
               <button
                 type="button"
                 onClick={() => { setTipoPainel("agenda"); setErro(false); }}
@@ -148,6 +159,7 @@ export default function LoginUnificado() {
               >
                 <Calendar className="w-4 h-4" /> Agenda
               </button>
+              
               <button
                 type="button"
                 onClick={() => { setTipoPainel("obras"); setErro(false); }}
@@ -158,6 +170,19 @@ export default function LoginUnificado() {
                 }`}
               >
                 <Building2 className="w-4 h-4" /> Obras & Missões
+              </button>
+
+              {/* Novo Botão para a Corridinha da Prematuridade */}
+              <button
+                type="button"
+                onClick={() => { setTipoPainel("corridinha"); setErro(false); }}
+                className={`py-3 px-2 rounded-xl font-bold text-[11px] flex flex-col items-center justify-center gap-1.5 border transition-all sm:col-span-1 border-purple-200 ${
+                  tipoPainel === "corridinha" 
+                    ? "bg-purple-900 text-white border-purple-900 shadow-sm" 
+                    : "bg-purple-50/50 text-purple-900 border-purple-100 hover:bg-purple-100"
+                }`}
+              >
+                <Baby className="w-4 h-4 text-purple-600" /> Corridinha
               </button>
             </div>
           </div>
