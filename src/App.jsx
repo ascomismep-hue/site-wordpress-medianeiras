@@ -6,6 +6,7 @@ import PopupNovena from "./components/PopupNovena";
 import Home from "./pages/Home";
 import InstitucionalSubNav from "./components/InstitucionalSubNav";
 import LoginUnificado from "./admin/LoginUnificado";
+import AdminCorridinha from "./admin/AdminCorridinha";
 import Agenda from "./pages/Agenda";
 import ObrasMissoes from "./pages/ObrasMissoes";
 import Noticias from "./pages/Noticias";
@@ -62,8 +63,9 @@ export default function App() {
             <Route path="/noticias" element={<Noticias />} />
             <Route path="/noticias/:id" element={<Noticias />} />
 
-            {/* Rota para Inscrição da Corridinha da Prematuridade */}
+            {/* Rotas para a Corridinha da Prematuridade */}
             <Route path="/inscricao-corridinha" element={<InscricaoCorridinha />} />
+            <Route path="/admin/corridinha" element={<AdminCorridinha />} />
 
             <Route path="/vocacional" element={<Vocacional />} />
             <Route path="/pastoral" element={<Pastoral />} />
