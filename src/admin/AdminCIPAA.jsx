@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Download, Users, BarChart3, PlusCircle, Trash2, UserCheck, FileCheck } from "lucide-react";
+import { Loader2, Download, Users, BarChart3, PlusCircle, Trash2, UserCheck, FileCheck, FileX } from "lucide-react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
@@ -32,6 +32,16 @@ export default function AdminCIPAA({ onLogout }) {
     carregarDados();
   }, []);
 
+  // Função auxiliar para converter imagem em String Base64 se o storage falhar
+  const converterParaBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   // Cadastrar Candidato com upload seguro e fallback para Base64
   const handleCadastrarCandidato = async (e) => {
     e.preventDefault();
@@ -56,20 +66,11 @@ export default function AdminCIPAA({ onLogout }) {
               .getPublicUrl(filePath);
             fotoUrl = publicURLData.publicUrl;
           } else {
-            // Fallback para Base64 se o storage falhar por RLS
-            const reader = new FileReader();
-            fotoUrl = await new Promise((resolve) => {
-              reader.readAsDataURL(fotoFile);
-              reader.onload = () => resolve(reader.result);
-            });
+            fotoUrl = await converterParaBase64(fotoFile);
           }
         } catch (storageErr) {
           console.warn("Erro no storage, a usar Base64:", storageErr);
-          const reader = new FileReader();
-          fotoUrl = await new Promise((resolve) => {
-            reader.readAsDataURL(fotoFile);
-            reader.onload = () => resolve(reader.result);
-          });
+          fotoUrl = await converterParaBase64(fotoFile);
         }
       }
 
@@ -98,16 +99,19 @@ export default function AdminCIPAA({ onLogout }) {
     }
   };
 
-  // Consolidar resultados de apuração (preservando o sigilo absoluto)
-  const resultados = candidatos.map((cand) => {
+  // 1. Contagem de Votos por Candidato
+  const resultadosCandidatos = candidatos.map((cand) => {
     const totalVotos = votos.filter((v) => v.candidato_id === cand.id).length;
     return { ...cand, totalVotos };
   }).sort((a, b) => b.totalVotos - a.totalVotos);
 
+  // 2. Contagem de Votos em Branco (candidato_id é null ou undefined)
+  const totalVotosBrancos = votos.filter((v) => !v.candidato_id).length;
+
   const totalGeralVotos = votos.length;
   const eleitoresVotantes = eleitores.filter((e) => e.ja_votou);
 
-  // 1. Exportar PDF Consolidado de Apuração
+  // Exportar PDF Consolidado de Apuração (Incluindo Votos em Branco)
   const exportarPDFResultados = () => {
     const doc = new jsPDF();
     doc.setFontSize(14);
@@ -116,13 +120,18 @@ export default function AdminCIPAA({ onLogout }) {
     doc.setFontSize(10);
     doc.text(`Total de Votos Computados: ${totalGeralVotos}`, 14, 22);
 
-    const tableColumn = ["Classificação", "Candidato", "Matrícula", "Total de Votos"];
-    const tableRows = resultados.map((res, index) => [
-      index + 1,
+    const tableColumn = ["Classificação", "Candidato / Opção", "Matrícula", "Total de Votos"];
+    
+    // Lista de candidatos ordenada
+    const tableRows = resultadosCandidatos.map((res, index) => [
+      `#${index + 1}`,
       res.nome,
       res.matricula,
-      res.totalVotos
+      `${res.totalVotos} voto(s)`
     ]);
+
+    // Adiciona a linha de Votos em Branco no final do relatório
+    tableRows.push(["-", "Votos em Branco", "N/A", `${totalVotosBrancos} voto(s)`]);
 
     doc.autoTable({
       head: [tableColumn],
@@ -134,7 +143,7 @@ export default function AdminCIPAA({ onLogout }) {
     doc.save(`Apuracao_CIPAA_2026_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
-  // 2. Exportar PDF da Lista de Presença de Votantes (Preservando Sigilo do Voto)
+  // Exportar PDF da Lista de Presença de Votantes
   const exportarPDFListaPresenca = () => {
     const doc = new jsPDF();
     doc.setFontSize(14);
@@ -155,7 +164,7 @@ export default function AdminCIPAA({ onLogout }) {
       head: [tableColumn],
       body: tableRows,
       startY: 28,
-      headStyles: { fillColor: [16, 185, 129] } // Cor verde-esmeralda para presença
+      headStyles: { fillColor: [16, 185, 129] }
     });
 
     doc.save(`Lista_Presenca_Votantes_CIPAA_${new Date().toISOString().split('T')[0]}.pdf`);
@@ -168,7 +177,7 @@ export default function AdminCIPAA({ onLogout }) {
   return (
     <div className="max-w-7xl mx-auto py-12 px-4 space-y-8">
       
-      {/* Cabeçalho do Painel */}
+      {/* Cabeçalho */}
       <div className="flex flex-wrap justify-between items-center bg-white p-6 rounded-3xl border border-gray-100 shadow-sm gap-4">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-[#c5a059]">Painel Administrativo</span>
@@ -194,16 +203,17 @@ export default function AdminCIPAA({ onLogout }) {
       </div>
 
       {/* Métricas do Dashboard */}
-      <div className="grid sm:grid-cols-3 gap-6">
+      <div className="grid sm:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 bg-blue-50 text-[#005a8d] rounded-2xl flex items-center justify-center">
             <BarChart3 className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs text-gray-500 font-medium">Total de Votos Registados</p>
+            <p className="text-xs text-gray-500 font-medium">Total de Votos</p>
             <h3 className="text-2xl font-bold text-[#005a8d]">{totalGeralVotos}</h3>
           </div>
         </div>
+
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 bg-purple-50 text-purple-700 rounded-2xl flex items-center justify-center">
             <Users className="w-6 h-6" />
@@ -213,12 +223,24 @@ export default function AdminCIPAA({ onLogout }) {
             <h3 className="text-2xl font-bold text-purple-900">{candidatos.length}</h3>
           </div>
         </div>
+
+        {/* Métrica de Votos em Branco */}
+        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
+          <div className="w-12 h-12 bg-gray-100 text-gray-600 rounded-2xl flex items-center justify-center">
+            <FileX className="w-6 h-6" />
+          </div>
+          <div>
+            <p className="text-xs text-gray-500 font-medium">Votos em Branco</p>
+            <h3 className="text-2xl font-bold text-gray-700">{totalVotosBrancos}</h3>
+          </div>
+        </div>
+
         <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
           <div className="w-12 h-12 bg-emerald-50 text-emerald-700 rounded-2xl flex items-center justify-center">
             <UserCheck className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs text-gray-500 font-medium">Votantes / Participação</p>
+            <p className="text-xs text-gray-500 font-medium">Votantes / Aptos</p>
             <h3 className="text-2xl font-bold text-emerald-900">{eleitoresVotantes.length} / {eleitores.length}</h3>
           </div>
         </div>
@@ -232,13 +254,14 @@ export default function AdminCIPAA({ onLogout }) {
             <thead>
               <tr className="bg-gray-50 border-b text-[11px] font-bold text-gray-500 uppercase">
                 <th className="p-4">Classificação</th>
-                <th className="p-4">Candidato</th>
+                <th className="p-4">Candidato / Opção</th>
                 <th className="p-4">Matrícula</th>
                 <th className="p-4">Total de Votos</th>
               </tr>
             </thead>
             <tbody className="divide-y text-sm">
-              {resultados.map((res, index) => (
+              {/* Candidatos Individuais */}
+              {resultadosCandidatos.map((res, index) => (
                 <tr key={res.id} className="hover:bg-gray-50">
                   <td className="p-4 font-bold text-gray-400">#{index + 1}</td>
                   <td className="p-4 font-bold text-[#005a8d] flex items-center gap-3">
@@ -249,6 +272,19 @@ export default function AdminCIPAA({ onLogout }) {
                   <td className="p-4 font-bold text-emerald-700">{res.totalVotos} votos</td>
                 </tr>
               ))}
+
+              {/* Linha Destacada de Votos em Branco */}
+              <tr className="bg-gray-50/70 hover:bg-gray-100/70">
+                <td className="p-4 font-bold text-gray-400">-</td>
+                <td className="p-4 font-bold text-gray-600 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+                    <FileX className="w-4 h-4" />
+                  </div>
+                  Votos em Branco
+                </td>
+                <td className="p-4 text-gray-400">N/A</td>
+                <td className="p-4 font-bold text-gray-600">{totalVotosBrancos} votos</td>
+              </tr>
             </tbody>
           </table>
         </div>
