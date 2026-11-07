@@ -7,7 +7,7 @@ import Home from "./pages/Home";
 import InstitucionalSubNav from "./components/InstitucionalSubNav";
 import LoginUnificado from "./admin/LoginUnificado";
 import AdminCorridinha from "./admin/AdminCorridinha";
-import AdminCIPAA from "./admin/AdminCIPAA"; // Importa o painel admin da CIPAA
+import AdminCIPAA from "./admin/AdminCIPAA";
 import Agenda from "./pages/Agenda";
 import ObrasMissoes from "./pages/ObrasMissoes";
 import Noticias from "./pages/Noticias";
@@ -16,7 +16,8 @@ import Contato from "./pages/Contato";
 import Doacoes from "./pages/Doacoes";
 import Pastoral from "./pages/Pastoral";
 import InscricaoCorridinha from "./pages/InscricaoCorridinha";
-import VotacaoCIPAA from "./pages/VotacaoCIPAA"; // Importa a página de votação pública da CIPAA
+import VotacaoCIPAA from "./pages/VotacaoCIPAA";
+import DashboardHospital from "./pages/DashboardHospital"; // Importa a página dedicada ao Hospital
 
 // Import das subpáginas institucionais
 import SobreNos from "./pages/institucional/SobreNos";
@@ -25,7 +26,6 @@ import MadresGerais from "./pages/institucional/MadresGerais";
 import Irmas from "./pages/institucional/Irmas";
 import Memorial from "./pages/institucional/Memorial";
 import CausaDomCampelo from "./pages/institucional/CausaDomCampelo";
-
 
 function LayoutInstitucional({ children }) {
   return (
@@ -58,10 +58,9 @@ export default function App() {
             <Route path="/institucional/memorial" element={<LayoutInstitucional><Memorial /></LayoutInstitucional>} />
             <Route path="/institucional/causa-dom-campelo" element={<LayoutInstitucional><CausaDomCampelo /></LayoutInstitucional>} />
             
-
             <Route path="/agenda" element={<Agenda />} />
             
-            {/* Rotas de Notícias (Listagem geral e visualização de notícia individual por ID) */}
+            {/* Rotas de Notícias */}
             <Route path="/noticias" element={<Noticias />} />
             <Route path="/noticias/:id" element={<Noticias />} />
 
@@ -72,6 +71,9 @@ export default function App() {
             {/* Rotas para a Eleição da CIPAA */}
             <Route path="/votacao-cipaa" element={<VotacaoCIPAA />} />
             <Route path="/admin/cipaa" element={<AdminCIPAA />} />
+
+            {/* Rota dedicada ao Hospital e Maternidade Santa Maria */}
+            <Route path="/hospital" element={<DashboardHospital />} />
 
             <Route path="/vocacional" element={<Vocacional />} />
             <Route path="/pastoral" element={<Pastoral />} />
