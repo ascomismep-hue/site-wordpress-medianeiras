@@ -38,8 +38,7 @@ export default function VotacaoCIPAA() {
       // Data de Término: 10 de Dezembro de 2026 às 17:00:00
       const fimEleicao = new Date(2026, 11, 10, 17, 0, 0);
 
-      // ⚠️ PARA PRODUÇÃO: Descomente as linhas abaixo para travar por horário real do edital:
-      /*
+      // Trava de Horário Real Ativada:
       if (agora < inicioEleicao) {
         setStatusEleicao("futura");
       } else if (agora > fimEleicao) {
@@ -47,13 +46,12 @@ export default function VotacaoCIPAA() {
       } else {
         setStatusEleicao("aberta");
       }
-      */
-
-      // Modo de Desenvolvimento/Testes (Mantém sempre aberta por padrão)
-      setStatusEleicao("aberta");
     }
 
     verificarHorarioEleicao();
+    // Atualiza a cada 30 segundos para garantir que feche/abra sozinho
+    const interval = setInterval(verificarHorarioEleicao, 30000);
+    return () => clearInterval(interval);
   }, []);
 
   // Carregar candidatos ativos da base de dados
@@ -73,7 +71,6 @@ export default function VotacaoCIPAA() {
         setTempoRestante((prev) => prev - 1);
       }, 1000);
     } else if (votacaoConcluida && tempoRestante === 0) {
-      // Reset completo do estado
       setVotacaoConcluida(false);
       setEleitor(null);
       setMatricula("");
@@ -84,7 +81,7 @@ export default function VotacaoCIPAA() {
     return () => clearInterval(timer);
   }, [votacaoConcluida, tempoRestante]);
 
-  // Regra 3: Validar e higienizar a matrícula do colaborador
+  // Validar e higienizar a matrícula do colaborador
   const handleValidarMatricula = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -130,23 +127,20 @@ export default function VotacaoCIPAA() {
     setMostrarModalConfirmacao(true);
   };
 
-  // Regra 4: Confirmar Voto com Sigilo Garantido
+  // Confirmar Voto com Sigilo Garantido
   const handleConfirmarVotoFinal = async () => {
     setLoading(true);
     setErro("");
 
     try {
-      // Se for "BRANCO", grava candidato_id como NULL na tabela anónima
       const candidatoIdParaGravar = candidatoSelecionado === "BRANCO" ? null : candidatoSelecionado;
 
-      // 1. Inserir na tabela anónima de votos
       const { error: erroVoto } = await supabase
         .from("cipaa_votos")
         .insert([{ candidato_id: candidatoIdParaGravar }]);
 
       if (erroVoto) throw erroVoto;
 
-      // 2. Marcar eleitor como votante (sem relacionar ao candidato)
       const { error: erroEleitor } = await supabase
         .from("cipaa_eleitores_aptos")
         .update({ ja_votou: true })
@@ -224,7 +218,6 @@ export default function VotacaoCIPAA() {
     );
   }
 
-  // Dados do candidato selecionado (para o modal)
   const infoCandidato = candidatoSelecionado === "BRANCO" 
     ? { nome: "Voto em Branco", matricula: "N/A" } 
     : candidatos.find(c => c.id === candidatoSelecionado);
@@ -273,7 +266,6 @@ export default function VotacaoCIPAA() {
         ) : (
           <div className="space-y-6">
             
-            {/* Bloco de Identificação do Eleitor */}
             <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-2xl flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500">Eleitor Identificado:</p>
@@ -284,7 +276,6 @@ export default function VotacaoCIPAA() {
               </span>
             </div>
 
-            {/* Aviso de Sigilo Absoluto */}
             <div className="bg-amber-50/60 border border-amber-200/80 p-5 rounded-2xl text-amber-900 text-xs sm:text-sm space-y-1.5 leading-relaxed">
               <div className="flex items-center gap-2 font-bold text-amber-900 uppercase tracking-wider text-xs">
                 <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
@@ -301,7 +292,6 @@ export default function VotacaoCIPAA() {
             <h3 className="font-serif font-bold text-lg text-gray-800 pt-2">Escolha o seu candidato ou opção:</h3>
 
             <div className="grid sm:grid-cols-2 gap-4">
-              {/* Opção Voto em Branco */}
               <div
                 onClick={() => setCandidatoSelecionado("BRANCO")}
                 className={`border-2 rounded-2xl p-4 flex items-center gap-4 cursor-pointer transition-all ${
@@ -319,7 +309,6 @@ export default function VotacaoCIPAA() {
                 </div>
               </div>
 
-              {/* Lista de Candidatos */}
               {candidatos.map((cand) => (
                 <div
                   key={cand.id}
@@ -356,7 +345,6 @@ export default function VotacaoCIPAA() {
 
       </div>
 
-      {/* MODAL DE CONFIRMAÇÃO DUPLA DE VOTO */}
       {mostrarModalConfirmacao && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
@@ -391,7 +379,7 @@ export default function VotacaoCIPAA() {
                 disabled={loading}
                 className="w-1/2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3.5 rounded-2xl text-sm transition-all cursor-pointer"
               >
-                Corrigir Choice
+                Corrigir Escolha
               </button>
               <button
                 onClick={handleConfirmarVotoFinal}
