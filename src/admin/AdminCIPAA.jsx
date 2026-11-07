@@ -28,8 +28,8 @@ export default function AdminCIPAA({ onLogout }) {
   const [matricula, setMatricula] = useState("");
   const [fotoFile, setFotoFile] = useState(null);
 
-  // Regra do Edital: Controlo de Quórum Eleitoral (1º Dia, 2º Dia ou 3º Dia)
-  const [diaVotacao, setDiaVotacao] = useState(1); // 1 = 1º Dia (50%), 2 = 2º Dia (33.33%), 3 = 3º Dia (Sem mínimo)
+  // Controlo de Quórum Eleitoral (Edital Seção 8)
+  const [diaVotacao, setDiaVotacao] = useState(1); // 1 = 1º Dia (50%), 2 = 2º Dia (33.33%), 3 = 3º Dia (Livre)
 
   const carregarDados = async () => {
     setLoading(true);
@@ -47,6 +47,7 @@ export default function AdminCIPAA({ onLogout }) {
     carregarDados();
   }, []);
 
+  // Conversão de segurança para Base64 se o storage falhar
   const converterParaBase64 = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -56,6 +57,7 @@ export default function AdminCIPAA({ onLogout }) {
     });
   };
 
+  // Cadastrar Candidato com upload seguro
   const handleCadastrarCandidato = async (e) => {
     e.preventDefault();
     setUploading(true);
@@ -112,17 +114,15 @@ export default function AdminCIPAA({ onLogout }) {
     }
   };
 
-  // 📊 CÁLCULOS DE APURAÇÃO E QUÓRUM ELEITORAL (EDITAL SEÇÃO 8)
+  // Cálculos de Apuração e Quórum
   const totalGeralVotos = votos.length;
   const eleitoresVotantes = eleitores.filter((e) => e.ja_votou);
   const totalEleitoresAptos = eleitores.length;
 
-  // Calculo percentual de quorum
   const percentualParticipacao = totalEleitoresAptos > 0 
     ? (eleitoresVotantes.length / totalEleitoresAptos) * 100 
     : 0;
 
-  // Verificação de Quórum de acordo com o dia
   const metaQuorumPercentual = diaVotacao === 1 ? 50 : diaVotacao === 2 ? 33.33 : 0;
   const quorumAtingido = diaVotacao === 3 ? true : percentualParticipacao >= metaQuorumPercentual;
 
@@ -133,7 +133,7 @@ export default function AdminCIPAA({ onLogout }) {
 
   const totalVotosBrancos = votos.filter((v) => !v.candidato_id).length;
 
-  // PDF de Apuração Consolidado com Validação de Quórum
+  // Exportar PDF de Apuração Consolidado
   const exportarPDFResultados = () => {
     const doc = new jsPDF();
     doc.setFontSize(14);
@@ -144,7 +144,6 @@ export default function AdminCIPAA({ onLogout }) {
     doc.text(`Total de Eleitores Aptos: ${totalEleitoresAptos}`, 14, 22);
     doc.text(`Total de Votos Computados: ${totalGeralVotos} (${percentualParticipacao.toFixed(2)}% de participação)`, 14, 27);
     
-    // Status do Quórum no PDF
     doc.setTextColor(quorumAtingido ? 16 : 185, quorumAtingido ? 185 : 28, quorumAtingido ? 129 : 28);
     const textoQuorum = quorumAtingido 
       ? `STATUS DO QUÓRUM (${diaVotacao}º Dia): ATINGIDO (${percentualParticipacao.toFixed(2)}% >= Meta ${metaQuorumPercentual}%)`
@@ -173,7 +172,7 @@ export default function AdminCIPAA({ onLogout }) {
     doc.save(`Apuracao_CIPAA_Dia_${diaVotacao}_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
-  // PDF de Lista de Presença
+  // Exportar PDF da Lista de Presença
   const exportarPDFListaPresenca = () => {
     const doc = new jsPDF();
     doc.setFontSize(14);
@@ -232,7 +231,7 @@ export default function AdminCIPAA({ onLogout }) {
         </div>
       </div>
 
-      {/* BLOCO DE VALIDAÇÃO DE QUÓRUM ELEITORAL (SEÇÃO 8 DO EDITAL) */}
+      {/* Validação de Quórum Eleitoral (Edital Seção 8) */}
       <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
         <div className="flex flex-wrap justify-between items-center gap-4 border-b border-gray-100 pb-4">
           <div>
@@ -240,7 +239,6 @@ export default function AdminCIPAA({ onLogout }) {
             <p className="text-xs text-gray-500">Selecione o dia do pleito para verificar a validade do quorum legal.</p>
           </div>
           
-          {/* Seletor do Dia de Votação */}
           <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl border border-gray-200">
             <button 
               onClick={() => setDiaVotacao(1)}
@@ -269,7 +267,6 @@ export default function AdminCIPAA({ onLogout }) {
           </div>
         </div>
 
-        {/* Indicador de Status do Quórum */}
         <div className={`p-5 rounded-2xl flex items-center justify-between border ${
           quorumAtingido 
             ? "bg-emerald-50/70 border-emerald-200 text-emerald-900" 
