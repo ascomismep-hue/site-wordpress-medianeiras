@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Heart, Stethoscope } from "lucide-react";
+import { Heart, Building2 } from "lucide-react";
 
 // Animação suave de flutuação para cima e para baixo
 const floatAnimation = `
@@ -38,24 +38,22 @@ export default function FloatingDonationButton() {
           </div>
         </Link>
 
-        {/* BOTÃO 2: ISMEP SAÚDE / ACESSE O ISMEP (VERDE) */}
-        <a
-          href="https://ismepsaude.org.br/" 
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group flex items-center bg-[#10b981] hover:bg-[#059669] text-white p-3.5 rounded-full shadow-lg transition-all duration-300 hover:shadow-xl border border-white/20"
-          title="ACESSE O ISMEP"
+        {/* BOTÃO 2: HOSPITAL SANTA MARIA (AZUL INSTITUCIONAL) */}
+        <Link
+          to="/hospital" 
+          className="group flex items-center bg-[#005a8d] hover:bg-[#004068] text-white p-3.5 rounded-full shadow-lg transition-all duration-300 hover:shadow-xl border border-white/20"
+          title="HOSPITAL SANTA MARIA"
         >
           {/* Texto deslizante que aparece ao passar o rato */}
           <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs group-hover:px-3 transition-all duration-300 ease-in-out text-xs font-serif font-bold tracking-wide uppercase">
-            ACESSE O ISMEP
+            HOSPITAL SANTA MARIA
           </span>
 
-          {/* Círculo do Ícone */}
+          {/* Círculo do Ícone (Atualizado para o ícone de Hospital/Edifício e cor coordenada) */}
           <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-            <Stethoscope className="w-5 h-5 text-white" />
+            <Building2 className="w-5 h-5 text-white" />
           </div>
-        </a>
+        </Link>
 
       </div>
     </>
