@@ -1,5 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/api/supabaseClient";
 import { 
   Building2, 
   Activity, 
@@ -8,9 +9,8 @@ import {
   PieChart as PieIcon,
   BarChart2,
   Download,
-  ShieldAlert,
-  ArrowLeft,
-  Settings
+  Settings,
+  Loader2
 } from "lucide-react";
 import { 
   PieChart, 
@@ -28,19 +28,33 @@ import {
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
-// Paleta Oficial: Azul Institucional com Vermelho Clínico (Logótipo HMSM)
-const COLOR_AZUL_PRINCIPAL = "#003b6f";
-const COLOR_VERMELHO_DESTAQUE = "#e31e24";
 const COLORS_UPA = ["#003b6f", "#e31e24", "#0284c7", "#f59e0b", "#10b981"];
 const COLORS_UTI = ["#003b6f", "#e31e24", "#06b6d4", "#f59e0b"];
-const COLORS_PARTOS = ["#e31e24", "#003b6f", "#f43f5e"];
 
 export default function DashboardHospital() {
+  const [anoSelecionado, setAnoSelecionado] = useState(2026);
   const [mesSelecionado, setMesSelecionado] = useState("TODOS");
+  const [loading, setLoading] = useState(true);
+  const [dadosBanco, setDadosBanco] = useState({ 2025: null, 2026: null });
   const [gerandoPdf, setGerandoPdf] = useState(false);
   const dashboardRef = useRef(null);
 
-  // Dados Assistenciais Mensais de 2026
+  useEffect(() => {
+    carregarDadosSupabase();
+  }, []);
+
+  async function carregarDadosSupabase() {
+    setLoading(true);
+    const { data, error } = await supabase.from("hmsm_indicadores").select("*");
+    if (!error && data) {
+      const mapa = {};
+      data.forEach(item => { mapa[item.ano] = item; });
+      setDadosBanco(mapa);
+    }
+    setLoading(false);
+  }
+
+  // Dados mensais para gráficos de 2026
   const dadosMensais2026 = [
     { mes: "JAN", urgencias: 156, ambulatorio: 1155, procedimentos: 3205, uti: 98, partos: 155, rx: 1683 },
     { mes: "FEV", urgencias: 143, ambulatorio: 1394, procedimentos: 2169, uti: 106, partos: 191, rx: 1455 },
@@ -68,35 +82,39 @@ export default function DashboardHospital() {
     { name: "UTI Adulto 1 (Marcos Live)", value: 138 }
   ];
 
-  const dadosPizzaPartos = [
-    { name: "Parto Normal", value: 743 },
-    { name: "Parto Cesariano", value: 740 },
-    { name: "Curetagem", value: 111 }
-  ];
+  const atualAnoDados = dadosBanco[anoSelecionado] || {
+    urgencia_upa: 0,
+    consultas_ambulatoriais: 0,
+    procedimentos_consultas: 0,
+    cirurgias_eletivas: 0,
+    internamentos_total: 0,
+    partos_total: 0,
+    exames_rx: 0
+  };
 
-  const dadosFiltrados = mesSelecionado === "TODOS"
-    ? dadosMensais2026.reduce((acc, curr) => ({
-        urgencias: acc.urgencias + curr.urgencias,
-        ambulatorio: acc.ambulatorio + curr.ambulatorio,
-        procedimentos: acc.procedimentos + curr.procedimentos,
-        uti: acc.uti + curr.uti,
-        partos: acc.partos + curr.partos,
-        rx: acc.rx + curr.rx
-      }), { urgencias: 0, ambulatorio: 0, procedimentos: 0, uti: 0, partos: 0, rx: 0 })
-    : dadosMensais2026.find(d => d.mes === mesSelecionado) || { urgencias: 0, ambulatorio: 0, procedimentos: 0, uti: 0, partos: 0, rx: 0 };
+  const dadosFiltrados = (anoSelecionado === 2026 && mesSelecionado !== "TODOS")
+    ? dadosMensais2026.find(d => d.mes === mesSelecionado) || { urgencias: 0, ambulatorio: 0, procedimentos: 0, uti: 0, partos: 0, rx: 0 }
+    : {
+        urgencias: atualAnoDados.urgencia_upa,
+        ambulatorio: atualAnoDados.consultas_ambulatoriais,
+        procedimentos: atualAnoDados.procedimentos_consultas,
+        uti: atualAnoDados.internamentos_total,
+        partos: atualAnoDados.partos_total,
+        rx: atualAnoDados.exames_rx
+      };
 
-  const totalAtendimentosFiltrados = 
-    dadosFiltrados.urgencias + 
-    dadosFiltrados.ambulatorio + 
-    dadosFiltrados.procedimentos + 
-    dadosFiltrados.uti + 
-    dadosFiltrados.partos + 
-    dadosFiltrados.rx;
+  const totalAtendimentosCalculado = 
+    (atualAnoDados.urgencia_upa || 0) + 
+    (atualAnoDados.consultas_ambulatoriais || 0) + 
+    (atualAnoDados.procedimentos_consultas || 0) + 
+    (atualAnoDados.cirurgias_eletivas || 0) + 
+    (atualAnoDados.internamentos_total || 0) + 
+    (atualAnoDados.partos_total || 0) + 
+    (atualAnoDados.exames_rx || 0);
 
   const exportarDashboardPDF = async () => {
     if (!dashboardRef.current) return;
     setGerandoPdf(true);
-
     try {
       const canvas = await html2canvas(dashboardRef.current, { scale: 2 });
       const imgData = canvas.toDataURL("image/png");
@@ -116,33 +134,42 @@ export default function DashboardHospital() {
         pdf.addImage(imgData, "PNG", 0, position, imgWidth, imgHeight);
         heightLeft -= pageHeight;
       }
-
-      pdf.save(`Dashboard_HMSM_Indicadores_${mesSelecionado}_2026.pdf`);
+      pdf.save(`Dashboard_HMSM_${anoSelecionado}.pdf`);
     } catch (err) {
       console.error("Erro ao gerar PDF:", err);
-      alert("Erro ao exportar o relatório em PDF.");
     } finally {
       setGerandoPdf(false);
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100">
+        <Loader2 className="w-8 h-8 animate-spin text-[#003b6f]" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-100 text-slate-800 font-sans">
       
-      {/* CABEÇALHO DO HOSPITAL (AZUL COM VERMELHO) */}
+      {/* CABEÇALHO COM LOGOMARCA OFICIAL */}
       <header className="bg-gradient-to-r from-[#003b6f] to-[#005a8d] text-white border-b-4 border-[#e31e24] sticky top-0 z-40 shadow-md">
-        <div className="max-w-7xl mx-auto px-4 py-5 flex flex-wrap items-center justify-between gap-4">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
           
           <div className="flex items-center gap-3.5">
-            <div className="w-13 h-13 bg-white rounded-2xl flex items-center justify-center shadow-lg border-2 border-[#e31e24]">
-              <Building2 className="w-7 h-7 text-[#003b6f]" />
+            <div className="w-14 h-14 bg-white rounded-2xl p-1.5 flex items-center justify-center shadow-md border-2 border-[#e31e24]">
+              <img 
+                src="/LOGO MARCA HOSPITAL - OFICIAL DIVULGAÇÃO.png" 
+                alt="Logótipo HMSM" 
+                className="w-full h-full object-contain"
+                onError={(e) => { e.target.style.display = 'none'; }} 
+              />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-widest bg-[#e31e24] text-white px-2.5 py-0.5 rounded-full shadow-sm">
-                  ISMEP • Medianeiras da Paz
-                </span>
-              </div>
+              <span className="text-[10px] font-bold uppercase tracking-widest bg-[#e31e24] text-white px-2.5 py-0.5 rounded-full shadow-sm">
+                ISMEP • Medianeiras da Paz
+              </span>
               <h1 className="text-xl md:text-2xl font-serif font-bold text-white mt-0.5">Hospital e Maternidade Santa Maria</h1>
             </div>
           </div>
@@ -158,7 +185,7 @@ export default function DashboardHospital() {
             </button>
 
             <Link
-              to="/admin/hospital"
+              to="/admin"
               className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/30 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer shadow-sm"
             >
               <Settings className="w-4 h-4 text-[#e31e24]" />
@@ -171,66 +198,93 @@ export default function DashboardHospital() {
 
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-8" ref={dashboardRef}>
 
-        {/* FILTRAGEM DINÂMICA DE MESES */}
+        {/* SELETOR DE ANO E MÊS */}
         <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 bg-blue-50 text-[#003b6f] rounded-2xl flex items-center justify-center border border-blue-100">
               <Calendar className="w-5 h-5 text-[#e31e24]" />
             </div>
             <div>
-              <h3 className="font-serif font-bold text-base text-[#003b6f]">Filtrar Indicadores por Mês</h3>
-              <p className="text-xs text-slate-500">Selecione o período para atualizar os gráficos assistenciais do HMSM.</p>
+              <h3 className="font-serif font-bold text-base text-[#003b6f]">Filtro de Indicadores Assistenciais</h3>
+              <p className="text-xs text-slate-500">Alterne entre os anos de 2025 e 2026 para visualizar os demonstrativos.</p>
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
-            <button
-              onClick={() => setMesSelecionado("TODOS")}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                mesSelecionado === "TODOS" ? "bg-[#003b6f] text-white shadow-md" : "text-slate-600 hover:bg-slate-200"
-              }`}
-            >
-              Ano Acumulado
-            </button>
-            {dadosMensais2026.map((d) => (
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Seletor de Ano */}
+            <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
               <button
-                key={d.mes}
-                onClick={() => setMesSelecionado(d.mes)}
-                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  mesSelecionado === d.mes ? "bg-[#003b6f] text-white shadow-md" : "text-slate-600 hover:bg-slate-200"
+                onClick={() => { setAnoSelecionado(2025); setMesSelecionado("TODOS"); }}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  anoSelecionado === 2025 ? "bg-[#003b6f] text-white shadow-md" : "text-slate-600 hover:bg-slate-200"
                 }`}
               >
-                {d.mes}
+                Ano 2025
               </button>
-            ))}
+              <button
+                onClick={() => { setAnoSelecionado(2026); setMesSelecionado("TODOS"); }}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  anoSelecionado === 2026 ? "bg-[#003b6f] text-white shadow-md" : "text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                Ano 2026
+              </button>
+            </div>
+
+            {/* Seletor de Mês (Apenas para 2026) */}
+            {anoSelecionado === 2026 && (
+              <div className="flex flex-wrap gap-1 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                <button
+                  onClick={() => setMesSelecionado("TODOS")}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    mesSelecionado === "TODOS" ? "bg-[#e31e24] text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  Acumulado
+                </button>
+                {dadosMensais2026.map((d) => (
+                  <button
+                    key={d.mes}
+                    onClick={() => setMesSelecionado(d.mes)}
+                    className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      mesSelecionado === d.mes ? "bg-[#e31e24] text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
+                    }`}
+                  >
+                    {d.mes}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
         {/* CARDS DE MÉTRICAS */}
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="bg-white p-6 rounded-3xl border-t-4 border-[#003b6f] shadow-sm space-y-2">
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Atendimentos ({mesSelecionado})</span>
-            <h3 className="text-3xl font-serif font-bold text-[#003b6f]">{totalAtendimentosFiltrados.toLocaleString("pt-BR")}</h3>
+            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Atendimentos ({anoSelecionado})</span>
+            <h3 className="text-3xl font-serif font-bold text-[#003b6f]">
+              {(anoSelecionado === 2025 ? 85242 : totalAtendimentosCalculado).toLocaleString("pt-BR")}
+            </h3>
             <p className="text-[11px] text-slate-400 font-medium">Assistência SUS Consolidada</p>
           </div>
 
           <div className="bg-white p-6 rounded-3xl border-t-4 border-[#e31e24] shadow-sm space-y-2">
             <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Consultas & Procedimentos</span>
             <h3 className="text-3xl font-serif font-bold text-slate-800">
-              {(dadosFiltrados.ambulatorio + dadosFiltrados.procedimentos).toLocaleString("pt-BR")}
+              {((atualAnoDados.consultas_ambulatoriais || 0) + (atualAnoDados.procedimentos_consultas || 0)).toLocaleString("pt-BR")}
             </h3>
             <p className="text-[11px] text-[#e31e24] font-bold">Atendimentos Ambulatoriais</p>
           </div>
 
           <div className="bg-white p-6 rounded-3xl border-t-4 border-[#003b6f] shadow-sm space-y-2">
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Internações & UTI</span>
-            <h3 className="text-3xl font-serif font-bold text-slate-800">{dadosFiltrados.uti.toLocaleString("pt-BR")}</h3>
+            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Internamentos & UTI</span>
+            <h3 className="text-3xl font-serif font-bold text-slate-800">{(atualAnoDados.internamentos_total || 0).toLocaleString("pt-BR")}</h3>
             <p className="text-[11px] text-slate-400 font-medium">Leitos de Alta Complexidade</p>
           </div>
 
           <div className="bg-white p-6 rounded-3xl border-t-4 border-[#e31e24] shadow-sm space-y-2">
             <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Partos Realizados</span>
-            <h3 className="text-3xl font-serif font-bold text-[#e31e24]">{dadosFiltrados.partos.toLocaleString("pt-BR")}</h3>
+            <h3 className="text-3xl font-serif font-bold text-[#e31e24]">{(atualAnoDados.partos_total || 0).toLocaleString("pt-BR")}</h3>
             <p className="text-[11px] text-slate-500 font-medium">Maternidade HMSM</p>
           </div>
         </div>
@@ -296,26 +350,28 @@ export default function DashboardHospital() {
         </div>
 
         {/* EVOLUÇÃO MENSAL EM BARRAS */}
-        <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-          <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
-            <BarChart2 className="w-5 h-5 text-[#e31e24]" />
-            <h4 className="font-serif font-bold text-base text-[#003b6f]">Evolução de Atendimentos Mensais (2026)</h4>
+        {anoSelecionado === 2026 && (
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
+              <BarChart2 className="w-5 h-5 text-[#e31e24]" />
+              <h4 className="font-serif font-bold text-base text-[#003b6f]">Evolução de Atendimentos Mensais (2026)</h4>
+            </div>
+            <div className="h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={dadosMensais2026}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="mes" style={{ fontSize: '11px' }} />
+                  <YAxis style={{ fontSize: '11px' }} />
+                  <Tooltip />
+                  <Legend wrapperStyle={{ fontSize: "11px" }} />
+                  <Bar dataKey="procedimentos" name="Consultas / Procedimentos" fill="#003b6f" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="rx" name="Exames RX Geral" fill="#e31e24" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="partos" name="Partos Realizados" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
-          <div className="h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dadosMensais2026}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="mes" style={{ fontSize: '11px' }} />
-                <YAxis style={{ fontSize: '11px' }} />
-                <Tooltip />
-                <Legend wrapperStyle={{ fontSize: "11px" }} />
-                <Bar dataKey="procedimentos" name="Consultas / Procedimentos" fill="#003b6f" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="rx" name="Exames RX Geral" fill="#e31e24" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="partos" name="Partos Realizados" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
+        )}
 
       </main>
     </div>
