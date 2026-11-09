@@ -8,6 +8,7 @@ import InstitucionalSubNav from "./components/InstitucionalSubNav";
 import LoginUnificado from "./admin/LoginUnificado";
 import AdminCorridinha from "./admin/AdminCorridinha";
 import AdminCIPAA from "./admin/AdminCIPAA";
+import AdminHospital from "./admin/AdminHospital"; // Importa o painel administrativo do Hospital
 import Agenda from "./pages/Agenda";
 import ObrasMissoes from "./pages/ObrasMissoes";
 import Noticias from "./pages/Noticias";
@@ -17,7 +18,7 @@ import Doacoes from "./pages/Doacoes";
 import Pastoral from "./pages/Pastoral";
 import InscricaoCorridinha from "./pages/InscricaoCorridinha";
 import VotacaoCIPAA from "./pages/VotacaoCIPAA";
-import DashboardHospital from "./pages/DashboardHospital"; // Importa a página dedicada ao Hospital
+import DashboardHospital from "./pages/DashboardHospital"; // Importa a página pública dedicada ao Hospital
 
 // Import das subpáginas institucionais
 import SobreNos from "./pages/institucional/SobreNos";
@@ -72,8 +73,9 @@ export default function App() {
             <Route path="/votacao-cipaa" element={<VotacaoCIPAA />} />
             <Route path="/admin/cipaa" element={<AdminCIPAA />} />
 
-            {/* Rota dedicada ao Hospital e Maternidade Santa Maria */}
+            {/* Rotas dedicadas ao Hospital e Maternidade Santa Maria */}
             <Route path="/hospital" element={<DashboardHospital />} />
+            <Route path="/admin/hospital" element={<AdminHospital />} />
 
             <Route path="/vocacional" element={<Vocacional />} />
             <Route path="/pastoral" element={<Pastoral />} />
