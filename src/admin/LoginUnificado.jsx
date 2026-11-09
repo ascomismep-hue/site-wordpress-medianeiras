@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { 
   Shield, Lock, Calendar, Church, Heart, Loader2, Newspaper, 
-  Sparkles, Building2, Baby, ShieldCheck 
+  Sparkles, Building2, Baby, ShieldCheck, Stethoscope 
 } from "lucide-react";
 import AdminDashboard from "./AdminDashboard";
 import AdminAgenda from "./AdminAgenda";
@@ -11,7 +11,8 @@ import AdminNoticias from "./AdminNoticias";
 import AdminVocacional from "./AdminVocacional";
 import AdminDoacoes from "./AdminDoacoes";
 import AdminCorridinha from "./AdminCorridinha";
-import AdminCIPAA from "./AdminCIPAA"; // Importa o painel administrativo da CIPAA
+import AdminCIPAA from "./AdminCIPAA";
+import AdminHospital from "./AdminHospital"; // Importa o painel administrativo do Hospital
 
 export default function LoginUnificado() {
   const [tipoPainel, setTipoPainel] = useState("institucional");
@@ -80,6 +81,8 @@ export default function LoginUnificado() {
       return <AdminCorridinha onLogout={handleLogout} />;
     } else if (logado.tipo === "cipaa") {
       return <AdminCIPAA onLogout={handleLogout} />;
+    } else if (logado.tipo === "hospital") {
+      return <AdminHospital onLogout={handleLogout} />;
     }
   }
 
@@ -187,7 +190,6 @@ export default function LoginUnificado() {
                 <Baby className="w-4 h-4 text-purple-600" /> Corridinha
               </button>
 
-              {/* Novo Botão para o Painel da CIPAA */}
               <button
                 type="button"
                 onClick={() => { setTipoPainel("cipaa"); setErro(false); }}
@@ -198,6 +200,19 @@ export default function LoginUnificado() {
                 }`}
               >
                 <ShieldCheck className="w-4 h-4 text-emerald-600" /> Eleição CIPAA
+              </button>
+
+              {/* Botão para o Painel Administrativo do Hospital */}
+              <button
+                type="button"
+                onClick={() => { setTipoPainel("hospital"); setErro(false); }}
+                className={`py-3 px-2 rounded-xl font-bold text-[11px] flex flex-col items-center justify-center gap-1.5 border transition-all border-blue-200 ${
+                  tipoPainel === "hospital" 
+                    ? "bg-[#003b6f] text-white border-[#003b6f] shadow-sm" 
+                    : "bg-blue-50/50 text-[#003b6f] border-blue-100 hover:bg-blue-100"
+                }`}
+              >
+                <Stethoscope className="w-4 h-4 text-[#e31e24]" /> Hospital Santa Maria
               </button>
             </div>
           </div>
