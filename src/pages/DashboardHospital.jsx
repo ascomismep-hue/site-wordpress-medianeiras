@@ -6,7 +6,6 @@ import {
   Activity, 
   Bed, 
   Calendar,
-  PieChart as PieIcon,
   BarChart2,
   Download,
   Settings,
@@ -28,89 +27,115 @@ import {
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
+const MESES = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+const ANOS = [2025, 2026, 2027];
+
 const COLORS_UPA = ["#003b6f", "#e31e24", "#0284c7", "#f59e0b", "#10b981"];
 const COLORS_UTI = ["#003b6f", "#e31e24", "#06b6d4", "#f59e0b"];
 
 export default function DashboardHospital() {
-  const [anoSelecionado, setAnoSelecionado] = useState(2026);
+  const [anoSelecionado, setAnoSelecionado] = useState(2027);
   const [mesSelecionado, setMesSelecionado] = useState("TODOS");
   const [loading, setLoading] = useState(true);
-  const [dadosBanco, setDadosBanco] = useState({ 2025: null, 2026: null });
+  const [dadosMensaisBanco, setDadosMensaisBanco] = useState([]);
   const [gerandoPdf, setGerandoPdf] = useState(false);
   const dashboardRef = useRef(null);
 
   useEffect(() => {
-    carregarDadosSupabase();
-  }, []);
+    carregarDadosAno(anoSelecionado);
+  }, [anoSelecionado]);
 
-  async function carregarDadosSupabase() {
+  async function carregarDadosAno(ano) {
     setLoading(true);
-    const { data, error } = await supabase.from("hmsm_indicadores").select("*");
+    const { data, error } = await supabase
+      .from("hmsm_indicadores_mensais")
+      .select("*")
+      .eq("ano", ano);
+
     if (!error && data) {
-      const mapa = {};
-      data.forEach(item => { mapa[item.ano] = item; });
-      setDadosBanco(mapa);
+      setDadosMensaisBanco(data);
+    } else {
+      setDadosMensaisBanco([]);
     }
     setLoading(false);
   }
 
-  // Dados mensais para gráficos de 2026
-  const dadosMensais2026 = [
-    { mes: "JAN", urgencias: 156, ambulatorio: 1155, procedimentos: 3205, uti: 98, partos: 155, rx: 1683 },
-    { mes: "FEV", urgencias: 143, ambulatorio: 1394, procedimentos: 2169, uti: 106, partos: 191, rx: 1455 },
-    { mes: "MAR", urgencias: 140, ambulatorio: 1330, procedimentos: 2831, uti: 112, partos: 185, rx: 1440 },
-    { mes: "ABR", urgencias: 165, ambulatorio: 1200, procedimentos: 3430, uti: 94, partos: 198, rx: 1445 },
-    { mes: "MAI", urgencias: 125, ambulatorio: 1223, procedimentos: 3590, uti: 89, partos: 194, rx: 1646 },
-    { mes: "JUN", urgencias: 180, ambulatorio: 1166, procedimentos: 3239, uti: 91, partos: 173, rx: 1656 },
-    { mes: "JUL", urgencias: 114, ambulatorio: 1176, procedimentos: 2643, uti: 87, partos: 142, rx: 1457 },
-    { mes: "AGO", urgencias: 103, ambulatorio: 826, procedimentos: 2477, uti: 84, partos: 177, rx: 1518 },
-    { mes: "SET", urgencias: 142, ambulatorio: 807, procedimentos: 2711, uti: 79, partos: 179, rx: 1369 }
-  ];
+  // Filtrar dados do mês selecionado ou somar acumulado do ano
+  const dadosFiltrados = mesSelecionado === "TODOS"
+    ? dadosMensaisBanco.reduce((acc, curr) => ({
+        urgencias: acc.urgencias + (curr.acidente_automobilistico + curr.acidente_domestico + curr.acidente_motociclistico + curr.acidente_trabalho + curr.agressao_fisica),
+        ambulatorio: acc.ambulatorio + curr.consulta_ambulatorial,
+        procedimentos: acc.procedimentos + curr.consulta_procedimento,
+        internamentos: acc.internamentos + (curr.clinica_cirurgica + curr.clinica_medica + curr.clinica_pediatrica + curr.clinica_ortopedica + curr.cardiologia + curr.saude_mental + curr.uti_adulto_1 + curr.uti_adulto_2 + curr.uti_neo + curr.uti_ped),
+        partos: acc.partos + (curr.parto_cesariano + curr.parto_normal + curr.curetagem),
+        rx: acc.rx + curr.rx_geral,
+        cirurgias: acc.cirurgias + curr.cirurgias_eletivas
+      }), { urgencias: 0, ambulatorio: 0, procedimentos: 0, internamentos: 0, partos: 0, rx: 0, cirurgias: 0 })
+    : (() => {
+        const m = dadosMensaisBanco.find(d => d.mes === mesSelecionado);
+        if (!m) return { urgencias: 0, ambulatorio: 0, procedimentos: 0, internamentos: 0, partos: 0, rx: 0, cirurgias: 0 };
+        return {
+          urgencias: m.acidente_automobilistico + m.acidente_domestico + m.acidente_motociclistico + m.acidente_trabalho + m.agressao_fisica,
+          ambulatorio: m.consulta_ambulatorial,
+          procedimentos: m.consulta_procedimento,
+          internamentos: m.clinica_cirurgica + m.clinica_medica + m.clinica_pediatrica + m.clinica_ortopedica + m.cardiologia + m.saude_mental + m.uti_adulto_1 + m.uti_adulto_2 + m.uti_neo + m.uti_ped,
+          partos: m.parto_cesariano + m.parto_normal + m.curetagem,
+          rx: m.rx_geral,
+          cirurgias: m.cirurgias_eletivas
+        };
+      })();
+
+  const totalAtendimentosGeral = 
+    dadosFiltrados.urgencias + 
+    dadosFiltrados.ambulatorio + 
+    dadosFiltrados.procedimentos + 
+    dadosFiltrados.internamentos + 
+    dadosFiltrados.partos + 
+    dadosFiltrados.rx +
+    dadosFiltrados.cirurgias;
+
+  // Dados para gráficos de pizza UPA (somatório do ano)
+  const somaUpaTotal = dadosMensaisBanco.reduce((acc, curr) => ({
+    moto: acc.moto + curr.acidente_motociclistico,
+    agressao: acc.agressao + curr.agressao_fisica,
+    auto: acc.auto + curr.acidente_automobilistico,
+    trabalho: acc.trabalho + curr.acidente_trabalho,
+    domestico: acc.domestico + curr.acidente_domestico
+  }), { moto: 0, agressao: 0, auto: 0, trabalho: 0, domestico: 0 });
 
   const dadosPizzaUpa = [
-    { name: "Acidente Motociclístico", value: 827 },
-    { name: "Agressão Física", value: 277 },
-    { name: "Acidente Automobilístico", value: 92 },
-    { name: "Acidente de Trabalho", value: 55 },
-    { name: "Acidente Doméstico", value: 17 }
+    { name: "Acidente Motociclístico", value: somaUpaTotal.moto || 1 },
+    { name: "Agressão Física", value: somaUpaTotal.agressao || 1 },
+    { name: "Acidente Automobilístico", value: somaUpaTotal.auto || 1 },
+    { name: "Acidente de Trabalho", value: somaUpaTotal.trabalho || 1 },
+    { name: "Acidente Doméstico", value: somaUpaTotal.domestico || 1 }
   ];
+
+  // Dados para gráficos de pizza UTI (somatório do ano)
+  const somaUtiTotal = dadosMensaisBanco.reduce((acc, curr) => ({
+    uti2: acc.uti2 + curr.uti_adulto_2,
+    utip: acc.utip + curr.uti_ped,
+    otineo: acc.otineo + curr.uti_neo,
+    uti1: acc.uti1 + curr.uti_adulto_1
+  }), { uti2: 0, utip: 0, otineo: 0, uti1: 0 });
 
   const dadosPizzaUti = [
-    { name: "UTI Adulto 2 (Dom Campelo)", value: 268 },
-    { name: "UTI Pediátrica (Ir. Minervina)", value: 235 },
-    { name: "UTI Neonatal (Ir. Josefa)", value: 191 },
-    { name: "UTI Adulto 1 (Marcos Live)", value: 138 }
+    { name: "UTI Adulto 2 (Dom Campelo)", value: somaUtiTotal.uti2 || 1 },
+    { name: "UTI Pediátrica (Ir. Minervina)", value: somaUtiTotal.utip || 1 },
+    { name: "UTI Neonatal (Ir. Josefa)", value: somaUtiTotal.otineo || 1 },
+    { name: "UTI Adulto 1 (Marcos Live)", value: somaUtiTotal.uti1 || 1 }
   ];
 
-  const atualAnoDados = dadosBanco[anoSelecionado] || {
-    urgencia_upa: 0,
-    consultas_ambulatoriais: 0,
-    procedimentos_consultas: 0,
-    cirurgias_eletivas: 0,
-    internamentos_total: 0,
-    partos_total: 0,
-    exames_rx: 0
-  };
-
-  const dadosFiltrados = (anoSelecionado === 2026 && mesSelecionado !== "TODOS")
-    ? dadosMensais2026.find(d => d.mes === mesSelecionado) || { urgencias: 0, ambulatorio: 0, procedimentos: 0, uti: 0, partos: 0, rx: 0 }
-    : {
-        urgencias: atualAnoDados.urgencia_upa,
-        ambulatorio: atualAnoDados.consultas_ambulatoriais,
-        procedimentos: atualAnoDados.procedimentos_consultas,
-        uti: atualAnoDados.internamentos_total,
-        partos: atualAnoDados.partos_total,
-        rx: atualAnoDados.exames_rx
-      };
-
-  const totalAtendimentosCalculado = 
-    (atualAnoDados.urgencia_upa || 0) + 
-    (atualAnoDados.consultas_ambulatoriais || 0) + 
-    (atualAnoDados.procedimentos_consultas || 0) + 
-    (atualAnoDados.cirurgias_eletivas || 0) + 
-    (atualAnoDados.internamentos_total || 0) + 
-    (atualAnoDados.partos_total || 0) + 
-    (atualAnoDados.exames_rx || 0);
+  // Dados formatados para o gráfico de barras mensal
+  const dadosBarraMensal = MESES.map(mesStr => {
+    const m = dadosMensaisBanco.find(d => d.mes === mesStr);
+    return {
+      mes: mesStr,
+      procedimentos: m ? (m.consulta_ambulatorial + m.consulta_procedimento) : 0,
+      rx: m ? m.rx_geral : 0,
+      partos: m ? (m.parto_cesariano + m.parto_normal + m.curetagem) : 0
+    };
+  });
 
   const exportarDashboardPDF = async () => {
     if (!dashboardRef.current) return;
@@ -141,14 +166,6 @@ export default function DashboardHospital() {
       setGerandoPdf(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-100">
-        <Loader2 className="w-8 h-8 animate-spin text-[#003b6f]" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-800 font-sans">
@@ -206,171 +223,168 @@ export default function DashboardHospital() {
             </div>
             <div>
               <h3 className="font-serif font-bold text-base text-[#003b6f]">Filtro de Indicadores Assistenciais</h3>
-              <p className="text-xs text-slate-500">Alterne entre os anos de 2025 e 2026 para visualizar os demonstrativos.</p>
+              <p className="text-xs text-slate-500">Selecione o ano e o mês para visualizar os demonstrativos do HMSM.</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
             {/* Seletor de Ano */}
             <div className="flex bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
-              <button
-                onClick={() => { setAnoSelecionado(2025); setMesSelecionado("TODOS"); }}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  anoSelecionado === 2025 ? "bg-[#003b6f] text-white shadow-md" : "text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                Ano 2025
-              </button>
-              <button
-                onClick={() => { setAnoSelecionado(2026); setMesSelecionado("TODOS"); }}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  anoSelecionado === 2026 ? "bg-[#003b6f] text-white shadow-md" : "text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                Ano 2026
-              </button>
-            </div>
-
-            {/* Seletor de Mês (Apenas para 2026) */}
-            {anoSelecionado === 2026 && (
-              <div className="flex flex-wrap gap-1 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+              {ANOS.map(ano => (
                 <button
-                  onClick={() => setMesSelecionado("TODOS")}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                    mesSelecionado === "TODOS" ? "bg-[#e31e24] text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
+                  key={ano}
+                  onClick={() => { setAnoSelecionado(ano); setMesSelecionado("TODOS"); }}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    anoSelecionado === ano ? "bg-[#003b6f] text-white shadow-md" : "text-slate-600 hover:bg-slate-200"
                   }`}
                 >
-                  Acumulado
+                  {ano}
                 </button>
-                {dadosMensais2026.map((d) => (
-                  <button
-                    key={d.mes}
-                    onClick={() => setMesSelecionado(d.mes)}
-                    className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      mesSelecionado === d.mes ? "bg-[#e31e24] text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
-                    }`}
-                  >
-                    {d.mes}
-                  </button>
-                ))}
+              ))}
+            </div>
+
+            {/* Seletor de Mês */}
+            <div className="flex flex-wrap gap-1 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+              <button
+                onClick={() => setMesSelecionado("TODOS")}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  mesSelecionado === "TODOS" ? "bg-[#e31e24] text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
+                }`}
+              >
+                Acumulado
+              </button>
+              {MESES.map((mesStr) => (
+                <button
+                  key={mesStr}
+                  onClick={() => setMesSelecionado(mesStr)}
+                  className={`px-2.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    mesSelecionado === mesStr ? "bg-[#e31e24] text-white shadow-sm" : "text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  {mesStr}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#003b6f]" /></div>
+        ) : (
+          <>
+            {/* CARDS DE MÉTRICAS */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-white p-6 rounded-3xl border-t-4 border-[#003b6f] shadow-sm space-y-2">
+                <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Atendimentos ({mesSelecionado === "TODOS" ? anoSelecionado : `${mesSelecionado}/${anoSelecionado}`})</span>
+                <h3 className="text-3xl font-serif font-bold text-[#003b6f]">
+                  {totalAtendimentosGeral.toLocaleString("pt-BR")}
+                </h3>
+                <p className="text-[11px] text-slate-400 font-medium">Assistência SUS Consolidada</p>
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* CARDS DE MÉTRICAS */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white p-6 rounded-3xl border-t-4 border-[#003b6f] shadow-sm space-y-2">
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Atendimentos ({anoSelecionado})</span>
-            <h3 className="text-3xl font-serif font-bold text-[#003b6f]">
-              {(anoSelecionado === 2025 ? 85242 : totalAtendimentosCalculado).toLocaleString("pt-BR")}
-            </h3>
-            <p className="text-[11px] text-slate-400 font-medium">Assistência SUS Consolidada</p>
-          </div>
+              <div className="bg-white p-6 rounded-3xl border-t-4 border-[#e31e24] shadow-sm space-y-2">
+                <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Consultas & Procedimentos</span>
+                <h3 className="text-3xl font-serif font-bold text-slate-800">
+                  {(dadosFiltrados.ambulatorio + dadosFiltrados.procedimentos).toLocaleString("pt-BR")}
+                </h3>
+                <p className="text-[11px] text-[#e31e24] font-bold">Atendimentos Ambulatoriais</p>
+              </div>
 
-          <div className="bg-white p-6 rounded-3xl border-t-4 border-[#e31e24] shadow-sm space-y-2">
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Consultas & Procedimentos</span>
-            <h3 className="text-3xl font-serif font-bold text-slate-800">
-              {((atualAnoDados.consultas_ambulatoriais || 0) + (atualAnoDados.procedimentos_consultas || 0)).toLocaleString("pt-BR")}
-            </h3>
-            <p className="text-[11px] text-[#e31e24] font-bold">Atendimentos Ambulatoriais</p>
-          </div>
+              <div className="bg-white p-6 rounded-3xl border-t-4 border-[#003b6f] shadow-sm space-y-2">
+                <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Internamentos & Leitos</span>
+                <h3 className="text-3xl font-serif font-bold text-slate-800">{dadosFiltrados.internamentos.toLocaleString("pt-BR")}</h3>
+                <p className="text-[11px] text-slate-400 font-medium">Leitos de Alta Complexidade</p>
+              </div>
 
-          <div className="bg-white p-6 rounded-3xl border-t-4 border-[#003b6f] shadow-sm space-y-2">
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Internamentos & UTI</span>
-            <h3 className="text-3xl font-serif font-bold text-slate-800">{(atualAnoDados.internamentos_total || 0).toLocaleString("pt-BR")}</h3>
-            <p className="text-[11px] text-slate-400 font-medium">Leitos de Alta Complexidade</p>
-          </div>
-
-          <div className="bg-white p-6 rounded-3xl border-t-4 border-[#e31e24] shadow-sm space-y-2">
-            <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Partos Realizados</span>
-            <h3 className="text-3xl font-serif font-bold text-[#e31e24]">{(atualAnoDados.partos_total || 0).toLocaleString("pt-BR")}</h3>
-            <p className="text-[11px] text-slate-500 font-medium">Maternidade HMSM</p>
-          </div>
-        </div>
-
-        {/* GRÁFICOS DE PIZZA */}
-        <div className="grid lg:grid-cols-2 gap-8">
-          
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
-              <div className="w-3 h-3 rounded-full bg-[#e31e24]"></div>
-              <h4 className="font-serif font-bold text-base text-[#003b6f]">Distribuição de Urgências / UPA (Gráfico Pizza)</h4>
+              <div className="bg-white p-6 rounded-3xl border-t-4 border-[#e31e24] shadow-sm space-y-2">
+                <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Partos Realizados</span>
+                <h3 className="text-3xl font-serif font-bold text-[#e31e24]">{dadosFiltrados.partos.toLocaleString("pt-BR")}</h3>
+                <p className="text-[11px] text-slate-500 font-medium">Maternidade HMSM</p>
+              </div>
             </div>
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={dadosPizzaUpa}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={4}
-                    dataKey="value"
-                  >
-                    {dadosPizzaUpa.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS_UPA[index % COLORS_UPA.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: "11px" }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
 
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
-              <div className="w-3 h-3 rounded-full bg-[#003b6f]"></div>
-              <h4 className="font-serif font-bold text-base text-[#003b6f]">Ocupação e Perfil de UTI (Gráfico Pizza)</h4>
-            </div>
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={dadosPizzaUti}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={90}
-                    dataKey="value"
-                    label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
-                  >
-                    {dadosPizzaUti.map((entry, index) => (
-                      <Cell key={`cell-uti-${index}`} fill={COLORS_UTI[index % COLORS_UTI.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: "11px" }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+            {/* GRÁFICOS DE PIZZA */}
+            <div className="grid lg:grid-cols-2 gap-8">
+              
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
+                  <div className="w-3 h-3 rounded-full bg-[#e31e24]"></div>
+                  <h4 className="font-serif font-bold text-base text-[#003b6f]">Distribuição de Urgências / UPA (Gráfico Pizza)</h4>
+                </div>
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={dadosPizzaUpa}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={90}
+                        paddingAngle={4}
+                        dataKey="value"
+                      >
+                        {dadosPizzaUpa.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS_UPA[index % COLORS_UPA.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: "11px" }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
 
-        </div>
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
+                  <div className="w-3 h-3 rounded-full bg-[#003b6f]"></div>
+                  <h4 className="font-serif font-bold text-base text-[#003b6f]">Ocupação e Perfil de UTI (Gráfico Pizza)</h4>
+                </div>
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={dadosPizzaUti}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={90}
+                        dataKey="value"
+                        label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+                      >
+                        {dadosPizzaUti.map((entry, index) => (
+                          <Cell key={`cell-uti-${index}`} fill={COLORS_UTI[index % COLORS_UTI.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                      <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: "11px" }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
 
-        {/* EVOLUÇÃO MENSAL EM BARRAS */}
-        {anoSelecionado === 2026 && (
-          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
-            <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
-              <BarChart2 className="w-5 h-5 text-[#e31e24]" />
-              <h4 className="font-serif font-bold text-base text-[#003b6f]">Evolução de Atendimentos Mensais (2026)</h4>
             </div>
-            <div className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dadosMensais2026}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="mes" style={{ fontSize: '11px' }} />
-                  <YAxis style={{ fontSize: '11px' }} />
-                  <Tooltip />
-                  <Legend wrapperStyle={{ fontSize: "11px" }} />
-                  <Bar dataKey="procedimentos" name="Consultas / Procedimentos" fill="#003b6f" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="rx" name="Exames RX Geral" fill="#e31e24" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="partos" name="Partos Realizados" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
+
+            {/* EVOLUÇÃO MENSAL EM BARRAS */}
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+              <div className="flex items-center gap-2.5 border-b border-slate-100 pb-3">
+                <BarChart2 className="w-5 h-5 text-[#e31e24]" />
+                <h4 className="font-serif font-bold text-base text-[#003b6f]">Evolução de Atendimentos Mensais ({anoSelecionado})</h4>
+              </div>
+              <div className="h-80">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={dadosBarraMensal}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="mes" style={{ fontSize: '11px' }} />
+                    <YAxis style={{ fontSize: '11px' }} />
+                    <Tooltip />
+                    <Legend wrapperStyle={{ fontSize: "11px" }} />
+                    <Bar dataKey="procedimentos" name="Consultas / Procedimentos" fill="#003b6f" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="rx" name="Exames RX Geral" fill="#e31e24" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="partos" name="Partos Realizados" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
-          </div>
+          </>
         )}
 
       </main>
