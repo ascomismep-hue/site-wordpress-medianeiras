@@ -33,16 +33,19 @@ import {
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 
+// Listas de apoio para botões e filtros de interface
 const MESES = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
 const ANOS = [2025, 2026, 2027];
 
+// Paleta de cores oficial para os gráficos do dashboard
 const COLORS_UPA = ["#003b6f", "#e31e24", "#0284c7", "#f59e0b", "#10b981"];
 const COLORS_UTI = ["#003b6f", "#e31e24", "#06b6d4", "#f59e0b"];
 
 export default function DashboardHospital() {
+  // Estados para gerir os filtros do utilizador e os dados vindos da base de dados
   const [anoSelecionado, setAnoSelecionado] = useState(2026);
   const [mesSelecionado, setMesSelecionado] = useState("TODOS");
-  const [abaAtiva, setAbaAtiva] = useState("geral"); // 'geral', 'setores' ou 'comparativo'
+  const [abaAtiva, setAbaAtiva] = useState("geral"); // Opções: 'geral', 'setores' ou 'comparativo'
   const [loading, setLoading] = useState(true);
   const [dadosMensaisBanco, setDadosMensaisBanco] = useState([]);
   const [dados2025Banco, setDados2025Banco] = useState([]);
@@ -50,6 +53,7 @@ export default function DashboardHospital() {
   const [gerandoPdf, setGerandoPdf] = useState(false);
   const dashboardRef = useRef(null);
 
+  // Efeito executado na montagem do componente para carregar todos os registos
   useEffect(() => {
     carregarTodosOsDados();
   }, []);
@@ -68,6 +72,7 @@ export default function DashboardHospital() {
     setLoading(false);
   }
 
+  // Efeito executado sempre que o utilizador altera o ano nos botões do filtro
   useEffect(() => {
     carregarDadosAno(anoSelecionado);
   }, [anoSelecionado]);
@@ -80,32 +85,33 @@ export default function DashboardHospital() {
     if (data) setDadosMensaisBanco(data);
   }
 
-  // Dados do mês específico ou objeto zerado
+  // Identifica o registo do mês selecionado quando o filtro não for "TODOS"
   const mesAtualObj = mesSelecionado !== "TODOS" 
     ? dadosMensaisBanco.find(d => d.mes === mesSelecionado) || {}
     : null;
 
-  // Cálculos para os cartões e gráficos do ano/mês selecionado
+  // CÁLCULO RIGOROSO E COMPLETO DOS INDICADORES (Acumulado ou Mês Específico)
   const dadosFiltrados = mesSelecionado === "TODOS"
     ? dadosMensaisBanco.reduce((acc, curr) => ({
-        urgencias: acc.urgencias + (curr.acidente_automobilistico + curr.acidente_domestico + curr.acidente_motociclistico + curr.acidente_trabalho + curr.agressao_fisica),
-        ambulatorio: acc.ambulatorio + curr.consulta_ambulatorial,
-        procedimentos: acc.procedimentos + curr.consulta_procedimento,
-        internamentos: acc.internamentos + (curr.clinica_cirurgica + curr.clinica_medica + curr.clinica_pediatrica + curr.clinica_ortopedica + curr.cardiologia + curr.saude_mental + curr.uti_adulto_1 + curr.uti_adulto_2 + curr.uti_neo + curr.uti_ped),
-        partos: acc.partos + (curr.parto_cesariano + curr.parto_normal + curr.curetagem),
-        rx: acc.rx + curr.rx_geral,
-        cirurgias: acc.cirurgias + curr.cirurgias_eletivas
+        urgencias: acc.urgencias + ((curr.acidente_automobilistico || 0) + (curr.acidente_domestico || 0) + (curr.acidente_motociclistico || 0) + (curr.acidente_trabalho || 0) + (curr.agressao_fisica || 0)),
+        ambulatorio: acc.ambulatorio + (curr.consulta_ambulatorial || 0),
+        procedimentos: acc.procedimentos + (curr.consulta_procedimento || 0),
+        internamentos: acc.internamentos + ((curr.clinica_cirurgica || 0) + (curr.clinica_medica || 0) + (curr.clinica_pediatrica || 0) + (curr.clinica_ortopedica || 0) + (curr.cardiologia || 0) + (curr.saude_mental || 0) + (curr.uti_adulto_1 || 0) + (curr.uti_adulto_2 || 0) + (curr.uti_neo || 0) + (curr.uti_ped || 0)),
+        partos: acc.partos + ((curr.parto_cesariano || 0) + (curr.parto_normal || 0) + (curr.curetagem || 0) + (curr.consulta_obstetrica || 0)),
+        rx: acc.rx + (curr.rx_geral || 0),
+        cirurgias: acc.cirurgias + (curr.cirurgias_eletivas || 0)
       }), { urgencias: 0, ambulatorio: 0, procedimentos: 0, internamentos: 0, partos: 0, rx: 0, cirurgias: 0 })
     : {
         urgencias: (mesAtualObj.acidente_automobilistico || 0) + (mesAtualObj.acidente_domestico || 0) + (mesAtualObj.acidente_motociclistico || 0) + (mesAtualObj.acidente_trabalho || 0) + (mesAtualObj.agressao_fisica || 0),
         ambulatorio: mesAtualObj.consulta_ambulatorial || 0,
         procedimentos: mesAtualObj.consulta_procedimento || 0,
         internamentos: (mesAtualObj.clinica_cirurgica || 0) + (mesAtualObj.clinica_medica || 0) + (mesAtualObj.clinica_pediatrica || 0) + (mesAtualObj.clinica_ortopedica || 0) + (mesAtualObj.cardiologia || 0) + (mesAtualObj.saude_mental || 0) + (mesAtualObj.uti_adulto_1 || 0) + (mesAtualObj.uti_adulto_2 || 0) + (mesAtualObj.uti_neo || 0) + (mesAtualObj.uti_ped || 0),
-        partos: (mesAtualObj.parto_cesariano || 0) + (mesAtualObj.parto_normal || 0) + (mesAtualObj.curetagem || 0),
+        partos: (mesAtualObj.parto_cesariano || 0) + (mesAtualObj.parto_normal || 0) + (mesAtualObj.curetagem || 0) + (mesAtualObj.consulta_obstetrica || 0),
         rx: mesAtualObj.rx_geral || 0,
         cirurgias: mesAtualObj.cirurgias_eletivas || 0
       };
 
+  // Soma Total Consolidada (Garante que todas as realizações entram na contagem geral)
   const totalAtendimentosGeral = 
     dadosFiltrados.urgencias + 
     dadosFiltrados.ambulatorio + 
@@ -115,7 +121,7 @@ export default function DashboardHospital() {
     dadosFiltrados.rx +
     dadosFiltrados.cirurgias;
 
-  // Função auxiliar rigorosa para obter o valor de um campo (seja Acumulado ou Mês Específico)
+  // Função auxiliar para obter com precisão o valor de cada setor isolado
   const obterValorSetor = (campo) => {
     if (mesSelecionado === "TODOS") {
       return dadosMensaisBanco.reduce((acc, curr) => acc + (curr[campo] || 0), 0);
@@ -124,6 +130,7 @@ export default function DashboardHospital() {
     }
   };
 
+  // Mapeamentos de dados para os cartões de Setores Separados
   const setorUpaDetalhes = [
     { nome: "Acidente Motociclístico", qtd: obterValorSetor("acidente_motociclistico") },
     { nome: "Agressão Física", qtd: obterValorSetor("agressao_fisica") },
@@ -155,7 +162,7 @@ export default function DashboardHospital() {
     { nome: "Consulta Obstétrica", qtd: obterValorSetor("consulta_obstetrica") }
   ];
 
-  // Gráficos de Pizza Gerais (respeitam o filtro de mês ou acumulado)
+  // Dados formatados para os gráficos da Recharts
   const dadosPizzaUpa = setorUpaDetalhes.map(i => ({ name: i.nome, value: i.qtd || 1 }));
   const dadosPizzaUti = setorUtiDetalhes.map(i => ({ name: i.nome, value: i.qtd || 1 }));
 
@@ -163,20 +170,20 @@ export default function DashboardHospital() {
     const m = dadosMensaisBanco.find(d => d.mes === mesStr);
     return {
       mes: mesStr,
-      procedimentos: m ? (m.consulta_ambulatorial + m.consulta_procedimento) : 0,
-      rx: m ? m.rx_geral : 0,
-      partos: m ? (m.parto_cesariano + m.parto_normal + m.curetagem) : 0
+      procedimentos: m ? ((m.consulta_ambulatorial || 0) + (m.consulta_procedimento || 0)) : 0,
+      rx: m ? (m.rx_geral || 0) : 0,
+      partos: m ? ((m.parto_cesariano || 0) + (m.parto_normal || 0) + (m.curetagem || 0) + (m.consulta_obstetrica || 0)) : 0
     };
   });
 
-  // Comparativo Anual
+  // Função para consolidação do Comparativo Anual
   const somarAnoCompleto = (arr) => arr.reduce((acc, curr) => ({
-    urgencias: acc.urgencias + (curr.acidente_automobilistico + curr.acidente_domestico + curr.acidente_motociclistico + curr.acidente_trabalho + curr.agressao_fisica),
-    ambulatorio: acc.ambulatorio + curr.consulta_ambulatorial + curr.consulta_procedimento,
-    cirurgias: acc.cirurgias + curr.cirurgias_eletivas,
-    internamentos: acc.internamentos + (curr.clinica_cirurgica + curr.clinica_medica + curr.clinica_pediatrica + curr.clinica_ortopedica + curr.cardiologia + curr.saude_mental + curr.uti_adulto_1 + curr.uti_adulto_2 + curr.uti_neo + curr.uti_ped),
-    partos: acc.partos + (curr.parto_cesariano + curr.parto_normal + curr.curetagem),
-    rx: acc.rx + curr.rx_geral,
+    urgencias: acc.urgencias + ((curr.acidente_automobilistico || 0) + (curr.acidente_domestico || 0) + (curr.acidente_motociclistico || 0) + (curr.acidente_trabalho || 0) + (curr.agressao_fisica || 0)),
+    ambulatorio: acc.ambulatorio + ((curr.consulta_ambulatorial || 0) + (curr.consulta_procedimento || 0)),
+    cirurgias: acc.cirurgias + (curr.cirurgias_eletivas || 0),
+    internamentos: acc.internamentos + ((curr.clinica_cirurgica || 0) + (curr.clinica_medica || 0) + (curr.clinica_pediatrica || 0) + (curr.clinica_ortopedica || 0) + (curr.cardiologia || 0) + (curr.saude_mental || 0) + (curr.uti_adulto_1 || 0) + (curr.uti_adulto_2 || 0) + (curr.uti_neo || 0) + (curr.uti_ped || 0)),
+    partos: acc.partos + ((curr.parto_cesariano || 0) + (curr.parto_normal || 0) + (curr.curetagem || 0) + (curr.consulta_obstetrica || 0)),
+    rx: acc.rx + (curr.rx_geral || 0),
     total: 0
   }), { urgencias: 0, ambulatorio: 0, cirurgias: 0, internamentos: 0, partos: 0, rx: 0, total: 0 });
 
@@ -186,6 +193,7 @@ export default function DashboardHospital() {
   const totais2026 = somarAnoCompleto(dados2026Banco);
   totais2026.total = totais2026.urgencias + totais2026.ambulatorio + totais2026.cirurgias + totais2026.internamentos + totais2026.partos + totais2026.rx;
 
+  // Exportação do Dashboard para PDF usando html2canvas e jsPDF
   const exportarDashboardPDF = async () => {
     if (!dashboardRef.current) return;
     setGerandoPdf(true);
@@ -219,7 +227,7 @@ export default function DashboardHospital() {
   return (
     <div className="min-h-screen bg-slate-100 text-slate-800 font-sans">
       
-      {/* CABEÇALHO COM LOGOMARCA OFICIAL */}
+      {/* CABEÇALHO PRINCIPAL */}
       <header className="bg-gradient-to-r from-[#003b6f] to-[#005a8d] text-white border-b-4 border-[#e31e24] sticky top-0 z-40 shadow-md">
         <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
           
@@ -369,7 +377,7 @@ export default function DashboardHospital() {
                     <p className="text-[11px] text-slate-400 font-medium">Leitos de Alta Complexidade</p>
                   </div>
                   <div className="bg-white p-6 rounded-3xl border-t-4 border-[#e31e24] shadow-sm space-y-2">
-                    <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Partos Realizados</span>
+                    <span className="text-xs text-slate-500 font-bold uppercase tracking-wider">Partos & Obstetrícia</span>
                     <h3 className="text-3xl font-serif font-bold text-[#e31e24]">{dadosFiltrados.partos.toLocaleString("pt-BR")}</h3>
                     <p className="text-[11px] text-slate-500 font-medium">Maternidade HMSM</p>
                   </div>
@@ -424,7 +432,7 @@ export default function DashboardHospital() {
               </div>
             )}
 
-            {/* ABA 2: SETORES SEPARADOS (CORRIGIDO PARA O MÊS SELECIONADO OU ACUMULADO) */}
+            {/* ABA 2: SETORES SEPARADOS */}
             {abaAtiva === "setores" && (
               <div className="space-y-8">
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
@@ -542,7 +550,7 @@ export default function DashboardHospital() {
                         </td>
                       </tr>
                       <tr className="hover:bg-slate-50">
-                        <td className="p-4 font-bold text-slate-700">Maternidade (Partos & Curetagem)</td>
+                        <td className="p-4 font-bold text-slate-700">Maternidade (Partos & Consultas Obstétricas)</td>
                         <td className="p-4 text-center">{totais2025.partos.toLocaleString("pt-BR")}</td>
                         <td className="p-4 text-center">{totais2026.partos.toLocaleString("pt-BR")}</td>
                         <td className="p-4 text-center font-bold text-[#003b6f]">
