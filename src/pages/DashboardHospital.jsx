@@ -80,7 +80,12 @@ export default function DashboardHospital() {
     if (data) setDadosMensaisBanco(data);
   }
 
-  // Acumulados gerais
+  // Dados do mês específico ou objeto zerado
+  const mesAtualObj = mesSelecionado !== "TODOS" 
+    ? dadosMensaisBanco.find(d => d.mes === mesSelecionado) || {}
+    : null;
+
+  // Cálculos para os cartões e gráficos do ano/mês selecionado
   const dadosFiltrados = mesSelecionado === "TODOS"
     ? dadosMensaisBanco.reduce((acc, curr) => ({
         urgencias: acc.urgencias + (curr.acidente_automobilistico + curr.acidente_domestico + curr.acidente_motociclistico + curr.acidente_trabalho + curr.agressao_fisica),
@@ -91,19 +96,15 @@ export default function DashboardHospital() {
         rx: acc.rx + curr.rx_geral,
         cirurgias: acc.cirurgias + curr.cirurgias_eletivas
       }), { urgencias: 0, ambulatorio: 0, procedimentos: 0, internamentos: 0, partos: 0, rx: 0, cirurgias: 0 })
-    : (() => {
-        const m = dadosMensaisBanco.find(d => d.mes === mesSelecionado);
-        if (!m) return { urgencias: 0, ambulatorio: 0, procedimentos: 0, internamentos: 0, partos: 0, rx: 0, cirurgias: 0 };
-        return {
-          urgencias: m.acidente_automobilistico + m.acidente_domestico + m.acidente_motociclistico + m.acidente_trabalho + m.agressao_fisica,
-          ambulatorio: m.consulta_ambulatorial,
-          procedimentos: m.consulta_procedimento,
-          internamentos: m.clinica_cirurgica + m.clinica_medica + m.clinica_pediatrica + m.clinica_ortopedica + m.cardiologia + m.saude_mental + m.uti_adulto_1 + m.uti_adulto_2 + m.uti_neo + m.uti_ped,
-          partos: m.parto_cesariano + m.parto_normal + m.curetagem,
-          rx: m.rx_geral,
-          cirurgias: m.cirurgias_eletivas
-        };
-      })();
+    : {
+        urgencias: (mesAtualObj.acidente_automobilistico || 0) + (mesAtualObj.acidente_domestico || 0) + (mesAtualObj.acidente_motociclistico || 0) + (mesAtualObj.acidente_trabalho || 0) + (mesAtualObj.agressao_fisica || 0),
+        ambulatorio: mesAtualObj.consulta_ambulatorial || 0,
+        procedimentos: mesAtualObj.consulta_procedimento || 0,
+        internamentos: (mesAtualObj.clinica_cirurgica || 0) + (mesAtualObj.clinica_medica || 0) + (mesAtualObj.clinica_pediatrica || 0) + (mesAtualObj.clinica_ortopedica || 0) + (mesAtualObj.cardiologia || 0) + (mesAtualObj.saude_mental || 0) + (mesAtualObj.uti_adulto_1 || 0) + (mesAtualObj.uti_adulto_2 || 0) + (mesAtualObj.uti_neo || 0) + (mesAtualObj.uti_ped || 0),
+        partos: (mesAtualObj.parto_cesariano || 0) + (mesAtualObj.parto_normal || 0) + (mesAtualObj.curetagem || 0),
+        rx: mesAtualObj.rx_geral || 0,
+        cirurgias: mesAtualObj.cirurgias_eletivas || 0
+      };
 
   const totalAtendimentosGeral = 
     dadosFiltrados.urgencias + 
@@ -114,41 +115,47 @@ export default function DashboardHospital() {
     dadosFiltrados.rx +
     dadosFiltrados.cirurgias;
 
-  // Somatórios Setoriais Detalhados para a nova aba "Setores"
-  const somarSetor = (campo) => dadosMensaisBanco.reduce((acc, curr) => acc + (mesSelecionado === "TODOS" ? (curr[campo] || 0) : (dadosMensaisBanco.find(d => d.mes === mesSelecionado)?.[campo] || 0)), 0);
+  // Função auxiliar rigorosa para obter o valor de um campo (seja Acumulado ou Mês Específico)
+  const obterValorSetor = (campo) => {
+    if (mesSelecionado === "TODOS") {
+      return dadosMensaisBanco.reduce((acc, curr) => acc + (curr[campo] || 0), 0);
+    } else {
+      return mesAtualObj[campo] || 0;
+    }
+  };
 
   const setorUpaDetalhes = [
-    { nome: "Acidente Motociclístico", qtd: somarSetor("acidente_motociclistico") },
-    { nome: "Agressão Física", qtd: somarSetor("agressao_fisica") },
-    { nome: "Acidente Automobilístico", qtd: somarSetor("acidente_automobilistico") },
-    { nome: "Acidente de Trabalho", qtd: somarSetor("acidente_trabalho") },
-    { nome: "Acidente Doméstico", qtd: somarSetor("acidente_domestico") }
+    { nome: "Acidente Motociclístico", qtd: obterValorSetor("acidente_motociclistico") },
+    { nome: "Agressão Física", qtd: obterValorSetor("agressao_fisica") },
+    { nome: "Acidente Automobilístico", qtd: obterValorSetor("acidente_automobilistico") },
+    { nome: "Acidente de Trabalho", qtd: obterValorSetor("acidente_trabalho") },
+    { nome: "Acidente Doméstico", qtd: obterValorSetor("acidente_domestico") }
   ];
 
   const setorUtiDetalhes = [
-    { nome: "UTI Adulto 2 (Dom Campelo)", qtd: somarSetor("uti_adulto_2") },
-    { nome: "UTI Pediátrica (Ir. Minervina)", qtd: somarSetor("uti_ped") },
-    { nome: "UTI Neonatal (Ir. Josefa)", qtd: somarSetor("uti_neo") },
-    { nome: "UTI Adulto 1 (Marcos Live)", qtd: somarSetor("uti_adulto_1") }
+    { nome: "UTI Adulto 2 (Dom Campelo)", qtd: obterValorSetor("uti_adulto_2") },
+    { nome: "UTI Pediátrica (Ir. Minervina)", qtd: obterValorSetor("uti_ped") },
+    { nome: "UTI Neonatal (Ir. Josefa)", qtd: obterValorSetor("uti_neo") },
+    { nome: "UTI Adulto 1 (Marcos Live)", qtd: obterValorSetor("uti_adulto_1") }
   ];
 
   const setorClinicasDetalhes = [
-    { nome: "Clínica Cirúrgica", qtd: somarSetor("clinica_cirurgica") },
-    { nome: "Clínica Médica", qtd: somarSetor("clinica_medica") },
-    { nome: "Clínica Ortopédica", qtd: somarSetor("clinica_ortopedica") },
-    { nome: "Clínica Pediátrica", qtd: somarSetor("clinica_pediatrica") },
-    { nome: "Cardiologia", qtd: somarSetor("cardiologia") },
-    { nome: "Saúde Mental", qtd: somarSetor("saude_mental") }
+    { nome: "Clínica Cirúrgica", qtd: obterValorSetor("clinica_cirurgica") },
+    { nome: "Clínica Médica", qtd: obterValorSetor("clinica_medica") },
+    { nome: "Clínica Ortopédica", qtd: obterValorSetor("clinica_ortopedica") },
+    { nome: "Clínica Pediátrica", qtd: obterValorSetor("clinica_pediatrica") },
+    { nome: "Cardiologia", qtd: obterValorSetor("cardiologia") },
+    { nome: "Saúde Mental", qtd: obterValorSetor("saude_mental") }
   ];
 
   const setorMaternidadeDetalhes = [
-    { nome: "Parto Normal", qtd: somarSetor("parto_normal") },
-    { nome: "Parto Cesariano", qtd: somarSetor("parto_cesariano") },
-    { nome: "Curetagem", qtd: somarSetor("curetagem") },
-    { nome: "Consulta Obstétrica", qtd: somarSetor("consulta_obstetrica") }
+    { nome: "Parto Normal", qtd: obterValorSetor("parto_normal") },
+    { nome: "Parto Cesariano", qtd: obterValorSetor("parto_cesariano") },
+    { nome: "Curetagem", qtd: obterValorSetor("curetagem") },
+    { nome: "Consulta Obstétrica", qtd: obterValorSetor("consulta_obstetrica") }
   ];
 
-  // Gráficos de Pizza Gerais
+  // Gráficos de Pizza Gerais (respeitam o filtro de mês ou acumulado)
   const dadosPizzaUpa = setorUpaDetalhes.map(i => ({ name: i.nome, value: i.qtd || 1 }));
   const dadosPizzaUti = setorUtiDetalhes.map(i => ({ name: i.nome, value: i.qtd || 1 }));
 
@@ -257,7 +264,7 @@ export default function DashboardHospital() {
 
       <main className="max-w-7xl mx-auto px-4 py-8 space-y-8" ref={dashboardRef}>
 
-        {/* NAVEGAÇÃO DE ABAS (GERAL, SETORES ESPECÍFICOS, COMPARATIVO) */}
+        {/* NAVEGAÇÃO DE ABAS */}
         <div className="flex bg-white p-2 rounded-2xl border border-slate-200 shadow-sm max-w-2xl mx-auto flex-wrap gap-1">
           <button
             onClick={() => setAbaAtiva("geral")}
@@ -285,7 +292,7 @@ export default function DashboardHospital() {
           </button>
         </div>
 
-        {/* FILTRO DE ANO E MÊS (Comum para Geral e Setores) */}
+        {/* FILTRO DE ANO E MÊS */}
         {abaAtiva !== "comparativo" && (
           <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
@@ -417,12 +424,12 @@ export default function DashboardHospital() {
               </div>
             )}
 
-            {/* ABA 2: SETORES SEPARADOS (DESTRINCHADO) */}
+            {/* ABA 2: SETORES SEPARADOS (CORRIGIDO PARA O MÊS SELECIONADO OU ACUMULADO) */}
             {abaAtiva === "setores" && (
               <div className="space-y-8">
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
                   <h3 className="font-serif font-bold text-lg text-[#003b6f] mb-4 flex items-center gap-2">
-                    <ShieldAlert className="w-5 h-5 text-[#e31e24]" /> 1. Setor de Urgência & Emergência (UPA) - Detalhado
+                    <ShieldAlert className="w-5 h-5 text-[#e31e24]" /> 1. Setor de Urgência & Emergência (UPA) - Detalhado ({mesSelecionado === "TODOS" ? `Acumulado ${anoSelecionado}` : `${mesSelecionado}/${anoSelecionado}`})
                   </h3>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-5 gap-4">
                     {setorUpaDetalhes.map((item, idx) => (
@@ -436,7 +443,7 @@ export default function DashboardHospital() {
 
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
                   <h3 className="font-serif font-bold text-lg text-[#003b6f] mb-4 flex items-center gap-2">
-                    <HeartPulse className="w-5 h-5 text-[#003b6f]" /> 2. Setor de Unidades de Terapia Intensiva (UTI) - Detalhado
+                    <HeartPulse className="w-5 h-5 text-[#003b6f]" /> 2. Setor de Unidades de Terapia Intensiva (UTI) - Detalhado ({mesSelecionado === "TODOS" ? `Acumulado ${anoSelecionado}` : `${mesSelecionado}/${anoSelecionado}`})
                   </h3>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {setorUtiDetalhes.map((item, idx) => (
@@ -450,7 +457,7 @@ export default function DashboardHospital() {
 
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
                   <h3 className="font-serif font-bold text-lg text-[#003b6f] mb-4 flex items-center gap-2">
-                    <Stethoscope className="w-5 h-5 text-[#003b6f]" /> 3. Setor de Clínicas e Especialidades Médicas - Detalhado
+                    <Stethoscope className="w-5 h-5 text-[#003b6f]" /> 3. Setor de Clínicas e Especialidades Médicas - Detalhado ({mesSelecionado === "TODOS" ? `Acumulado ${anoSelecionado}` : `${mesSelecionado}/${anoSelecionado}`})
                   </h3>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {setorClinicasDetalhes.map((item, idx) => (
@@ -464,7 +471,7 @@ export default function DashboardHospital() {
 
                 <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
                   <h3 className="font-serif font-bold text-lg text-[#003b6f] mb-4 flex items-center gap-2">
-                    <Baby className="w-5 h-5 text-[#f59e0b]" /> 4. Setor de Maternidade & Obstetrícia - Detalhado
+                    <Baby className="w-5 h-5 text-[#f59e0b]" /> 4. Setor de Maternidade & Obstetrícia - Detalhado ({mesSelecionado === "TODOS" ? `Acumulado ${anoSelecionado}` : `${mesSelecionado}/${anoSelecionado}`})
                   </h3>
                   <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     {setorMaternidadeDetalhes.map((item, idx) => (
