@@ -34,7 +34,7 @@ const COLORS_UPA = ["#003b6f", "#e31e24", "#0284c7", "#f59e0b", "#10b981"];
 const COLORS_UTI = ["#003b6f", "#e31e24", "#06b6d4", "#f59e0b"];
 
 export default function DashboardHospital() {
-  const [anoSelecionado, setAnoSelecionado] = useState(2027);
+  const [anoSelecionado, setAnoSelecionado] = useState(2026);
   const [mesSelecionado, setMesSelecionado] = useState("TODOS");
   const [loading, setLoading] = useState(true);
   const [dadosMensaisBanco, setDadosMensaisBanco] = useState([]);
@@ -47,6 +47,7 @@ export default function DashboardHospital() {
 
   async function carregarDadosAno(ano) {
     setLoading(true);
+    // Consulta diretamente a tabela correta alimentada no painel ADM
     const { data, error } = await supabase
       .from("hmsm_indicadores_mensais")
       .select("*")
@@ -60,7 +61,7 @@ export default function DashboardHospital() {
     setLoading(false);
   }
 
-  // Filtrar dados do mês selecionado ou somar acumulado do ano
+  // Filtrar ou acumular dados conforme o mês selecionado
   const dadosFiltrados = mesSelecionado === "TODOS"
     ? dadosMensaisBanco.reduce((acc, curr) => ({
         urgencias: acc.urgencias + (curr.acidente_automobilistico + curr.acidente_domestico + curr.acidente_motociclistico + curr.acidente_trabalho + curr.agressao_fisica),
@@ -94,7 +95,7 @@ export default function DashboardHospital() {
     dadosFiltrados.rx +
     dadosFiltrados.cirurgias;
 
-  // Dados para gráficos de pizza UPA (somatório do ano)
+  // Somatório para Gráfico de Pizza UPA
   const somaUpaTotal = dadosMensaisBanco.reduce((acc, curr) => ({
     moto: acc.moto + curr.acidente_motociclistico,
     agressao: acc.agressao + curr.agressao_fisica,
@@ -111,7 +112,7 @@ export default function DashboardHospital() {
     { name: "Acidente Doméstico", value: somaUpaTotal.domestico || 1 }
   ];
 
-  // Dados para gráficos de pizza UTI (somatório do ano)
+  // Somatório para Gráfico de Pizza UTI
   const somaUtiTotal = dadosMensaisBanco.reduce((acc, curr) => ({
     uti2: acc.uti2 + curr.uti_adulto_2,
     utip: acc.utip + curr.uti_ped,
@@ -126,7 +127,7 @@ export default function DashboardHospital() {
     { name: "UTI Adulto 1 (Marcos Live)", value: somaUtiTotal.uti1 || 1 }
   ];
 
-  // Dados formatados para o gráfico de barras mensal
+  // Dados para o Gráfico de Barras Mensal
   const dadosBarraMensal = MESES.map(mesStr => {
     const m = dadosMensaisBanco.find(d => d.mes === mesStr);
     return {
