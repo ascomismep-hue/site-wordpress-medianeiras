@@ -11,7 +11,10 @@ import {
   FileCheck, 
   FileX,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
+  Lock,
+  Unlock,
+  Power
 } from "lucide-react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -23,6 +26,10 @@ export default function AdminCIPAA({ onLogout }) {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
+  // Estado da Liberação Manual da Eleição
+  const [eleicaoLiberada, setEleicaoLiberada] = useState(false);
+  const [atualizandoStatus, setAtualizandoStatus] = useState(false);
+
   // Form de cadastro de novo candidato
   const [nome, setNome] = useState("");
   const [matricula, setMatricula] = useState("");
@@ -33,19 +40,48 @@ export default function AdminCIPAA({ onLogout }) {
 
   const carregarDados = async () => {
     setLoading(true);
+    
+    // Buscar dados dos candidatos, votos, eleitores e status da eleição
     const { data: candData } = await supabase.from("cipaa_candidatos").select("*");
     const { data: votoData } = await supabase.from("cipaa_votos").select("*");
     const { data: eleitorData } = await supabase.from("cipaa_eleitores_aptos").select("*").order("nome");
+    const { data: configData } = await supabase.from("cipaa_config").select("*").eq("id", 1).single();
     
     setCandidatos(candData || []);
     setVotos(votoData || []);
     setEleitores(eleitorData || []);
+    
+    if (configData) {
+      setEleicaoLiberada(configData.eleicao_liberada);
+    }
+
     setLoading(false);
   };
 
   useEffect(() => {
     carregarDados();
   }, []);
+
+  // Alternar a Liberação Manual da Eleição (Ativar / Desativar)
+  const handleToggleEleicao = async () => {
+    setAtualizandoStatus(true);
+    const novoStatus = !eleicaoLiberada;
+
+    try {
+      const { error } = await supabase
+        .from("cipaa_config")
+        .upsert({ id: 1, eleicao_liberada: novoStatus, updated_at: new Date() });
+
+      if (error) throw error;
+
+      setEleicaoLiberada(novoStatus);
+    } catch (err) {
+      console.error("Erro ao alterar status da eleição:", err);
+      alert("Erro ao alterar o status da eleição. Tente novamente.");
+    } finally {
+      setAtualizandoStatus(false);
+    }
+  };
 
   // Conversão de segurança para Base64 se o storage falhar
   const converterParaBase64 = (file) => {
@@ -229,6 +265,51 @@ export default function AdminCIPAA({ onLogout }) {
             <button onClick={onLogout} className="bg-red-50 text-red-600 px-4 py-3 rounded-2xl font-bold text-sm cursor-pointer">Sair</button>
           )}
         </div>
+      </div>
+
+      {/* CONTROLO MANUAL DE LIBERAÇÃO DA ELEIÇÃO */}
+      <div className={`p-6 rounded-3xl border shadow-sm transition-all flex flex-wrap items-center justify-between gap-4 ${
+        eleicaoLiberada 
+          ? "bg-emerald-50/60 border-emerald-200" 
+          : "bg-rose-50/60 border-rose-200"
+      }`}>
+        <div className="flex items-center gap-4">
+          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${
+            eleicaoLiberada ? "bg-emerald-600 text-white" : "bg-rose-600 text-white"
+          }`}>
+            {eleicaoLiberada ? <Unlock className="w-7 h-7" /> : <Lock className="w-7 h-7" />}
+          </div>
+          <div>
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Controlo de Acesso ao Pleito</span>
+            <h3 className={`text-lg font-serif font-bold ${
+              eleicaoLiberada ? "text-emerald-900" : "text-rose-900"
+            }`}>
+              {eleicaoLiberada ? "Eleição LIBERADA para Votação" : "Eleição BLOQUEADA / Encerrada"}
+            </h3>
+            <p className="text-xs text-gray-600 mt-0.5">
+              {eleicaoLiberada 
+                ? "Os colaboradores podem aceder à urna e registar o voto normalmente." 
+                : "A votação está pausada. Os colaboradores não conseguirão votar até que seja liberada."}
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleToggleEleicao}
+          disabled={atualizandoStatus}
+          className={`px-6 py-3.5 rounded-2xl font-bold text-sm shadow-md flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50 ${
+            eleicaoLiberada 
+              ? "bg-rose-600 hover:bg-rose-700 text-white" 
+              : "bg-emerald-600 hover:bg-emerald-700 text-white"
+          }`}
+        >
+          {atualizandoStatus ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Power className="w-4 h-4" />
+          )}
+          {eleicaoLiberada ? "Bloquear Votação Agora" : "Liberar Votação Agora"}
+        </button>
       </div>
 
       {/* Validação de Quórum Eleitoral (Edital Seção 8) */}
