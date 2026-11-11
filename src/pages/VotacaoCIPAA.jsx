@@ -29,7 +29,7 @@ export default function VotacaoCIPAA() {
   // Estados de Status da Eleição: 'verificando', 'aberta', 'bloqueada_manual'
   const [statusEleicao, setStatusEleicao] = useState("verificando");
 
-  // --- EFET: CONSULTA O STATUS DA ELEIÇÃO NO PAINEL ADMIN (SUPABASE) ---
+  // --- EFEITO: CONSULTA O STATUS DA ELEIÇÃO NO PAINEL ADMIN (SUPABASE) ---
   useEffect(() => {
     async function verificarStatusEleicao() {
       try {
@@ -138,7 +138,7 @@ export default function VotacaoCIPAA() {
     setMostrarModalConfirmacao(true);
   };
 
-  // --- FUNÇÃO: CONFIRMAR VOTO FINAL (GARANTINDO SIGILO ABSOLUTO) ---
+  // --- FUNÇÃO: CONFIRMAR VOTO FINAL (GARANTINDO SIGILO ABSOLUTO E REGISTRANDO O HORÁRIO) ---
   const handleConfirmarVotoFinal = async () => {
     setLoading(true);
     setErro("");
@@ -153,10 +153,13 @@ export default function VotacaoCIPAA() {
 
       if (erroVoto) throw erroVoto;
 
-      // 2. Marcar eleitor como 'já votou' na tabela de eleitores
+      // 2. Marcar eleitor como 'já votou' e registrar a data e hora exatas do voto
       const { error: erroEleitor } = await supabase
         .from("cipaa_eleitores_aptos")
-        .update({ ja_votou: true })
+        .update({ 
+          ja_votou: true,
+          data_voto: new Date().toISOString()
+        })
         .eq("matricula", eleitor.matricula);
 
       if (erroEleitor) throw erroEleitor;
