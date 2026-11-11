@@ -1,526 +1,400 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { 
-  Loader2, 
-  Download, 
-  Users, 
-  BarChart3, 
-  PlusCircle, 
-  Trash2, 
+  ShieldCheck, 
   UserCheck, 
-  FileCheck, 
-  FileX,
-  AlertTriangle,
-  CheckCircle2,
-  Lock,
-  Unlock,
-  Power
+  Vote, 
+  CheckCircle2, 
+  Loader2, 
+  AlertCircle, 
+  ShieldAlert, 
+  FileX, 
+  HelpCircle,
+  X,
+  Lock
 } from "lucide-react";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
 
-export default function AdminCIPAA({ onLogout }) {
-  const [candidatos, setCandidatos] = useState([]);
-  const [votos, setVotos] = useState([]);
-  const [eleitores, setEleitores] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
-
-  // Estado da Liberação Manual da Eleição
-  const [eleicaoLiberada, setEleicaoLiberada] = useState(false);
-  const [atualizandoStatus, setAtualizandoStatus] = useState(false);
-
-  // Form de cadastro de novo candidato
-  const [nome, setNome] = useState("");
+export default function VotacaoCIPAA() {
   const [matricula, setMatricula] = useState("");
-  const [fotoFile, setFotoFile] = useState(null);
+  const [eleitor, setEleitor] = useState(null);
+  const [candidatos, setCandidatos] = useState([]);
+  const [candidatoSelecionado, setCandidatoSelecionado] = useState(null);
+  const [mostrarModalConfirmacao, setMostrarModalConfirmacao] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [erro, setErro] = useState("");
+  const [votacaoConcluida, setVotacaoConcluida] = useState(false);
+  const [tempoRestante, setTempoRestante] = useState(10);
+  
+  // Estados de Status: 'verificando', 'aberta', 'bloqueada_manual'
+  const [statusEleicao, setStatusEleicao] = useState("verificando");
 
-  // Controlo de Quórum Eleitoral (Edital Seção 8)
-  const [diaVotacao, setDiaVotacao] = useState(1); // 1 = 1º Dia (50%), 2 = 2º Dia (33.33%), 3 = 3º Dia (Livre)
+  // Regra Simplificada: Controle 100% Manual via Painel Administrativo (Supabase)
+  useEffect(() => {
+    async function verificarStatusEleicao() {
+      try {
+        // Consultar o estado do botão no painel admin (tabela cipaa_config)
+        const { data: configData } = await supabase
+          .from("cipaa_config")
+          .select("eleicao_liberada")
+          .eq("id", 1)
+          .maybeSingle();
 
-  const carregarDados = async () => {
-    setLoading(true);
-    
-    // Buscar dados dos candidatos, votos, eleitores e status da eleição
-    const { data: candData } = await supabase.from("cipaa_candidatos").select("*");
-    const { data: votoData } = await supabase.from("cipaa_votos").select("*");
-    const { data: eleitorData } = await supabase.from("cipaa_eleitores_aptos").select("*").order("nome");
-    const { data: configData } = await supabase.from("cipaa_config").select("*").eq("id", 1).single();
-    
-    setCandidatos(candData || []);
-    setVotos(votoData || []);
-    setEleitores(eleitorData || []);
-    
-    if (configData) {
-      setEleicaoLiberada(configData.eleicao_liberada);
+        // Se estiver liberada no painel, abre a votação; caso contrário, bloqueia
+        if (configData && configData.eleicao_liberada === true) {
+          setStatusEleicao("aberta");
+        } else {
+          setStatusEleicao("bloqueada_manual");
+        }
+      } catch (err) {
+        console.error("Erro ao verificar status da eleição:", err);
+        // Em caso de falha de conexão, mantém a tela de bloqueio por segurança
+        setStatusEleicao("bloqueada_manual");
+      }
     }
 
-    setLoading(false);
-  };
+    verificarStatusEleicao();
 
-  useEffect(() => {
-    carregarDados();
+    // Sincroniza o status a cada 5 segundos para responder rapidamente às alterações do admin
+    const interval = setInterval(verificarStatusEleicao, 5000);
+    return () => clearInterval(interval);
   }, []);
 
-  // Alternar a Liberação Manual da Eleição (Ativar / Desativar)
-  const handleToggleEleicao = async () => {
-    setAtualizandoStatus(true);
-    const novoStatus = !eleicaoLiberada;
-
-    try {
-      const { error } = await supabase
-        .from("cipaa_config")
-        .upsert({ id: 1, eleicao_liberada: novoStatus, updated_at: new Date() });
-
-      if (error) throw error;
-
-      setEleicaoLiberada(novoStatus);
-    } catch (err) {
-      console.error("Erro ao alterar status da eleição:", err);
-      alert("Erro ao alterar o status da eleição. Tente novamente.");
-    } finally {
-      setAtualizandoStatus(false);
+  // Carregar candidatos ativos da base de dados
+  useEffect(() => {
+    async function carregarCandidatos() {
+      const { data, error } = await supabase
+        .from("cipaa_candidatos")
+        .select("*")
+        .order("nome");
+        
+      if (!error && data) setCandidatos(data);
     }
-  };
+    carregarCandidatos();
+  }, []);
 
-  // Conversão de segurança para Base64 se o storage falhar
-  const converterParaBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
-    });
-  };
-
-  // Cadastrar Candidato com upload seguro
-  const handleCadastrarCandidato = async (e) => {
-    e.preventDefault();
-    setUploading(true);
-
-    try {
-      let fotoUrl = "";
-
-      if (fotoFile) {
-        try {
-          const fileExt = fotoFile.name.split(".").pop();
-          const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-          const filePath = `candidatos/${fileName}`;
-
-          const { error: uploadError } = await supabase.storage
-            .from("cipaa-fotos")
-            .upload(filePath, fotoFile, { upsert: true });
-
-          if (!uploadError) {
-            const { data: publicURLData } = supabase.storage
-              .from("cipaa-fotos")
-              .getPublicUrl(filePath);
-            fotoUrl = publicURLData.publicUrl;
-          } else {
-            fotoUrl = await converterParaBase64(fotoFile);
-          }
-        } catch (storageErr) {
-          console.warn("Erro no storage, a usar Base64:", storageErr);
-          fotoUrl = await converterParaBase64(fotoFile);
-        }
-      }
-
-      const { error } = await supabase.from("cipaa_candidatos").insert([
-        { nome, matricula, foto_url: fotoUrl }
-      ]);
-
-      if (error) throw error;
-
-      setNome("");
+  // Temporizador de 10 segundos para reiniciar a cabine após o voto
+  useEffect(() => {
+    let timer;
+    if (votacaoConcluida && tempoRestante > 0) {
+      timer = setInterval(() => {
+        setTempoRestante((prev) => prev - 1);
+      }, 1000);
+    } else if (votacaoConcluida && tempoRestante === 0) {
+      setVotacaoConcluida(false);
+      setEleitor(null);
       setMatricula("");
-      setFotoFile(null);
-      carregarDados();
+      setCandidatoSelecionado(null);
+      setMostrarModalConfirmacao(false);
+      setTempoRestante(10);
+    }
+    return () => clearInterval(timer);
+  }, [votacaoConcluida, tempoRestante]);
+
+  // Validar e higienizar a matrícula do colaborador
+  const handleValidarMatricula = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setErro("");
+
+    const matriculaLimpa = matricula.trim();
+
+    if (!matriculaLimpa) {
+      setErro("Por favor, digite uma matrícula válida.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from("cipaa_eleitores_aptos")
+        .select("*")
+        .eq("matricula", matriculaLimpa)
+        .single();
+
+      if (error || !data) {
+        setErro("Matrícula não encontrada no banco de dados de colaboradores aptos.");
+      } else if (data.ja_votou) {
+        setErro("Esta matrícula já registrou o seu voto neste processo eleitoral.");
+      } else {
+        setEleitor(data);
+      }
     } catch (err) {
-      console.error("Erro ao cadastrar candidato:", err);
-      alert("Erro ao cadastrar candidato. Verifique os dados introduzidos.");
+      console.error("Erro na validação:", err);
+      setErro("Ocorreu um erro ao validar a matrícula. Tente novamente.");
     } finally {
-      setUploading(false);
+      setLoading(false);
     }
   };
 
-  const handleExcluirCandidato = async (id) => {
-    if (confirm("Deseja remover este candidato?")) {
-      await supabase.from("cipaa_candidatos").delete().eq("id", id);
-      carregarDados();
+  // Abrir Modal de Confirmação
+  const handleIniciarConfirmacao = () => {
+    if (!candidatoSelecionado) {
+      setErro("Por favor, selecione um candidato ou a opção de Voto em Branco.");
+      return;
+    }
+    setErro("");
+    setMostrarModalConfirmacao(true);
+  };
+
+  // Confirmar Voto com Sigilo Garantido
+  const handleConfirmarVotoFinal = async () => {
+    setLoading(true);
+    setErro("");
+
+    try {
+      const candidatoIdParaGravar = candidatoSelecionado === "BRANCO" ? null : candidatoSelecionado;
+
+      const { error: erroVoto } = await supabase
+        .from("cipaa_votos")
+        .insert([{ candidato_id: candidatoIdParaGravar }]);
+
+      if (erroVoto) throw erroVoto;
+
+      const { error: erroEleitor } = await supabase
+        .from("cipaa_eleitores_aptos")
+        .update({ ja_votou: true })
+        .eq("matricula", eleitor.matricula);
+
+      if (erroEleitor) throw erroEleitor;
+
+      setMostrarModalConfirmacao(false);
+      setVotacaoConcluida(true);
+      setTempoRestante(10);
+    } catch (err) {
+      console.error("Erro ao gravar voto:", err);
+      setErro("Erro ao registrar o voto. Tente novamente.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Cálculos de Apuração e Quórum
-  const totalGeralVotos = votos.length;
-  const eleitoresVotantes = eleitores.filter((e) => e.ja_votou);
-  const totalEleitoresAptos = eleitores.length;
-
-  const percentualParticipacao = totalEleitoresAptos > 0 
-    ? (eleitoresVotantes.length / totalEleitoresAptos) * 100 
-    : 0;
-
-  const metaQuorumPercentual = diaVotacao === 1 ? 50 : diaVotacao === 2 ? 33.33 : 0;
-  const quorumAtingido = diaVotacao === 3 ? true : percentualParticipacao >= metaQuorumPercentual;
-
-  const resultadosCandidatos = candidatos.map((cand) => {
-    const totalVotos = votos.filter((v) => v.candidato_id === cand.id).length;
-    return { ...cand, totalVotos };
-  }).sort((a, b) => b.totalVotos - a.totalVotos);
-
-  const totalVotosBrancos = votos.filter((v) => !v.candidato_id).length;
-
-  // Exportar PDF de Apuração Consolidado
-  const exportarPDFResultados = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.setTextColor(0, 40, 69);
-    doc.text("Relatório Consolidado de Apuração - CIPAA 2026/2027", 14, 15);
-    
-    doc.setFontSize(10);
-    doc.text(`Total de Eleitores Aptos: ${totalEleitoresAptos}`, 14, 22);
-    doc.text(`Total de Votos Computados: ${totalGeralVotos} (${percentualParticipacao.toFixed(2)}% de participação)`, 14, 27);
-    
-    doc.setTextColor(quorumAtingido ? 16 : 185, quorumAtingido ? 185 : 28, quorumAtingido ? 129 : 28);
-    const textoQuorum = quorumAtingido 
-      ? `STATUS DO QUÓRUM (${diaVotacao}º Dia): ATINGIDO (${percentualParticipacao.toFixed(2)}% >= Meta ${metaQuorumPercentual}%)`
-      : `STATUS DO QUÓRUM (${diaVotacao}º Dia): NÃO ATINGIDO (${percentualParticipacao.toFixed(2)}% < Meta ${metaQuorumPercentual}%). PRORROGAR VOTAÇÃO.`;
-    doc.text(textoQuorum, 14, 32);
-
-    doc.setTextColor(0, 40, 69);
-    const tableColumn = ["Classificação", "Candidato / Opção", "Matrícula", "Total de Votos"];
-    
-    const tableRows = resultadosCandidatos.map((res, index) => [
-      `#${index + 1}`,
-      res.nome,
-      res.matricula,
-      `${res.totalVotos} voto(s)`
-    ]);
-
-    tableRows.push(["-", "Votos em Branco", "N/A", `${totalVotosBrancos} voto(s)`]);
-
-    doc.autoTable({
-      head: [tableColumn],
-      body: tableRows,
-      startY: 38,
-      headStyles: { fillColor: [0, 90, 141] }
-    });
-
-    doc.save(`Apuracao_CIPAA_Dia_${diaVotacao}_${new Date().toISOString().split('T')[0]}.pdf`);
-  };
-
-  // Exportar PDF da Lista de Presença
-  const exportarPDFListaPresenca = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.setTextColor(0, 40, 69);
-    doc.text("Lista de Presença / Votantes - Eleição CIPAA 2026/2027", 14, 15);
-    doc.setFontSize(10);
-    doc.text(`Total de Colaboradores Participantes: ${eleitoresVotantes.length}`, 14, 22);
-
-    const tableColumn = ["Nº", "Nome do Colaborador", "Matrícula", "Status"];
-    const tableRows = eleitoresVotantes.map((el, index) => [
-      index + 1,
-      el.nome,
-      el.matricula,
-      "Voto Registado"
-    ]);
-
-    doc.autoTable({
-      head: [tableColumn],
-      body: tableRows,
-      startY: 28,
-      headStyles: { fillColor: [16, 185, 129] }
-    });
-
-    doc.save(`Lista_Presenca_Votantes_CIPAA_${new Date().toISOString().split('T')[0]}.pdf`);
-  };
-
-  if (loading) {
-    return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-[#005a8d]" /></div>;
+  // Tela de Carregamento Inicial
+  if (statusEleicao === "verificando") {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center p-4">
+        <Loader2 className="w-8 h-8 animate-spin text-[#005a8d]" />
+      </div>
+    );
   }
 
-  return (
-    <div className="max-w-7xl mx-auto py-12 px-4 space-y-8">
-      
-      {/* Cabeçalho */}
-      <div className="flex flex-wrap justify-between items-center bg-white p-6 rounded-3xl border border-gray-100 shadow-sm gap-4">
-        <div>
-          <span className="text-xs font-bold uppercase tracking-wider text-[#c5a059]">Painel Administrativo</span>
-          <h1 className="text-2xl font-serif font-bold text-[#005a8d]">Gestão e Apuração da CIPAA</h1>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <button 
-            onClick={exportarPDFListaPresenca} 
-            className="bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-3 rounded-2xl font-bold text-sm shadow-sm flex items-center gap-2 cursor-pointer transition-all"
-          >
-            <FileCheck className="w-4 h-4" /> Baixar Lista de Presença (PDF)
-          </button>
-          <button 
-            onClick={exportarPDFResultados} 
-            className="bg-[#005a8d] hover:bg-[#004068] text-white px-4 py-3 rounded-2xl font-bold text-sm shadow-sm flex items-center gap-2 cursor-pointer transition-all"
-          >
-            <Download className="w-4 h-4" /> Baixar Resultado Final (PDF)
-          </button>
-          {onLogout && (
-            <button onClick={onLogout} className="bg-red-50 text-red-600 px-4 py-3 rounded-2xl font-bold text-sm cursor-pointer">Sair</button>
-          )}
+  // Tela exibida quando a eleição está BLOQUEADA MANUALMENTE no painel
+  if (statusEleicao === "bloqueada_manual") {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center space-y-4">
+          <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto">
+            <Lock className="w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Votação Indisponível</h2>
+          <p className="text-gray-600 text-sm leading-relaxed">
+            A eleição da CIPAA encontra-se temporariamente <strong>pausada ou não iniciada</strong> pela Comissão Eleitoral.
+          </p>
+          <p className="text-xs text-gray-400">Aguarde a liberação oficial no painel para registrar o seu voto.</p>
         </div>
       </div>
+    );
+  }
 
-      {/* CONTROLO MANUAL DE LIBERAÇÃO DA ELEIÇÃO */}
-      <div className={`p-6 rounded-3xl border shadow-sm transition-all flex flex-wrap items-center justify-between gap-4 ${
-        eleicaoLiberada 
-          ? "bg-emerald-50/60 border-emerald-200" 
-          : "bg-rose-50/60 border-rose-200"
-      }`}>
-        <div className="flex items-center gap-4">
-          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${
-            eleicaoLiberada ? "bg-emerald-600 text-white" : "bg-rose-600 text-white"
-          }`}>
-            {eleicaoLiberada ? <Unlock className="w-7 h-7" /> : <Lock className="w-7 h-7" />}
+  // Tela de Voto Registrado com Sucesso
+  if (votacaoConcluida) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center space-y-6">
+          <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
+            <CheckCircle2 className="w-8 h-8" />
           </div>
-          <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Controlo de Acesso ao Pleito</span>
-            <h3 className={`text-lg font-serif font-bold ${
-              eleicaoLiberada ? "text-emerald-900" : "text-rose-900"
-            }`}>
-              {eleicaoLiberada ? "Eleição LIBERADA para Votação" : "Eleição BLOQUEADA / Encerrada"}
-            </h3>
-            <p className="text-xs text-gray-600 mt-0.5">
-              {eleicaoLiberada 
-                ? "Os colaboradores podem aceder à urna e registar o voto normalmente." 
-                : "A votação está pausada. Os colaboradores não conseguirão votar até que seja liberada."}
+          <div className="space-y-2">
+            <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Voto Registrado com Sucesso!</h2>
+            <p className="text-gray-600 text-sm">
+              O seu voto foi computado com total sigilo e segurança para a CIPAA Gestão 2026/2027. Obrigado pela participação!
             </p>
           </div>
-        </div>
 
-        <button
-          onClick={handleToggleEleicao}
-          disabled={atualizandoStatus}
-          className={`px-6 py-3.5 rounded-2xl font-bold text-sm shadow-md flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50 ${
-            eleicaoLiberada 
-              ? "bg-rose-600 hover:bg-rose-700 text-white" 
-              : "bg-emerald-600 hover:bg-emerald-700 text-white"
-          }`}
-        >
-          {atualizandoStatus ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Power className="w-4 h-4" />
-          )}
-          {eleicaoLiberada ? "Bloquear Votação Agora" : "Liberar Votação Agora"}
-        </button>
+          <div className="bg-blue-50/70 border border-blue-100 p-4 rounded-2xl">
+            <p className="text-xs text-gray-500 font-medium">Reiniciando a cabine de votação em:</p>
+            <p className="text-3xl font-bold text-[#005a8d] my-1">{tempoRestante}s</p>
+            <p className="text-[11px] text-gray-400">A tela retornará automaticamente ao início para o próximo colaborador.</p>
+          </div>
+        </div>
       </div>
+    );
+  }
 
-      {/* Validação de Quórum Eleitoral (Edital Seção 8) */}
-      <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-4">
-        <div className="flex flex-wrap justify-between items-center gap-4 border-b border-gray-100 pb-4">
-          <div>
-            <h3 className="font-serif font-bold text-lg text-[#005a8d]">Validação de Quórum Eleitoral (Edital Seção 8)</h3>
-            <p className="text-xs text-gray-500">Selecione o dia do pleito para verificar a validade do quorum legal.</p>
-          </div>
-          
-          <div className="flex items-center gap-2 bg-gray-50 p-1.5 rounded-2xl border border-gray-200">
-            <button 
-              onClick={() => setDiaVotacao(1)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                diaVotacao === 1 ? "bg-[#005a8d] text-white shadow-sm" : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              1º Dia (Mín. 50%)
-            </button>
-            <button 
-              onClick={() => setDiaVotacao(2)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                diaVotacao === 2 ? "bg-[#005a8d] text-white shadow-sm" : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              2º Dia (Mín. 1/3)
-            </button>
-            <button 
-              onClick={() => setDiaVotacao(3)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                diaVotacao === 3 ? "bg-[#005a8d] text-white shadow-sm" : "text-gray-600 hover:text-gray-900"
-              }`}
-            >
-              3º Dia (Qualquer N.º)
-            </button>
-          </div>
+  const infoCandidato = candidatoSelecionado === "BRANCO" 
+    ? { nome: "Voto em Branco", matricula: "N/A" } 
+    : candidatos.find(c => c.id === candidatoSelecionado);
+
+  return (
+    <div className="min-h-[80vh] py-12 px-4 max-w-4xl mx-auto">
+      <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 sm:p-12 space-y-8">
+        
+        <div className="text-center space-y-2">
+          <span className="text-xs font-bold uppercase tracking-widest bg-blue-50 text-[#005a8d] px-3.5 py-1 rounded-full">
+            Eleição CIPAA Gestão 2026/2027
+          </span>
+          <h1 className="text-3xl font-serif font-bold text-[#005a8d]">Votação Eletrônica</h1>
+          <p className="text-gray-500 text-sm">Insira a sua matrícula institucional para liberar a cabine de votação.</p>
         </div>
 
-        <div className={`p-5 rounded-2xl flex items-center justify-between border ${
-          quorumAtingido 
-            ? "bg-emerald-50/70 border-emerald-200 text-emerald-900" 
-            : "bg-amber-50/70 border-amber-200 text-amber-900"
-        }`}>
-          <div className="flex items-center gap-3">
-            {quorumAtingido ? (
-              <CheckCircle2 className="w-8 h-8 text-emerald-600 shrink-0" />
-            ) : (
-              <AlertTriangle className="w-8 h-8 text-amber-600 shrink-0" />
-            )}
+        {erro && (
+          <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-sm flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 shrink-0" />
+            <span>{erro}</span>
+          </div>
+        )}
+
+        {!eleitor ? (
+          <form onSubmit={handleValidarMatricula} className="max-w-md mx-auto space-y-4">
             <div>
-              <h4 className="font-bold text-sm">
-                {quorumAtingido 
-                  ? `Quórum Legal Atingido (${percentualParticipacao.toFixed(1)}% de participação)` 
-                  : `Quórum Insuficiente (${percentualParticipacao.toFixed(1)}% de participação)`
-                }
-              </h4>
-              <p className="text-xs opacity-90 mt-0.5">
-                {diaVotacao === 1 && (quorumAtingido ? "O pleito atingiu os 50% necessários no 1º dia. A apuração pode ser concluída." : "Falta atingir 50% dos colaboradores. Conforme o edital, a votação deve ser prorrogada para o dia seguinte.")}
-                {diaVotacao === 2 && (quorumAtingido ? "O pleito atingiu 1/3 (33,33%) de participação no 2º dia. Apuração válida." : "Falta atingir 1/3 dos colaboradores no 2º dia. A votação deve ser prorrogada para o 3º dia.")}
-                {diaVotacao === 3 && "No 3º dia a votação é válida com qualquer número de participantes."}
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Matrícula Institucional</label>
+              <input
+                type="text"
+                required
+                value={matricula}
+                onChange={(e) => setMatricula(e.target.value)}
+                placeholder="Digite sua matrícula..."
+                className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#005a8d]"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-[#005a8d] hover:bg-[#004068] text-white font-bold py-3.5 rounded-2xl transition-colors shadow-sm text-sm flex items-center justify-center gap-2 cursor-pointer"
+            >
+              {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <UserCheck className="w-5 h-5" />}
+              Acessar a Votação
+            </button>
+          </form>
+        ) : (
+          <div className="space-y-6">
+            
+            <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-2xl flex items-center justify-between">
+              <div>
+                <p className="text-xs text-gray-500">Eleitor Identificado:</p>
+                <p className="font-bold text-[#005a8d] text-base">{eleitor.nome}</p>
+              </div>
+              <span className="text-xs bg-emerald-100 text-emerald-800 font-bold px-3.5 py-1.5 rounded-full flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4" /> Apto para Votar
+              </span>
+            </div>
+
+            <div className="bg-amber-50/60 border border-amber-200/80 p-5 rounded-2xl text-amber-900 text-xs sm:text-sm space-y-1.5 leading-relaxed">
+              <div className="flex items-center gap-2 font-bold text-amber-900 uppercase tracking-wider text-xs">
+                <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+                Garantia de Sigilo Absoluto do Voto
+              </div>
+              <p>
+                Esta votação é <strong>totalmente sigilosa</strong>. A validação da sua matrícula serve unicamente para confirmar que está apto a votar e evitar votos duplicados.
+              </p>
+              <p className="text-amber-800/90 text-xs">
+                Os relatórios e o banco de dados registram apenas que você já votou e computam o voto de forma anônima, <strong>sem qualquer ligação entre o seu nome/matrícula e o candidato escolhido</strong>.
               </p>
             </div>
-          </div>
 
-          <div className="text-right shrink-0">
-            <span className="text-2xl font-bold">{percentualParticipacao.toFixed(1)}%</span>
-            <p className="text-[10px] opacity-75">Meta: {metaQuorumPercentual === 0 ? "Livre" : `${metaQuorumPercentual}%`}</p>
-          </div>
-        </div>
-      </div>
+            <h3 className="font-serif font-bold text-lg text-gray-800 pt-2">Escolha o seu candidato ou opção:</h3>
 
-      {/* Métricas do Dashboard */}
-      <div className="grid sm:grid-cols-4 gap-6">
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-blue-50 text-[#005a8d] rounded-2xl flex items-center justify-center">
-            <BarChart3 className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 font-medium">Total de Votos</p>
-            <h3 className="text-2xl font-bold text-[#005a8d]">{totalGeralVotos}</h3>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-purple-50 text-purple-700 rounded-2xl flex items-center justify-center">
-            <Users className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 font-medium">Candidatos Inscritos</p>
-            <h3 className="text-2xl font-bold text-purple-900">{candidatos.length}</h3>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-gray-100 text-gray-600 rounded-2xl flex items-center justify-center">
-            <FileX className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 font-medium">Votos em Branco</p>
-            <h3 className="text-2xl font-bold text-gray-700">{totalVotosBrancos}</h3>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 bg-emerald-50 text-emerald-700 rounded-2xl flex items-center justify-center">
-            <UserCheck className="w-6 h-6" />
-          </div>
-          <div>
-            <p className="text-xs text-gray-500 font-medium">Votantes / Aptos</p>
-            <h3 className="text-2xl font-bold text-emerald-900">{eleitoresVotantes.length} / {totalEleitoresAptos}</h3>
-          </div>
-        </div>
-      </div>
-
-      {/* Apuração Parcial / Final */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
-        <h3 className="font-serif font-bold text-lg text-[#005a8d]">Apuração Parcial / Final (Classificação)</h3>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b text-[11px] font-bold text-gray-500 uppercase">
-                <th className="p-4">Classificação</th>
-                <th className="p-4">Candidato / Opção</th>
-                <th className="p-4">Matrícula</th>
-                <th className="p-4">Total de Votos</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y text-sm">
-              {resultadosCandidatos.map((res, index) => (
-                <tr key={res.id} className="hover:bg-gray-50">
-                  <td className="p-4 font-bold text-gray-400">#{index + 1}</td>
-                  <td className="p-4 font-bold text-[#005a8d] flex items-center gap-3">
-                    <img src={res.foto_url || "https://via.placeholder.com/150"} alt="" className="w-8 h-8 rounded-full object-cover border" />
-                    {res.nome}
-                  </td>
-                  <td className="p-4">{res.matricula}</td>
-                  <td className="p-4 font-bold text-emerald-700">{res.totalVotos} votos</td>
-                </tr>
-              ))}
-
-              <tr className="bg-gray-50/70 hover:bg-gray-100/70">
-                <td className="p-4 font-bold text-gray-400">-</td>
-                <td className="p-4 font-bold text-gray-600 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
-                    <FileX className="w-4 h-4" />
-                  </div>
-                  Votos em Branco
-                </td>
-                <td className="p-4 text-gray-400">N/A</td>
-                <td className="p-4 font-bold text-gray-600">{totalVotosBrancos} votos</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Cadastrar Novo Candidato */}
-      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-6">
-        <h3 className="font-serif font-bold text-lg text-[#005a8d]">Cadastrar Novo Candidato</h3>
-        <form onSubmit={handleCadastrarCandidato} className="grid sm:grid-cols-4 gap-4 items-center">
-          <input
-            type="text"
-            placeholder="Nome Completo"
-            required
-            value={nome}
-            onChange={(e) => setNome(e.target.value)}
-            className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#005a8d]"
-          />
-          <input
-            type="text"
-            placeholder="Matrícula"
-            required
-            value={matricula}
-            onChange={(e) => setMatricula(e.target.value)}
-            className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#005a8d]"
-          />
-          <div className="relative">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setFotoFile(e.target.files[0])}
-              className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-3 py-2 text-xs text-gray-500 file:mr-3 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#005a8d] file:text-white hover:file:bg-[#004068] cursor-pointer"
-            />
-          </div>
-          <button 
-            type="submit" 
-            disabled={uploading}
-            className="bg-[#005a8d] hover:bg-[#004068] text-white font-bold rounded-2xl px-4 py-3 text-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-          >
-            {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlusCircle className="w-4 h-4" />}
-            {uploading ? "A enviar..." : "Cadastrar"}
-          </button>
-        </form>
-
-        <div className="grid sm:grid-cols-3 gap-4 pt-4">
-          {candidatos.map((c) => (
-            <div key={c.id} className="border border-gray-200 p-4 rounded-2xl flex items-center justify-between bg-gray-50/50">
-              <div className="flex items-center gap-3">
-                <img src={c.foto_url || "https://via.placeholder.com/150"} alt={c.nome} className="w-12 h-12 rounded-full object-cover border border-gray-200 shadow-sm" />
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div
+                onClick={() => setCandidatoSelecionado("BRANCO")}
+                className={`border-2 rounded-2xl p-4 flex items-center gap-4 cursor-pointer transition-all ${
+                  candidatoSelecionado === "BRANCO"
+                    ? "border-gray-500 bg-gray-100 shadow-sm"
+                    : "border-gray-100 hover:border-gray-200 bg-white"
+                }`}
+              >
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 border border-gray-200 shrink-0">
+                  <FileX className="w-8 h-8" />
+                </div>
                 <div>
-                  <p className="font-bold text-xs text-gray-800">{c.nome}</p>
-                  <p className="text-[10px] text-gray-500">Mat: {c.matricula}</p>
+                  <h4 className="font-bold text-gray-800 text-sm">Votar em Branco</h4>
+                  <p className="text-xs text-gray-500">Não escolher nenhum candidato</p>
                 </div>
               </div>
-              <button onClick={() => handleExcluirCandidato(c.id)} className="text-red-500 hover:text-red-700 p-2 cursor-pointer" title="Excluir candidato">
-                <Trash2 className="w-4 h-4" />
+
+              {candidatos.map((cand) => (
+                <div
+                  key={cand.id}
+                  onClick={() => setCandidatoSelecionado(cand.id)}
+                  className={`border-2 rounded-2xl p-4 flex items-center gap-4 cursor-pointer transition-all ${
+                    candidatoSelecionado === cand.id
+                      ? "border-[#005a8d] bg-blue-50/30 shadow-sm"
+                      : "border-gray-100 hover:border-gray-200 bg-white"
+                  }`}
+                >
+                  <img
+                    src={cand.foto_url || "https://via.placeholder.com/150"}
+                    alt={cand.nome}
+                    className="w-16 h-16 rounded-full object-cover border border-gray-200 shrink-0"
+                  />
+                  <div>
+                    <h4 className="font-bold text-gray-800 text-sm">{cand.nome}</h4>
+                    <p className="text-xs text-gray-500">Matrícula: {cand.matricula}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={handleIniciarConfirmacao}
+              disabled={loading || !candidatoSelecionado}
+              className="w-full bg-[#c5a059] hover:bg-[#b08c48] text-white font-bold py-4 rounded-2xl transition-all shadow-md text-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+            >
+              <Vote className="w-5 h-5" />
+              {candidatoSelecionado === "BRANCO" ? "Confirmar Voto em Branco" : "Confirmar Meu Voto Secretamente"}
+            </button>
+          </div>
+        )}
+
+      </div>
+
+      {mostrarModalConfirmacao && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <button 
+              onClick={() => setMostrarModalConfirmacao(false)} 
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-center space-y-3">
+              <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto">
+                <HelpCircle className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-serif font-bold text-[#005a8d]">Confirme a sua Escolha</h3>
+              <p className="text-xs text-gray-500">
+                Tem certeza de que deseja registrar o seu voto na seguinte opção?
+              </p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 text-center space-y-1">
+              <p className="text-xs text-gray-400 uppercase tracking-wider">Opção Selecionada:</p>
+              <p className="font-bold text-[#005a8d] text-lg">{infoCandidato?.nome}</p>
+              {infoCandidato?.matricula !== "N/A" && (
+                <p className="text-xs text-gray-500">Matrícula: {infoCandidato?.matricula}</p>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setMostrarModalConfirmacao(false)}
+                disabled={loading}
+                className="w-1/2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3.5 rounded-2xl text-sm transition-all cursor-pointer"
+              >
+                Corrigir Escolha
+              </button>
+              <button
+                onClick={handleConfirmarVotoFinal}
+                disabled={loading}
+                className="w-1/2 bg-[#005a8d] hover:bg-[#004068] text-white font-bold py-3.5 rounded-2xl text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Vote className="w-4 h-4" />}
+                Sim, Confirmar
               </button>
             </div>
-          ))}
+          </div>
         </div>
-      </div>
+      )}
 
     </div>
   );
