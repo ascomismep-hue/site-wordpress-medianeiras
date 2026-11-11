@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 export default function VotacaoCIPAA() {
+  // --- ESTADOS DO COMPONENTE ---
   const [matricula, setMatricula] = useState("");
   const [eleitor, setEleitor] = useState(null);
   const [candidatos, setCandidatos] = useState([]);
@@ -25,10 +26,10 @@ export default function VotacaoCIPAA() {
   const [votacaoConcluida, setVotacaoConcluida] = useState(false);
   const [tempoRestante, setTempoRestante] = useState(10);
   
-  // Estados de Status: 'verificando', 'aberta', 'bloqueada_manual'
+  // Estados de Status da Eleição: 'verificando', 'aberta', 'bloqueada_manual'
   const [statusEleicao, setStatusEleicao] = useState("verificando");
 
-  // Regra Simplificada: Controlo 100% Manual via Painel Administrativo (Supabase)
+  // --- EFET: CONSULTA O STATUS DA ELEIÇÃO NO PAINEL ADMIN (SUPABASE) ---
   useEffect(() => {
     async function verificarStatusEleicao() {
       try {
@@ -47,7 +48,7 @@ export default function VotacaoCIPAA() {
         }
       } catch (err) {
         console.error("Erro ao verificar status da eleição:", err);
-        // Em caso de falha de conexão, mantém o ecrã de bloqueio por segurança
+        // Em caso de falha de conexão, mantém a tela de bloqueio por segurança
         setStatusEleicao("bloqueada_manual");
       }
     }
@@ -59,7 +60,7 @@ export default function VotacaoCIPAA() {
     return () => clearInterval(interval);
   }, []);
 
-  // Carregar candidatos ativos da base de dados
+  // --- EFEITO: CARREGAR CANDIDATOS ATIVOS DO BANCO DE DADOS ---
   useEffect(() => {
     async function carregarCandidatos() {
       const { data, error } = await supabase
@@ -72,7 +73,7 @@ export default function VotacaoCIPAA() {
     carregarCandidatos();
   }, []);
 
-  // Temporizador de 10 segundos para reiniciar a cabina após o voto
+  // --- EFEITO: TEMPORIZADOR DE REINÍCIO DA CABINE APÓS O VOTO ---
   useEffect(() => {
     let timer;
     if (votacaoConcluida && tempoRestante > 0) {
@@ -80,6 +81,7 @@ export default function VotacaoCIPAA() {
         setTempoRestante((prev) => prev - 1);
       }, 1000);
     } else if (votacaoConcluida && tempoRestante === 0) {
+      // Reseta todos os estados para o próximo colaborador
       setVotacaoConcluida(false);
       setEleitor(null);
       setMatricula("");
@@ -90,7 +92,7 @@ export default function VotacaoCIPAA() {
     return () => clearInterval(timer);
   }, [votacaoConcluida, tempoRestante]);
 
-  // Validar e higienizar a matrícula do colaborador
+  // --- FUNÇÃO: VALIDAR A MATRÍCULA DO COLABORADOR ---
   const handleValidarMatricula = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -99,7 +101,7 @@ export default function VotacaoCIPAA() {
     const matriculaLimpa = matricula.trim();
 
     if (!matriculaLimpa) {
-      setErro("Por favor, introduza uma matrícula válida.");
+      setErro("Por favor, digite uma matrícula válida.");
       setLoading(false);
       return;
     }
@@ -112,9 +114,9 @@ export default function VotacaoCIPAA() {
         .single();
 
       if (error || !data) {
-        setErro("Matrícula não encontrada na base de dados de colaboradores aptos.");
+        setErro("Matrícula não encontrada no banco de dados de colaboradores aptos.");
       } else if (data.ja_votou) {
-        setErro("Esta matrícula já registou o seu voto neste processo eleitoral.");
+        setErro("Esta matrícula já registrou o seu voto neste processo eleitoral.");
       } else {
         setEleitor(data);
       }
@@ -126,7 +128,7 @@ export default function VotacaoCIPAA() {
     }
   };
 
-  // Abrir Modal de Confirmação
+  // --- FUNÇÃO: ABRIR MODAL DE CONFIRMAÇÃO ---
   const handleIniciarConfirmacao = () => {
     if (!candidatoSelecionado) {
       setErro("Por favor, selecione um candidato ou a opção de Voto em Branco.");
@@ -136,7 +138,7 @@ export default function VotacaoCIPAA() {
     setMostrarModalConfirmacao(true);
   };
 
-  // Confirmar Voto com Sigilo Garantido
+  // --- FUNÇÃO: CONFIRMAR VOTO FINAL (GARANTINDO SIGILO ABSOLUTO) ---
   const handleConfirmarVotoFinal = async () => {
     setLoading(true);
     setErro("");
@@ -144,12 +146,14 @@ export default function VotacaoCIPAA() {
     try {
       const candidatoIdParaGravar = candidatoSelecionado === "BRANCO" ? null : candidatoSelecionado;
 
+      // 1. Gravar voto anônimo na tabela de votos
       const { error: erroVoto } = await supabase
         .from("cipaa_votos")
         .insert([{ candidato_id: candidatoIdParaGravar }]);
 
       if (erroVoto) throw erroVoto;
 
+      // 2. Marcar eleitor como 'já votou' na tabela de eleitores
       const { error: erroEleitor } = await supabase
         .from("cipaa_eleitores_aptos")
         .update({ ja_votou: true })
@@ -162,13 +166,13 @@ export default function VotacaoCIPAA() {
       setTempoRestante(10);
     } catch (err) {
       console.error("Erro ao gravar voto:", err);
-      setErro("Erro ao registar o voto. Tente novamente.");
+      setErro("Erro ao registrar o voto. Tente novamente.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Ecrã de Carregamento Inicial
+  // --- TELA 1: CARREGAMENTO INICIAL DO STATUS ---
   if (statusEleicao === "verificando") {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
@@ -177,7 +181,7 @@ export default function VotacaoCIPAA() {
     );
   }
 
-  // Ecrã exibido quando a eleição está BLOQUEADA MANUALMENTE no painel
+  // --- TELA 2: ELEIÇÃO BLOQUEADA PELO ADMINISTRADOR ---
   if (statusEleicao === "bloqueada_manual") {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
@@ -189,13 +193,13 @@ export default function VotacaoCIPAA() {
           <p className="text-gray-600 text-sm leading-relaxed">
             A eleição da CIPAA encontra-se temporariamente <strong>pausada ou não iniciada</strong> pela Comissão Eleitoral.
           </p>
-          <p className="text-xs text-gray-400">Aguarde a liberação oficial no painel para registar o seu voto.</p>
+          <p className="text-xs text-gray-400">Aguarde a liberação oficial no painel para registrar o seu voto.</p>
         </div>
       </div>
     );
   }
 
-  // Ecrã de Voto Registado com Sucesso
+  // --- TELA 3: FIM DA VOTAÇÃO E CONTAGEM REGRESSIVA ---
   if (votacaoConcluida) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
@@ -204,38 +208,42 @@ export default function VotacaoCIPAA() {
             <CheckCircle2 className="w-8 h-8" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Voto Registado com Sucesso!</h2>
+            <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Voto Registrado com Sucesso!</h2>
             <p className="text-gray-600 text-sm">
               O seu voto foi computado com total sigilo e segurança para a CIPAA Gestão 2026/2027. Obrigado pela participação!
             </p>
           </div>
 
           <div className="bg-blue-50/70 border border-blue-100 p-4 rounded-2xl">
-            <p className="text-xs text-gray-500 font-medium">A reiniciar a cabina de votação em:</p>
+            <p className="text-xs text-gray-500 font-medium">Reiniciando a cabine de votação em:</p>
             <p className="text-3xl font-bold text-[#005a8d] my-1">{tempoRestante}s</p>
-            <p className="text-[11px] text-gray-400">O ecrã retornará automaticamente ao início para o próximo colaborador.</p>
+            <p className="text-[11px] text-gray-400">A tela retornará automaticamente ao início para o próximo colaborador.</p>
           </div>
         </div>
       </div>
     );
   }
 
+  // Auxiliar para pegar dados da opção escolhida para exibir no modal
   const infoCandidato = candidatoSelecionado === "BRANCO" 
     ? { nome: "Voto em Branco", matricula: "N/A" } 
     : candidatos.find(c => c.id === candidatoSelecionado);
 
+  // --- TELA PRINCIPAL DA URNA ELETRÔNICA ---
   return (
     <div className="min-h-[80vh] py-12 px-4 max-w-4xl mx-auto">
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 sm:p-12 space-y-8">
         
+        {/* Cabeçalho */}
         <div className="text-center space-y-2">
           <span className="text-xs font-bold uppercase tracking-widest bg-blue-50 text-[#005a8d] px-3.5 py-1 rounded-full">
             Eleição CIPAA Gestão 2026/2027
           </span>
           <h1 className="text-3xl font-serif font-bold text-[#005a8d]">Votação Eletrônica</h1>
-          <p className="text-gray-500 text-sm">Insira a sua matrícula institucional para liberar a cabina de votação.</p>
+          <p className="text-gray-500 text-sm">Digite a sua matrícula institucional para liberar a cabine de votação.</p>
         </div>
 
+        {/* Mensagem de Erro */}
         {erro && (
           <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-2xl text-sm flex items-center gap-3">
             <AlertCircle className="w-5 h-5 shrink-0" />
@@ -243,10 +251,13 @@ export default function VotacaoCIPAA() {
           </div>
         )}
 
+        {/* PASSO 1: Identificação por Matrícula */}
         {!eleitor ? (
           <form onSubmit={handleValidarMatricula} className="max-w-md mx-auto space-y-4">
             <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">Matrícula Institucional</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-gray-700 mb-2">
+                Matrícula Institucional
+              </label>
               <input
                 type="text"
                 required
@@ -262,12 +273,14 @@ export default function VotacaoCIPAA() {
               className="w-full bg-[#005a8d] hover:bg-[#004068] text-white font-bold py-3.5 rounded-2xl transition-colors shadow-sm text-sm flex items-center justify-center gap-2 cursor-pointer"
             >
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <UserCheck className="w-5 h-5" />}
-              Aceder à Votação
+              Acessar a Votação
             </button>
           </form>
         ) : (
+          /* PASSO 2: Seleção de Candidato ou Voto em Branco */
           <div className="space-y-6">
             
+            {/* Badge de Confirmação do Eleitor */}
             <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-2xl flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500">Eleitor Identificado:</p>
@@ -278,22 +291,26 @@ export default function VotacaoCIPAA() {
               </span>
             </div>
 
+            {/* Aviso de Sigilo */}
             <div className="bg-amber-50/60 border border-amber-200/80 p-5 rounded-2xl text-amber-900 text-xs sm:text-sm space-y-1.5 leading-relaxed">
               <div className="flex items-center gap-2 font-bold text-amber-900 uppercase tracking-wider text-xs">
                 <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
                 Garantia de Sigilo Absoluto do Voto
               </div>
               <p>
-                Esta votação é <strong>totalmente sigilosa</strong>. A validação da sua matrícula serve unicamente para confirmar que está apto a votar e evitar votos duplicados.
+                Esta votação é <strong>totalmente sigilosa</strong>. A validação da sua matrícula serve unicamente para confirmar que você está apto a votar e evitar votos duplicados.
               </p>
               <p className="text-amber-800/90 text-xs">
-                Os relatórios e a base de dados registam apenas que você já votou e computam o voto de forma anónima, <strong>sem qualquer ligação entre o seu nome/matrícula e o candidato escolhido</strong>.
+                Os relatórios e o banco de dados registram apenas que você já votou e computam o voto de forma anônima, <strong>sem qualquer ligação entre o seu nome/matrícula e o candidato escolhido</strong>.
               </p>
             </div>
 
             <h3 className="font-serif font-bold text-lg text-gray-800 pt-2">Escolha o seu candidato ou opção:</h3>
 
+            {/* Grade de Candidatos */}
             <div className="grid sm:grid-cols-2 gap-4">
+              
+              {/* Opção Voto em Branco */}
               <div
                 onClick={() => setCandidatoSelecionado("BRANCO")}
                 className={`border-2 rounded-2xl p-4 flex items-center gap-4 cursor-pointer transition-all ${
@@ -311,6 +328,7 @@ export default function VotacaoCIPAA() {
                 </div>
               </div>
 
+              {/* Lista Dinâmica de Candidatos */}
               {candidatos.map((cand) => (
                 <div
                   key={cand.id}
@@ -334,6 +352,7 @@ export default function VotacaoCIPAA() {
               ))}
             </div>
 
+            {/* Botão para Iniciar Confirmação */}
             <button
               onClick={handleIniciarConfirmacao}
               disabled={loading || !candidatoSelecionado}
@@ -347,6 +366,7 @@ export default function VotacaoCIPAA() {
 
       </div>
 
+      {/* MODAL DE CONFIRMAÇÃO DE VOTO */}
       {mostrarModalConfirmacao && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
@@ -363,7 +383,7 @@ export default function VotacaoCIPAA() {
               </div>
               <h3 className="text-xl font-serif font-bold text-[#005a8d]">Confirme a sua Escolha</h3>
               <p className="text-xs text-gray-500">
-                Tem a certeza de que deseja registar o seu voto na seguinte opção?
+                Tem certeza de que deseja registrar o seu voto na seguinte opção?
               </p>
             </div>
 
