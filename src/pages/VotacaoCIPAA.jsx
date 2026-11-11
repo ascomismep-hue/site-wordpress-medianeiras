@@ -11,7 +11,8 @@ import {
   FileX, 
   Clock,
   HelpCircle,
-  X
+  X,
+  Lock
 } from "lucide-react";
 
 export default function VotacaoCIPAA() {
@@ -25,39 +26,60 @@ export default function VotacaoCIPAA() {
   const [votacaoConcluida, setVotacaoConcluida] = useState(false);
   const [tempoRestante, setTempoRestante] = useState(10);
   
-  // Regra 1: Controlo de Horário do Edital (10/12/2026 das 07h às 17h)
+  // Estados de Status: 'verificando', 'aberta', 'bloqueada_manual', 'futura', 'encerrada'
   const [statusEleicao, setStatusEleicao] = useState("verificando");
 
+  // Regra 1: Verificação da Liberação Manual (Supabase) + Horário Oficial
   useEffect(() => {
-    function verificarHorarioEleicao() {
-      const agora = new Date();
-      
-      // Data de Início: 10 de Dezembro de 2026 às 07:00:00 (Mês 11 = Dezembro em JS)
-      const inicioEleicao = new Date(2026, 11, 10, 7, 0, 0);
-      
-      // Data de Término: 10 de Dezembro de 2026 às 17:00:00
-      const fimEleicao = new Date(2026, 11, 10, 17, 0, 0);
+    async function verificarStatusEleicao() {
+      try {
+        // 1. Consultar a liberação manual na tabela cipaa_config
+        const { data: configData, error: configError } = await supabase
+          .from("cipaa_config")
+          .select("eleicao_liberada")
+          .eq("id", 1)
+          .maybeSingle();
 
-      // Trava de Horário Real Ativada:
-      if (agora < inicioEleicao) {
-        setStatusEleicao("futura");
-      } else if (agora > fimEleicao) {
-        setStatusEleicao("encerrada");
-      } else {
+        // Se a eleição foi bloqueada manualmente no painel admin
+        if (configData && configData.eleicao_liberada === false) {
+          setStatusEleicao("bloqueada_manual");
+          return;
+        }
+
+        // 2. Trava de Horário Oficial (10/12/2026 das 07h às 17h)
+        const agora = new Date();
+        const inicioEleicao = new Date(2026, 11, 10, 7, 0, 0); // 10 de Dezembro às 07h
+        const fimEleicao = new Date(2026, 11, 10, 17, 0, 0);   // 10 de Dezembro às 17h
+
+        if (agora < inicioEleicao) {
+          setStatusEleicao("futura");
+        } else if (agora > fimEleicao) {
+          setStatusEleicao("encerrada");
+        } else {
+          setStatusEleicao("aberta");
+        }
+      } catch (err) {
+        console.error("Erro ao verificar status da eleição:", err);
+        // Em caso de dúvida, permite a votação se o banco responder positivo
         setStatusEleicao("aberta");
       }
     }
 
-    verificarHorarioEleicao();
-    // Atualiza a cada 30 segundos para garantir que feche/abra sozinho
-    const interval = setInterval(verificarHorarioEleicao, 30000);
+    verificarStatusEleicao();
+
+    // Sincroniza o status a cada 10 segundos para responder rápido aos comandos do admin
+    const interval = setInterval(verificarStatusEleicao, 10000);
     return () => clearInterval(interval);
   }, []);
 
   // Carregar candidatos ativos da base de dados
   useEffect(() => {
     async function carregarCandidatos() {
-      const { data, error } = await supabase.from("cipaa_candidatos").select("*").order("nome");
+      const { data, error } = await supabase
+        .from("cipaa_candidatos")
+        .select("*")
+        .order("nome");
+        
       if (!error && data) setCandidatos(data);
     }
     carregarCandidatos();
@@ -159,7 +181,34 @@ export default function VotacaoCIPAA() {
     }
   };
 
-  // Ecrã se a votação ainda não começou
+  // Ecrã de Carregamento de Status Inicial
+  if (statusEleicao === "verificando") {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center p-4">
+        <Loader2 className="w-8 h-8 animate-spin text-[#005a8d]" />
+      </div>
+    );
+  }
+
+  // Ecrã se a eleição estiver BLOQUEADA MANUALMENTE pelo Administrador
+  if (statusEleicao === "bloqueada_manual") {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center p-4">
+        <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center space-y-4">
+          <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto">
+            <Lock className="w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Votação Indisponível</h2>
+          <p className="text-gray-600 text-sm leading-relaxed">
+            A eleição da CIPAA encontra-se temporariamente <strong>pausada ou bloqueada</strong> pela Comissão Eleitoral.
+          </p>
+          <p className="text-xs text-gray-400">Por favor, aguarde a liberação para registar o seu voto.</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Ecrã se a votação ainda não começou (Trava de Horário)
   if (statusEleicao === "futura") {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
@@ -176,7 +225,7 @@ export default function VotacaoCIPAA() {
     );
   }
 
-  // Ecrã se a votação já encerrou
+  // Ecrã se a votação já encerrou (Trava de Horário)
   if (statusEleicao === "encerrada") {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
