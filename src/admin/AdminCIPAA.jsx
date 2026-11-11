@@ -41,19 +41,20 @@ export default function AdminCIPAA({ onLogout }) {
   // Controle de Quórum Eleitoral (Edital Seção 8)
   const [diaVotacao, setDiaVotacao] = useState(1); // 1 = 1º Dia (50%), 2 = 2º Dia (33.33%), 3 = 3º Dia (Livre)
 
-  const carregarDados = async () => {
+  // Função para carregar os dados com indicador visual inicial
+  const carregarDadosInicial = async () => {
     setLoading(true);
-    
-    try {
-      const { data: candData, error: candErr } = await supabase.from("cipaa_candidatos").select("*");
-      const { data: votoData, error: votoErr } = await supabase.from("cipaa_votos").select("*");
-      const { data: eleitorData, error: eleitorErr } = await supabase.from("cipaa_eleitores_aptos").select("*").order("nome");
-      const { data: configData, error: configErr } = await supabase.from("cipaa_config").select("*").eq("id", 1).maybeSingle();
+    await buscarDadosDoBanco();
+    setLoading(false);
+  };
 
-      if (candErr) console.error("Erro candidatos:", candErr);
-      if (votoErr) console.error("Erro votos:", votoErr);
-      if (eleitorErr) console.error("Erro eleitores:", eleitorErr);
-      if (configErr) console.error("Erro config:", configErr);
+  // Função silenciosa para atualização em segundo plano (sem piscar a tela)
+  const buscarDadosDoBanco = async () => {
+    try {
+      const { data: candData } = await supabase.from("cipaa_candidatos").select("*");
+      const { data: votoData } = await supabase.from("cipaa_votos").select("*");
+      const { data: eleitorData } = await supabase.from("cipaa_eleitores_aptos").select("*").order("nome");
+      const { data: configData } = await supabase.from("cipaa_config").select("*").eq("id", 1).maybeSingle();
 
       setCandidatos(candData || []);
       setVotos(votoData || []);
@@ -63,25 +64,29 @@ export default function AdminCIPAA({ onLogout }) {
         setEleicaoLiberada(configData.eleicao_liberada);
       }
     } catch (err) {
-      console.error("Erro ao carregar dados do painel:", err);
-    } finally {
-      setLoading(false);
+      console.error("Erro ao sincronizar dados do painel:", err);
     }
   };
 
   useEffect(() => {
-    carregarDados();
+    carregarDadosInicial();
 
-    // Subscrever a alterações em tempo real no Supabase
+    // 1. Inscrição em Tempo Real via WebSocket do Supabase
     const channel = supabase
       .channel('admin_cipaa_realtime_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'cipaa_votos' }, () => carregarDados())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'cipaa_eleitores_aptos' }, () => carregarDados())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'cipaa_config' }, () => carregarDados())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cipaa_votos' }, () => buscarDadosDoBanco())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cipaa_eleitores_aptos' }, () => buscarDadosDoBanco())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cipaa_config' }, () => buscarDadosDoBanco())
       .subscribe();
+
+    // 2. Intervalo de segurança (Polling de 3 em 3 segundos para garantir atualização sem F5)
+    const interval = setInterval(() => {
+      buscarDadosDoBanco();
+    }, 3000);
 
     return () => {
       supabase.removeChannel(channel);
+      clearInterval(interval);
     };
   }, []);
 
@@ -156,7 +161,7 @@ export default function AdminCIPAA({ onLogout }) {
       setNome("");
       setMatricula("");
       setFotoFile(null);
-      carregarDados();
+      buscarDadosDoBanco();
     } catch (err) {
       console.error("Erro ao cadastrar candidato:", err);
       alert("Erro ao cadastrar candidato. Verifique os dados inseridos.");
@@ -168,7 +173,7 @@ export default function AdminCIPAA({ onLogout }) {
   const handleExcluirCandidato = async (id) => {
     if (confirm("Deseja remover este candidato?")) {
       await supabase.from("cipaa_candidatos").delete().eq("id", id);
-      carregarDados();
+      buscarDadosDoBanco();
     }
   };
 
@@ -205,6 +210,7 @@ export default function AdminCIPAA({ onLogout }) {
   const formatarDataHora = (isoString) => {
     if (!isoString) return "Horário não registrado";
     const data = new Date(isoString);
+    if (isNaN(data.getTime())) return "Horário inválido";
     return data.toLocaleString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
