@@ -14,7 +14,9 @@ import {
   CheckCircle2,
   Lock,
   Unlock,
-  Power
+  Power,
+  Clock,
+  Search
 } from "lucide-react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
@@ -25,6 +27,7 @@ export default function AdminCIPAA({ onLogout }) {
   const [eleitores, setEleitores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [buscaVotante, setBuscaVotante] = useState("");
 
   // Estado da Liberação Manual da Eleição
   const [eleicaoLiberada, setEleicaoLiberada] = useState(false);
@@ -71,16 +74,10 @@ export default function AdminCIPAA({ onLogout }) {
 
     // Subscrever a alterações em tempo real no Supabase
     const channel = supabase
-      .channel('admin_cipaa_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'cipaa_votos' }, () => {
-        carregarDados();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'cipaa_eleitores_aptos' }, () => {
-        carregarDados();
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'cipaa_config' }, () => {
-        carregarDados();
-      })
+      .channel('admin_cipaa_realtime_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cipaa_votos' }, () => carregarDados())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cipaa_eleitores_aptos' }, () => carregarDados())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cipaa_config' }, () => carregarDados())
       .subscribe();
 
     return () => {
@@ -99,7 +96,6 @@ export default function AdminCIPAA({ onLogout }) {
         .upsert({ id: 1, eleicao_liberada: novoStatus, updated_at: new Date() });
 
       if (error) throw error;
-
       setEleicaoLiberada(novoStatus);
     } catch (err) {
       console.error("Erro ao alterar status da eleição:", err);
@@ -176,9 +172,14 @@ export default function AdminCIPAA({ onLogout }) {
     }
   };
 
-  // Cálculos de Apuração e Quórum
+  // --- CÁLCULOS DE APURAÇÃO E QUÓRUM ---
   const totalGeralVotos = votos.length;
-  const eleitoresVotantes = eleitores.filter((e) => e.ja_votou === true);
+  
+  // Eleitores que já votaram
+  const eleitoresVotantes = eleitores.filter(
+    (e) => e.ja_votou === true || e.ja_votou === "true" || e.ja_votou === 1
+  );
+  
   const totalEleitoresAptos = eleitores.length;
 
   const percentualParticipacao = totalEleitoresAptos > 0 
@@ -194,6 +195,52 @@ export default function AdminCIPAA({ onLogout }) {
   }).sort((a, b) => b.totalVotos - a.totalVotos);
 
   const totalVotosBrancos = votos.filter((v) => !v.candidato_id).length;
+
+  // Filtragem de votantes para busca na tabela de acompanhamento
+  const eleitoresVotantesFiltrados = eleitoresVotantes.filter(
+    (e) => e.nome.toLowerCase().includes(buscaVotante.toLowerCase()) || e.matricula.includes(buscaVotante)
+  );
+
+  // Formatação amigável de Data e Hora no padrão pt-BR
+  const formatarDataHora = (isoString) => {
+    if (!isoString) return "Horário não registrado";
+    const data = new Date(isoString);
+    return data.toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    });
+  };
+
+  // Exportar PDF da Lista de Presença com Horários
+  const exportarPDFListaPresenca = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.setTextColor(0, 40, 69);
+    doc.text("Lista de Presença / Votantes - Eleição CIPAA 2026/2027", 14, 15);
+    doc.setFontSize(10);
+    doc.text(`Total de Colaboradores Participantes: ${eleitoresVotantes.length} de ${totalEleitoresAptos}`, 14, 22);
+
+    const tableColumn = ["Nº", "Nome do Colaborador", "Matrícula", "Horário do Voto"];
+    const tableRows = eleitoresVotantes.map((el, index) => [
+      index + 1,
+      el.nome,
+      el.matricula,
+      formatarDataHora(el.data_voto)
+    ]);
+
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 28,
+      headStyles: { fillColor: [16, 185, 129] }
+    });
+
+    doc.save(`Lista_Presenca_Votantes_CIPAA_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
 
   // Exportar PDF de Apuração Consolidado
   const exportarPDFResultados = () => {
@@ -232,33 +279,6 @@ export default function AdminCIPAA({ onLogout }) {
     });
 
     doc.save(`Apuracao_CIPAA_Dia_${diaVotacao}_${new Date().toISOString().split('T')[0]}.pdf`);
-  };
-
-  // Exportar PDF da Lista de Presença
-  const exportarPDFListaPresenca = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.setTextColor(0, 40, 69);
-    doc.text("Lista de Presença / Votantes - Eleição CIPAA 2026/2027", 14, 15);
-    doc.setFontSize(10);
-    doc.text(`Total de Colaboradores Participantes: ${eleitoresVotantes.length}`, 14, 22);
-
-    const tableColumn = ["Nº", "Nome do Colaborador", "Matrícula", "Status"];
-    const tableRows = eleitoresVotantes.map((el, index) => [
-      index + 1,
-      el.nome,
-      el.matricula,
-      "Voto Registrado"
-    ]);
-
-    doc.autoTable({
-      head: [tableColumn],
-      body: tableRows,
-      startY: 28,
-      headStyles: { fillColor: [16, 185, 129] }
-    });
-
-    doc.save(`Lista_Presenca_Votantes_CIPAA_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
   if (loading) {
@@ -329,11 +349,7 @@ export default function AdminCIPAA({ onLogout }) {
               : "bg-emerald-600 hover:bg-emerald-700 text-white"
           }`}
         >
-          {atualizandoStatus ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Power className="w-4 h-4" />
-          )}
+          {atualizandoStatus ? <Loader2 className="w-4 h-4 animate-spin" /> : <Power className="w-4 h-4" />}
           {eleicaoLiberada ? "Bloquear Votação Agora" : "Liberar Votação Agora"}
         </button>
       </div>
@@ -450,7 +466,74 @@ export default function AdminCIPAA({ onLogout }) {
         </div>
       </div>
 
-      {/* Apuração Parcial / Final */}
+      {/* --- NOVA SEÇÃO: ACOMPANHAMENTO EM TEMPO REAL DOS ELEITORES VOTANTES --- */}
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
+        <div className="flex flex-wrap justify-between items-center gap-4 border-b border-gray-100 pb-4">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full inline-flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Atualização em Tempo Real
+            </span>
+            <h3 className="font-serif font-bold text-lg text-[#005a8d] mt-1">Acompanhamento dos Colaboradores que já Votaram</h3>
+            <p className="text-xs text-gray-500">Lista oficial com os horários exatos dos votos registrados para acompanhamento do pleito.</p>
+          </div>
+
+          {/* Campo de Busca por Nome ou Matrícula */}
+          <div className="relative min-w-[260px]">
+            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
+            <input
+              type="text"
+              placeholder="Buscar por nome ou matrícula..."
+              value={buscaVotante}
+              onChange={(e) => setBuscaVotante(e.target.value)}
+              className="w-full bg-gray-50 border border-gray-200 rounded-2xl pl-10 pr-4 py-2.5 text-xs focus:outline-none focus:ring-2 focus:ring-[#005a8d]"
+            />
+          </div>
+        </div>
+
+        <div className="overflow-x-auto max-h-96">
+          <table className="w-full text-left border-collapse">
+            <thead className="sticky top-0 bg-gray-50 shadow-xs">
+              <tr className="border-b text-[11px] font-bold text-gray-500 uppercase">
+                <th className="p-4">Nº</th>
+                <th className="p-4">Nome do Colaborador</th>
+                <th className="p-4">Matrícula</th>
+                <th className="p-4">Horário do Voto</th>
+                <th className="p-4">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y text-sm">
+              {eleitoresVotantesFiltrados.length > 0 ? (
+                eleitoresVotantesFiltrados.map((el, index) => (
+                  <tr key={el.matricula} className="hover:bg-gray-50 transition-colors">
+                    <td className="p-4 font-bold text-gray-400">#{index + 1}</td>
+                    <td className="p-4 font-bold text-gray-800">{el.nome}</td>
+                    <td className="p-4 text-gray-600">{el.matricula}</td>
+                    <td className="p-4 text-gray-700 font-medium flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-[#005a8d]" />
+                      {formatarDataHora(el.data_voto)}
+                    </td>
+                    <td className="p-4">
+                      <span className="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full inline-flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Voto Registrado
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="5" className="p-8 text-center text-gray-400 text-sm">
+                    {eleitoresVotantes.length === 0 
+                      ? "Nenhum colaborador votou até o momento nesta eleição." 
+                      : "Nenhum colaborador encontrado com os termos pesquisados."}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Apuração Parcial / Final (Classificação dos Candidatos) */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
         <h3 className="font-serif font-bold text-lg text-[#005a8d]">Apuração Parcial / Final (Classificação)</h3>
         <div className="overflow-x-auto">
