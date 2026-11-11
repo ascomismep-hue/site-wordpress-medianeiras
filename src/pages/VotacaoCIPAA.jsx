@@ -33,14 +33,12 @@ export default function VotacaoCIPAA() {
   useEffect(() => {
     async function verificarStatusEleicao() {
       try {
-        // Consultar o estado do botão no painel admin (tabela cipaa_config)
         const { data: configData } = await supabase
           .from("cipaa_config")
           .select("eleicao_liberada")
           .eq("id", 1)
           .maybeSingle();
 
-        // Se estiver liberada no painel, abre a votação; caso contrário, bloqueia
         if (configData && configData.eleicao_liberada === true) {
           setStatusEleicao("aberta");
         } else {
@@ -48,14 +46,13 @@ export default function VotacaoCIPAA() {
         }
       } catch (err) {
         console.error("Erro ao verificar status da eleição:", err);
-        // Em caso de falha de conexão, mantém a tela de bloqueio por segurança
         setStatusEleicao("bloqueada_manual");
       }
     }
 
     verificarStatusEleicao();
 
-    // Sincroniza o status a cada 5 segundos para responder rapidamente às alterações do admin
+    // Sincroniza o status a cada 5 segundos
     const interval = setInterval(verificarStatusEleicao, 5000);
     return () => clearInterval(interval);
   }, []);
@@ -81,7 +78,6 @@ export default function VotacaoCIPAA() {
         setTempoRestante((prev) => prev - 1);
       }, 1000);
     } else if (votacaoConcluida && tempoRestante === 0) {
-      // Reseta todos os estados para o próximo colaborador
       setVotacaoConcluida(false);
       setEleitor(null);
       setMatricula("");
@@ -138,7 +134,7 @@ export default function VotacaoCIPAA() {
     setMostrarModalConfirmacao(true);
   };
 
-  // --- FUNÇÃO: CONFIRMAR VOTO FINAL (GARANTINDO SIGILO ABSOLUTO E REGISTRANDO O HORÁRIO) ---
+  // --- FUNÇÃO: CONFIRMAR VOTO FINAL (GRAVANDO VOTO E DATA/HORA DO ELEITOR) ---
   const handleConfirmarVotoFinal = async () => {
     setLoading(true);
     setErro("");
@@ -153,12 +149,12 @@ export default function VotacaoCIPAA() {
 
       if (erroVoto) throw erroVoto;
 
-      // 2. Marcar eleitor como 'já votou' e registrar a data e hora exatas do voto
+      // 2. Marcar eleitor como 'já votou' E gravar o timestamp (data e hora atuais)
       const { error: erroEleitor } = await supabase
         .from("cipaa_eleitores_aptos")
         .update({ 
           ja_votou: true,
-          data_voto: new Date().toISOString()
+          data_voto: new Date().toISOString() // Registra o momento exato do voto
         })
         .eq("matricula", eleitor.matricula);
 
@@ -227,12 +223,10 @@ export default function VotacaoCIPAA() {
     );
   }
 
-  // Auxiliar para pegar dados da opção escolhida para exibir no modal
   const infoCandidato = candidatoSelecionado === "BRANCO" 
     ? { nome: "Voto em Branco", matricula: "N/A" } 
     : candidatos.find(c => c.id === candidatoSelecionado);
 
-  // --- TELA PRINCIPAL DA URNA ELETRÔNICA ---
   return (
     <div className="min-h-[80vh] py-12 px-4 max-w-4xl mx-auto">
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 sm:p-12 space-y-8">
@@ -283,7 +277,6 @@ export default function VotacaoCIPAA() {
           /* PASSO 2: Seleção de Candidato ou Voto em Branco */
           <div className="space-y-6">
             
-            {/* Badge de Confirmação do Eleitor */}
             <div className="bg-blue-50/50 border border-blue-100 p-4 rounded-2xl flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-500">Eleitor Identificado:</p>
@@ -294,7 +287,6 @@ export default function VotacaoCIPAA() {
               </span>
             </div>
 
-            {/* Aviso de Sigilo */}
             <div className="bg-amber-50/60 border border-amber-200/80 p-5 rounded-2xl text-amber-900 text-xs sm:text-sm space-y-1.5 leading-relaxed">
               <div className="flex items-center gap-2 font-bold text-amber-900 uppercase tracking-wider text-xs">
                 <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
@@ -304,121 +296,4 @@ export default function VotacaoCIPAA() {
                 Esta votação é <strong>totalmente sigilosa</strong>. A validação da sua matrícula serve unicamente para confirmar que você está apto a votar e evitar votos duplicados.
               </p>
               <p className="text-amber-800/90 text-xs">
-                Os relatórios e o banco de dados registram apenas que você já votou e computam o voto de forma anônima, <strong>sem qualquer ligação entre o seu nome/matrícula e o candidato escolhido</strong>.
-              </p>
-            </div>
-
-            <h3 className="font-serif font-bold text-lg text-gray-800 pt-2">Escolha o seu candidato ou opção:</h3>
-
-            {/* Grade de Candidatos */}
-            <div className="grid sm:grid-cols-2 gap-4">
-              
-              {/* Opção Voto em Branco */}
-              <div
-                onClick={() => setCandidatoSelecionado("BRANCO")}
-                className={`border-2 rounded-2xl p-4 flex items-center gap-4 cursor-pointer transition-all ${
-                  candidatoSelecionado === "BRANCO"
-                    ? "border-gray-500 bg-gray-100 shadow-sm"
-                    : "border-gray-100 hover:border-gray-200 bg-white"
-                }`}
-              >
-                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 border border-gray-200 shrink-0">
-                  <FileX className="w-8 h-8" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-800 text-sm">Votar em Branco</h4>
-                  <p className="text-xs text-gray-500">Não escolher nenhum candidato</p>
-                </div>
-              </div>
-
-              {/* Lista Dinâmica de Candidatos */}
-              {candidatos.map((cand) => (
-                <div
-                  key={cand.id}
-                  onClick={() => setCandidatoSelecionado(cand.id)}
-                  className={`border-2 rounded-2xl p-4 flex items-center gap-4 cursor-pointer transition-all ${
-                    candidatoSelecionado === cand.id
-                      ? "border-[#005a8d] bg-blue-50/30 shadow-sm"
-                      : "border-gray-100 hover:border-gray-200 bg-white"
-                  }`}
-                >
-                  <img
-                    src={cand.foto_url || "https://via.placeholder.com/150"}
-                    alt={cand.nome}
-                    className="w-16 h-16 rounded-full object-cover border border-gray-200 shrink-0"
-                  />
-                  <div>
-                    <h4 className="font-bold text-gray-800 text-sm">{cand.nome}</h4>
-                    <p className="text-xs text-gray-500">Matrícula: {cand.matricula}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Botão para Iniciar Confirmação */}
-            <button
-              onClick={handleIniciarConfirmacao}
-              disabled={loading || !candidatoSelecionado}
-              className="w-full bg-[#c5a059] hover:bg-[#b08c48] text-white font-bold py-4 rounded-2xl transition-all shadow-md text-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-            >
-              <Vote className="w-5 h-5" />
-              {candidatoSelecionado === "BRANCO" ? "Confirmar Voto em Branco" : "Confirmar Meu Voto Secretamente"}
-            </button>
-          </div>
-        )}
-
-      </div>
-
-      {/* MODAL DE CONFIRMAÇÃO DE VOTO */}
-      {mostrarModalConfirmacao && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
-            <button 
-              onClick={() => setMostrarModalConfirmacao(false)} 
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="text-center space-y-3">
-              <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto">
-                <HelpCircle className="w-7 h-7" />
-              </div>
-              <h3 className="text-xl font-serif font-bold text-[#005a8d]">Confirme a sua Escolha</h3>
-              <p className="text-xs text-gray-500">
-                Tem certeza de que deseja registrar o seu voto na seguinte opção?
-              </p>
-            </div>
-
-            <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 text-center space-y-1">
-              <p className="text-xs text-gray-400 uppercase tracking-wider">Opção Selecionada:</p>
-              <p className="font-bold text-[#005a8d] text-lg">{infoCandidato?.nome}</p>
-              {infoCandidato?.matricula !== "N/A" && (
-                <p className="text-xs text-gray-500">Matrícula: {infoCandidato?.matricula}</p>
-              )}
-            </div>
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setMostrarModalConfirmacao(false)}
-                disabled={loading}
-                className="w-1/2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3.5 rounded-2xl text-sm transition-all cursor-pointer"
-              >
-                Corrigir Escolha
-              </button>
-              <button
-                onClick={handleConfirmarVotoFinal}
-                disabled={loading}
-                className="w-1/2 bg-[#005a8d] hover:bg-[#004068] text-white font-bold py-3.5 rounded-2xl text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
-              >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Vote className="w-4 h-4" />}
-                Sim, Confirmar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-    </div>
-  );
-}
+                Os relatórios e o banco de dados registram apenas que você já votou e computam o voto de forma anônima, <strong>sem qualquer ligação entre o seu nome/matrícula e
