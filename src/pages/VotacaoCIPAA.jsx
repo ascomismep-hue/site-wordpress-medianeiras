@@ -296,4 +296,116 @@ export default function VotacaoCIPAA() {
                 Esta votação é <strong>totalmente sigilosa</strong>. A validação da sua matrícula serve unicamente para confirmar que você está apto a votar e evitar votos duplicados.
               </p>
               <p className="text-amber-800/90 text-xs">
-                Os relatórios e o banco de dados registram apenas que você já votou e computam o voto de forma anônima, <strong>sem qualquer ligação entre o seu nome/matrícula e
+                Os relatórios e o banco de dados registram apenas que você já votou e computam o voto de forma anônima, <strong>sem qualquer ligação entre o seu nome/matrícula e o candidato escolhido</strong>.
+              </p>
+            </div>
+
+            <h3 className="font-serif font-bold text-lg text-gray-800 pt-2">Escolha o seu candidato ou opção:</h3>
+
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div
+                onClick={() => setCandidatoSelecionado("BRANCO")}
+                className={`border-2 rounded-2xl p-4 flex items-center gap-4 cursor-pointer transition-all ${
+                  candidatoSelecionado === "BRANCO"
+                    ? "border-gray-500 bg-gray-100 shadow-sm"
+                    : "border-gray-100 hover:border-gray-200 bg-white"
+                }`}
+              >
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 border border-gray-200 shrink-0">
+                  <FileX className="w-8 h-8" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-gray-800 text-sm">Votar em Branco</h4>
+                  <p className="text-xs text-gray-500">Não escolher nenhum candidato</p>
+                </div>
+              </div>
+
+              {candidatos.map((cand) => (
+                <div
+                  key={cand.id}
+                  onClick={() => setCandidatoSelecionado(cand.id)}
+                  className={`border-2 rounded-2xl p-4 flex items-center gap-4 cursor-pointer transition-all ${
+                    candidatoSelecionado === cand.id
+                      ? "border-[#005a8d] bg-blue-50/30 shadow-sm"
+                      : "border-gray-100 hover:border-gray-200 bg-white"
+                  }`}
+                >
+                  <img
+                    src={cand.foto_url || "https://via.placeholder.com/150"}
+                    alt={cand.nome}
+                    className="w-16 h-16 rounded-full object-cover border border-gray-200 shrink-0"
+                  />
+                  <div>
+                    <h4 className="font-bold text-gray-800 text-sm">{cand.nome}</h4>
+                    <p className="text-xs text-gray-500">Matrícula: {cand.matricula}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button
+              onClick={handleIniciarConfirmacao}
+              disabled={loading || !candidatoSelecionado}
+              className="w-full bg-[#c5a059] hover:bg-[#b08c48] text-white font-bold py-4 rounded-2xl transition-all shadow-md text-sm flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+            >
+              <Vote className="w-5 h-5" />
+              {candidatoSelecionado === "BRANCO" ? "Confirmar Voto em Branco" : "Confirmar Meu Voto Secretamente"}
+            </button>
+          </div>
+        )}
+
+      </div>
+
+      {/* MODAL DE CONFIRMAÇÃO DE VOTO */}
+      {mostrarModalConfirmacao && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <button 
+              onClick={() => setMostrarModalConfirmacao(false)} 
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-1"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="text-center space-y-3">
+              <div className="w-14 h-14 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto">
+                <HelpCircle className="w-7 h-7" />
+              </div>
+              <h3 className="text-xl font-serif font-bold text-[#005a8d]">Confirme a sua Escolha</h3>
+              <p className="text-xs text-gray-500">
+                Tem certeza de que deseja registrar o seu voto na seguinte opção?
+              </p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 text-center space-y-1">
+              <p className="text-xs text-gray-400 uppercase tracking-wider">Opção Selecionada:</p>
+              <p className="font-bold text-[#005a8d] text-lg">{infoCandidato?.nome}</p>
+              {infoCandidato?.matricula !== "N/A" && (
+                <p className="text-xs text-gray-500">Matrícula: {infoCandidato?.matricula}</p>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setMostrarModalConfirmacao(false)}
+                disabled={loading}
+                className="w-1/2 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3.5 rounded-2xl text-sm transition-all cursor-pointer"
+              >
+                Corrigir Escolha
+              </button>
+              <button
+                onClick={handleConfirmarVotoFinal}
+                disabled={loading}
+                className="w-1/2 bg-[#005a8d] hover:bg-[#004068] text-white font-bold py-3.5 rounded-2xl text-sm transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Vote className="w-4 h-4" />}
+                Sim, Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
