@@ -41,25 +41,51 @@ export default function AdminCIPAA({ onLogout }) {
   const carregarDados = async () => {
     setLoading(true);
     
-    // Buscar dados dos candidatos, votos, eleitores e status da eleição
-    const { data: candData } = await supabase.from("cipaa_candidatos").select("*");
-    const { data: votoData } = await supabase.from("cipaa_votos").select("*");
-    const { data: eleitorData } = await supabase.from("cipaa_eleitores_aptos").select("*").order("nome");
-    const { data: configData } = await supabase.from("cipaa_config").select("*").eq("id", 1).single();
-    
-    setCandidatos(candData || []);
-    setVotos(votoData || []);
-    setEleitores(eleitorData || []);
-    
-    if (configData) {
-      setEleicaoLiberada(configData.eleicao_liberada);
-    }
+    try {
+      const { data: candData, error: candErr } = await supabase.from("cipaa_candidatos").select("*");
+      const { data: votoData, error: votoErr } = await supabase.from("cipaa_votos").select("*");
+      const { data: eleitorData, error: eleitorErr } = await supabase.from("cipaa_eleitores_aptos").select("*").order("nome");
+      const { data: configData, error: configErr } = await supabase.from("cipaa_config").select("*").eq("id", 1).maybeSingle();
 
-    setLoading(false);
+      if (candErr) console.error("Erro candidatos:", candErr);
+      if (votoErr) console.error("Erro votos:", votoErr);
+      if (eleitorErr) console.error("Erro eleitores:", eleitorErr);
+      if (configErr) console.error("Erro config:", configErr);
+
+      setCandidatos(candData || []);
+      setVotos(votoData || []);
+      setEleitores(eleitorData || []);
+      
+      if (configData) {
+        setEleicaoLiberada(configData.eleicao_liberada);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar dados do painel:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     carregarDados();
+
+    // Subscrever a alterações em tempo real no Supabase
+    const channel = supabase
+      .channel('admin_cipaa_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cipaa_votos' }, () => {
+        carregarDados();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cipaa_eleitores_aptos' }, () => {
+        carregarDados();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'cipaa_config' }, () => {
+        carregarDados();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Alternar a Liberação Manual da Eleição (Ativar / Desativar)
@@ -152,7 +178,7 @@ export default function AdminCIPAA({ onLogout }) {
 
   // Cálculos de Apuração e Quórum
   const totalGeralVotos = votos.length;
-  const eleitoresVotantes = eleitores.filter((e) => e.ja_votou);
+  const eleitoresVotantes = eleitores.filter((e) => e.ja_votou === true);
   const totalEleitoresAptos = eleitores.length;
 
   const percentualParticipacao = totalEleitoresAptos > 0 
