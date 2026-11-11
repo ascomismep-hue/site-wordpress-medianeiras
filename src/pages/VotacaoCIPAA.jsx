@@ -9,7 +9,6 @@ import {
   AlertCircle, 
   ShieldAlert, 
   FileX, 
-  Clock,
   HelpCircle,
   X,
   Lock
@@ -26,49 +25,37 @@ export default function VotacaoCIPAA() {
   const [votacaoConcluida, setVotacaoConcluida] = useState(false);
   const [tempoRestante, setTempoRestante] = useState(10);
   
-  // Estados de Status: 'verificando', 'aberta', 'bloqueada_manual', 'futura', 'encerrada'
+  // Estados de Status: 'verificando', 'aberta', 'bloqueada_manual'
   const [statusEleicao, setStatusEleicao] = useState("verificando");
 
-  // Regra 1: Verificação da Liberação Manual (Supabase) + Horário Oficial
+  // Regra Simplificada: Controlo 100% Manual via Painel Administrativo (Supabase)
   useEffect(() => {
     async function verificarStatusEleicao() {
       try {
-        // 1. Consultar a liberação manual na tabela cipaa_config
-        const { data: configData, error: configError } = await supabase
+        // Consultar o estado do botão no painel admin (tabela cipaa_config)
+        const { data: configData } = await supabase
           .from("cipaa_config")
           .select("eleicao_liberada")
           .eq("id", 1)
           .maybeSingle();
 
-        // Se a eleição foi bloqueada manualmente no painel admin
-        if (configData && configData.eleicao_liberada === false) {
-          setStatusEleicao("bloqueada_manual");
-          return;
-        }
-
-        // 2. Trava de Horário Oficial (10/12/2026 das 07h às 17h)
-        const agora = new Date();
-        const inicioEleicao = new Date(2026, 11, 10, 7, 0, 0); // 10 de Dezembro às 07h
-        const fimEleicao = new Date(2026, 11, 10, 17, 0, 0);   // 10 de Dezembro às 17h
-
-        if (agora < inicioEleicao) {
-          setStatusEleicao("futura");
-        } else if (agora > fimEleicao) {
-          setStatusEleicao("encerrada");
-        } else {
+        // Se estiver liberada no painel, abre a votação; caso contrário, bloqueia
+        if (configData && configData.eleicao_liberada === true) {
           setStatusEleicao("aberta");
+        } else {
+          setStatusEleicao("bloqueada_manual");
         }
       } catch (err) {
         console.error("Erro ao verificar status da eleição:", err);
-        // Em caso de dúvida, permite a votação se o banco responder positivo
-        setStatusEleicao("aberta");
+        // Em caso de falha de conexão, mantém o ecrã de bloqueio por segurança
+        setStatusEleicao("bloqueada_manual");
       }
     }
 
     verificarStatusEleicao();
 
-    // Sincroniza o status a cada 10 segundos para responder rápido aos comandos do admin
-    const interval = setInterval(verificarStatusEleicao, 10000);
+    // Sincroniza o status a cada 5 segundos para responder rapidamente às alterações do admin
+    const interval = setInterval(verificarStatusEleicao, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -85,7 +72,7 @@ export default function VotacaoCIPAA() {
     carregarCandidatos();
   }, []);
 
-  // Regra 2: Temporizador de 10 segundos para reiniciar a cabina para o próximo colaborador
+  // Temporizador de 10 segundos para reiniciar a cabina após o voto
   useEffect(() => {
     let timer;
     if (votacaoConcluida && tempoRestante > 0) {
@@ -181,7 +168,7 @@ export default function VotacaoCIPAA() {
     }
   };
 
-  // Ecrã de Carregamento de Status Inicial
+  // Ecrã de Carregamento Inicial
   if (statusEleicao === "verificando") {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
@@ -190,7 +177,7 @@ export default function VotacaoCIPAA() {
     );
   }
 
-  // Ecrã se a eleição estiver BLOQUEADA MANUALMENTE pelo Administrador
+  // Ecrã exibido quando a eleição está BLOQUEADA MANUALMENTE no painel
   if (statusEleicao === "bloqueada_manual") {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
@@ -200,49 +187,15 @@ export default function VotacaoCIPAA() {
           </div>
           <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Votação Indisponível</h2>
           <p className="text-gray-600 text-sm leading-relaxed">
-            A eleição da CIPAA encontra-se temporariamente <strong>pausada ou bloqueada</strong> pela Comissão Eleitoral.
+            A eleição da CIPAA encontra-se temporariamente <strong>pausada ou não iniciada</strong> pela Comissão Eleitoral.
           </p>
-          <p className="text-xs text-gray-400">Por favor, aguarde a liberação para registar o seu voto.</p>
+          <p className="text-xs text-gray-400">Aguarde a liberação oficial no painel para registar o seu voto.</p>
         </div>
       </div>
     );
   }
 
-  // Ecrã se a votação ainda não começou (Trava de Horário)
-  if (statusEleicao === "futura") {
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center space-y-4">
-          <div className="w-16 h-16 bg-blue-50 text-[#005a8d] rounded-full flex items-center justify-center mx-auto">
-            <Clock className="w-8 h-8" />
-          </div>
-          <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Votação em Breve</h2>
-          <p className="text-gray-600 text-sm">
-            Conforme o edital, a eleição da CIPAA Gestão 2026/2027 realizar-se-á no dia <strong>10 de dezembro de 2026</strong>, das <strong>07h às 17h</strong>.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Ecrã se a votação já encerrou (Trava de Horário)
-  if (statusEleicao === "encerrada") {
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center space-y-4">
-          <div className="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto">
-            <Clock className="w-8 h-8" />
-          </div>
-          <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Votação Encerrada</h2>
-          <p className="text-gray-600 text-sm">
-            O período oficial de votação da CIPAA Gestão 2026/2027 encerrou às 17h do dia 10 de dezembro de 2026. Obrigado a todos os participantes!
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Ecrã de Voto Registado com Sucesso + Temporizador de 10s
+  // Ecrã de Voto Registado com Sucesso
   if (votacaoConcluida) {
     return (
       <div className="min-h-[70vh] flex items-center justify-center p-4">
@@ -277,7 +230,7 @@ export default function VotacaoCIPAA() {
         
         <div className="text-center space-y-2">
           <span className="text-xs font-bold uppercase tracking-widest bg-blue-50 text-[#005a8d] px-3.5 py-1 rounded-full">
-            Eleição CIPAA 2026/2027 • Das 07h às 17h (10/12/2026)
+            Eleição CIPAA Gestão 2026/2027
           </span>
           <h1 className="text-3xl font-serif font-bold text-[#005a8d]">Votação Eletrônica</h1>
           <p className="text-gray-500 text-sm">Insira a sua matrícula institucional para liberar a cabina de votação.</p>
