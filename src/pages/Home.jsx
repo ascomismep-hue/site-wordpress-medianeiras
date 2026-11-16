@@ -7,6 +7,7 @@ import {
   ChevronLeft, Gift, Globe 
 } from "lucide-react";
 import LiturgiaDiariaCard from "../components/LiturgiaDiariaCard";
+import InstagramFeed from "../components/InstagramFeed";
 
 export default function Home() {
   const [banners, setBanners] = useState([]);
@@ -499,6 +500,9 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      {/* SEÇÃO: 3 ÚLTIMAS PUBLICAÇÕES DO INSTAGRAM (@irimep) */}
+      <InstagramFeed />
 
       {/* SEÇÃO DE PRÓXIMOS EVENTOS E AGENDA */}
       <section className="bg-white py-20 border-t border-gray-100">
