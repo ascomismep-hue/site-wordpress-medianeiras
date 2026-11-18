@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { Loader2, Download, Users, RefreshCw, LogOut } from "lucide-react";
+import { Loader2, Download, Users, RefreshCw, LogOut, Lock, Unlock, Power } from "lucide-react";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 
@@ -8,27 +8,77 @@ export default function AdminCorridinha({ onLogout }) {
   const [inscritos, setInscritos] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Buscar dados da tabela do Supabase
-  const fetchInscritos = async () => {
+  // Estado de controle de liberação das inscrições
+  const [inscricoesLiberadas, setInscricoesLiberadas] = useState(true);
+  const [atualizandoStatus, setAtualizandoStatus] = useState(false);
+
+  // Buscar dados da tabela do Supabase e o status de configuração
+  const fetchDadosPainel = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // 1. Buscar inscritos
+      const { data: dadosInscritos, error: erroInscritos } = await supabase
         .from("inscricoes_corridinha")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setInscritos(data || []);
+      if (erroInscritos) throw erroInscritos;
+      setInscritos(dadosInscritos || []);
+
+      // 2. Buscar status de configuração das inscrições (tabela corridinha_config)
+      const { data: configData, error: configError } = await supabase
+        .from("corridinha_config")
+        .select("inscricoes_liberadas")
+        .eq("id", 1)
+        .maybeSingle();
+
+      if (!configError && configData) {
+        setInscricoesLiberadas(configData.inscricoes_liberadas);
+      }
     } catch (err) {
-      console.error("Erro ao carregar inscritos:", err);
+      console.error("Erro ao carregar dados do painel:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchInscritos();
+    fetchDadosPainel();
+
+    // Opcional: Subscrição em tempo real para alterações na tabela de config
+    const channel = supabase
+      .channel('admin_corridinha_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'corridinha_config' }, (payload) => {
+        if (payload.new && typeof payload.new.inscricoes_liberadas === 'boolean') {
+          setInscricoesLiberadas(payload.new.inscricoes_liberadas);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
+
+  // Função para Alternar o Estado (Finalizar / Reabrir Inscrições)
+  const handleToggleInscricoes = async () => {
+    setAtualizandoStatus(true);
+    const novoStatus = !inscricoesLiberadas;
+
+    try {
+      const { error } = await supabase
+        .from("corridinha_config")
+        .upsert({ id: 1, inscricoes_liberadas: novoStatus, updated_at: new Date() });
+
+      if (error) throw error;
+      setInscricoesLiberadas(novoStatus);
+    } catch (err) {
+      console.error("Erro ao alterar o status das inscrições:", err);
+      alert("Erro ao alterar o status das inscrições. Tente novamente.");
+    } finally {
+      setAtualizandoStatus(false);
+    }
+  };
 
   // Função para gerar e descarregar o PDF consolidado
   const exportarPDF = () => {
@@ -79,6 +129,14 @@ export default function AdminCorridinha({ onLogout }) {
     doc.save(`Inscritos_Corridinha_Prematuridade_${new Date().toISOString().split('T')[0]}.pdf`);
   };
 
+  if (loading && inscritos.length === 0) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <Loader2 className="w-8 h-8 animate-spin text-[#005a8d]" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#fcfbf9] py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
@@ -90,10 +148,10 @@ export default function AdminCorridinha({ onLogout }) {
             <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#005a8d]">Inscritos — I Corridinha da Prematuridade</h1>
           </div>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <button
-              onClick={fetchInscritos}
-              className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-3 rounded-2xl transition-all"
+              onClick={fetchDadosPainel}
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700 p-3 rounded-2xl transition-all cursor-pointer"
               title="Atualizar lista"
             >
               <RefreshCw className="w-5 h-5" />
@@ -101,14 +159,14 @@ export default function AdminCorridinha({ onLogout }) {
             <button
               onClick={exportarPDF}
               disabled={inscritos.length === 0}
-              className="bg-[#005a8d] hover:bg-[#004068] text-white px-5 py-3 rounded-2xl font-bold text-sm shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
+              className="bg-[#005a8d] hover:bg-[#004068] text-white px-5 py-3 rounded-2xl font-bold text-sm shadow-md transition-all flex items-center gap-2 disabled:opacity-50 cursor-pointer"
             >
               <Download className="w-4 h-4" /> Baixar PDF Consolidado
             </button>
             {onLogout && (
               <button
                 onClick={onLogout}
-                className="bg-red-50 hover:bg-red-100 text-red-600 p-3 rounded-2xl transition-all flex items-center gap-2 font-bold text-sm"
+                className="bg-red-50 hover:bg-red-100 text-red-600 p-3 rounded-2xl transition-all flex items-center gap-2 font-bold text-sm cursor-pointer"
                 title="Sair do painel"
               >
                 <LogOut className="w-5 h-5" />
@@ -116,6 +174,47 @@ export default function AdminCorridinha({ onLogout }) {
               </button>
             )}
           </div>
+        </div>
+
+        {/* CONTROLE MANUAL DE LIBERAÇÃO / ENCERRAMENTO DAS INSCRIÇÕES */}
+        <div className={`p-6 rounded-3xl border shadow-sm transition-all flex flex-wrap items-center justify-between gap-4 ${
+          inscricoesLiberadas 
+            ? "bg-emerald-50/60 border-emerald-200" 
+            : "bg-rose-50/60 border-rose-200"
+        }`}>
+          <div className="flex items-center gap-4">
+            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm ${
+              inscricoesLiberadas ? "bg-emerald-600 text-white" : "bg-rose-600 text-white"
+            }`}>
+              {inscricoesLiberadas ? <Unlock className="w-7 h-7" /> : <Lock className="w-7 h-7" />}
+            </div>
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-gray-500">Gestão do Período de Inscrição</span>
+              <h3 className={`text-lg font-serif font-bold ${
+                inscricoesLiberadas ? "text-emerald-900" : "text-rose-900"
+              }`}>
+                {inscricoesLiberadas ? "Inscrições ABERTAS ao Público" : "Inscrições FINALIZADAS / Encerradas"}
+              </h3>
+              <p className="text-xs text-gray-600 mt-0.5">
+                {inscricoesLiberadas 
+                  ? "O formulário público está ativo e a receber novas inscrições." 
+                  : "As inscrições foram encerradas. O formulário público exibirá aviso de término."}
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={handleToggleInscricoes}
+            disabled={atualizandoStatus}
+            className={`px-6 py-3.5 rounded-2xl font-bold text-sm shadow-md flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50 ${
+              inscricoesLiberadas 
+                ? "bg-rose-600 hover:bg-rose-700 text-white" 
+                : "bg-emerald-600 hover:bg-emerald-700 text-white"
+            }`}
+          >
+            {atualizandoStatus ? <Loader2 className="w-4 h-4 animate-spin" /> : <Power className="w-4 h-4" />}
+            {inscricoesLiberadas ? "Finalizar Inscrições Agora" : "Reabrir Inscrições Agora"}
+          </button>
         </div>
 
         {/* Métrica Rápida */}
