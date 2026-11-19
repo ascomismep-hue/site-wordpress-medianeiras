@@ -6,18 +6,16 @@ export default function InstagramFeed() {
   const [loading, setLoading] = useState(true);
 
   // =========================================================================
-  // CONFIGURAÇÃO DO PERFIL OFICIAL
+  // CONFIGURAÇÃO DO PERFIL E FEED OFICIAL (BEHOLD.SO)
   // =========================================================================
   const PERFIL_USUARIO = "@medianeiras.dapaz";
   const PERFIL_URL = "https://www.instagram.com/medianeiras.dapaz/";
-  
-  // Cole aqui a URL do Feed JSON gerada no Behold.so (ex: "https://feeds.behold.so/SEU_CODIGO")
-  const BEHOLD_FEED_URL = import.meta.env.VITE_BEHOLD_FEED_URL || "";
+  const BEHOLD_FEED_URL = "https://feeds.behold.so/CHaT009nsO6u69D9n6EX";
 
-  // Dados iniciais de segurança (exibidos enquanto a URL do feed não é colada)
+  // Dados de reserva apenas caso haja falha de conexão com o Behold
   const postsFallback = [
     {
-      id: "post-1",
+      id: "fallback-1",
       caption: "Acompanhe as novidades, eventos e ações missionárias das Irmãs Medianeiras da Paz (@medianeiras.dapaz).",
       mediaType: "IMAGE",
       mediaUrl: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80",
@@ -25,7 +23,7 @@ export default function InstagramFeed() {
       timestamp: new Date().toISOString(),
     },
     {
-      id: "post-2",
+      id: "fallback-2",
       caption: "Compromisso com o acolhimento, a saúde, a educação e a evangelização em todas as nossas obras.",
       mediaType: "IMAGE",
       mediaUrl: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=800&q=80",
@@ -33,7 +31,7 @@ export default function InstagramFeed() {
       timestamp: new Date().toISOString(),
     },
     {
-      id: "post-3",
+      id: "fallback-3",
       caption: "Fique por dentro da nossa agenda institucional e da caminhada da Família Medianeira.",
       mediaType: "IMAGE",
       mediaUrl: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&w=800&q=80",
@@ -44,28 +42,24 @@ export default function InstagramFeed() {
 
   useEffect(() => {
     async function carregarFeedInstagram() {
-      // Se a URL do feed ainda não foi configurada, exibe o fallback elegante
-      if (!BEHOLD_FEED_URL) {
-        setPosts(postsFallback);
-        setLoading(false);
-        return;
-      }
-
       try {
         const response = await fetch(BEHOLD_FEED_URL);
+        if (!response.ok) {
+          throw new Error(`Erro HTTP ao buscar feed: ${response.status}`);
+        }
+
         const data = await response.json();
 
-        // Suporta tanto o formato array direto quanto o objeto { posts: [...] } do Behold
+        // O Behold retorna um objeto { posts: [...] } nas versões mais recentes ou um array direto
         const listaPosts = Array.isArray(data) ? data : data.posts || [];
 
         if (listaPosts.length > 0) {
-          // Pega estritamente as 3 últimas publicações
           setPosts(listaPosts.slice(0, 3));
         } else {
           setPosts(postsFallback);
         }
       } catch (error) {
-        console.error("Erro ao carregar publicações do Instagram:", error);
+        console.error("Erro ao carregar publicações reais do Instagram:", error);
         setPosts(postsFallback);
       } finally {
         setLoading(false);
@@ -73,9 +67,9 @@ export default function InstagramFeed() {
     }
 
     carregarFeedInstagram();
-  }, [BEHOLD_FEED_URL]);
+  }, []);
 
-  // Formata a data da postagem para o padrão brasileiro
+  // Formata a data ISO vinda do Instagram para o padrão brasileiro (DD/MM/AAAA)
   const formatarData = (isoString) => {
     if (!isoString) return "";
     const data = new Date(isoString);
@@ -116,15 +110,15 @@ export default function InstagramFeed() {
           <Loader2 className="w-8 h-8 animate-spin text-[#005a8d]" />
         </div>
       ) : (
-        /* Grade com as 3 Últimas Publicações */
+        /* Grade com as 3 Últimas Publicações Reais */
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {posts.map((post) => {
-            // Compatibilidade de campos entre Behold JSON e Graph API
-            const tipoMidia = post.mediaType || post.media_type || "IMAGE";
+            const tipoMidia = post.mediaType || "IMAGE";
+            // Se for vídeo/Reels, prioriza a thumbnailUrl (capa estática) para não quebrar a tag <img>
             const urlImagem =
               tipoMidia === "VIDEO"
-                ? post.thumbnailUrl || post.thumbnail_url || post.mediaUrl || post.media_url
-                : post.mediaUrl || post.media_url;
+                ? post.thumbnailUrl || post.sizes?.medium?.mediaUrl || post.mediaUrl
+                : post.sizes?.medium?.mediaUrl || post.mediaUrl;
 
             return (
               <a
@@ -143,7 +137,7 @@ export default function InstagramFeed() {
                     loading="lazy"
                   />
 
-                  {/* Badge indicativo de Vídeo/Reels ou Foto */}
+                  {/* Ícone indicador de Vídeo/Reels ou Foto/Carrossel */}
                   <div className="absolute top-3 right-3 bg-black/50 backdrop-blur-xs text-white p-2 rounded-full">
                     {tipoMidia === "VIDEO" ? (
                       <Play className="w-4 h-4 fill-white" />
