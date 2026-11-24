@@ -11,7 +11,9 @@ import {
   FileX, 
   HelpCircle,
   X,
-  Lock
+  Lock,
+  Clock,
+  Users
 } from "lucide-react";
 
 export default function VotacaoCIPAA() {
@@ -29,15 +31,30 @@ export default function VotacaoCIPAA() {
   // Estados de Status da Eleição: 'verificando', 'aberta', 'bloqueada_manual'
   const [statusEleicao, setStatusEleicao] = useState("verificando");
 
+  // --- ESTADOS DA CONTAGEM REGRESSIVA DE ABERTURA ---
+  // Caso não venha do Supabase (campo data_inicio), usa a data fallback abaixo:
+  const [dataAbertura, setDataAbertura] = useState("2026-11-30T08:00:00");
+  const [contagemAbertura, setContagemAbertura] = useState({
+    dias: 0,
+    horas: 0,
+    minutos: 0,
+    segundos: 0,
+    expirado: false
+  });
+
   // --- EFEITO: CONSULTA O STATUS DA ELEIÇÃO NO PAINEL ADMIN (SUPABASE) ---
   useEffect(() => {
     async function verificarStatusEleicao() {
       try {
         const { data: configData } = await supabase
           .from("cipaa_config")
-          .select("eleicao_liberada")
+          .select("*")
           .eq("id", 1)
           .maybeSingle();
+
+        if (configData?.data_inicio) {
+          setDataAbertura(configData.data_inicio);
+        }
 
         if (configData && configData.eleicao_liberada === true) {
           setStatusEleicao("aberta");
@@ -56,6 +73,34 @@ export default function VotacaoCIPAA() {
     const interval = setInterval(verificarStatusEleicao, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // --- EFEITO: CALCULA A CONTAGEM REGRESSIVA PARA INÍCIO DA VOTAÇÃO ---
+  useEffect(() => {
+    if (statusEleicao !== "bloqueada_manual") return;
+
+    const calcularTempo = () => {
+      const alvo = new Date(dataAbertura).getTime();
+      const agora = new Date().getTime();
+      const diferenca = alvo - agora;
+
+      if (isNaN(alvo) || diferenca <= 0) {
+        setContagemAbertura({ dias: 0, horas: 0, minutos: 0, segundos: 0, expirado: true });
+        return;
+      }
+
+      setContagemAbertura({
+        dias: Math.floor(diferenca / (1000 * 60 * 60 * 24)),
+        horas: Math.floor((diferenca / (1000 * 60 * 60)) % 24),
+        minutos: Math.floor((diferenca / 1000 / 60) % 60),
+        segundos: Math.floor((diferenca / 1000) % 60),
+        expirado: false
+      });
+    };
+
+    calcularTempo();
+    const timer = setInterval(calcularTempo, 1000);
+    return () => clearInterval(timer);
+  }, [statusEleicao, dataAbertura]);
 
   // --- EFEITO: CARREGAR CANDIDATOS ATIVOS DO BANCO DE DADOS ---
   useEffect(() => {
@@ -154,7 +199,7 @@ export default function VotacaoCIPAA() {
         .from("cipaa_eleitores_aptos")
         .update({ 
           ja_votou: true,
-          data_voto: new Date().toISOString() // Registra o momento exato do voto
+          data_voto: new Date().toISOString()
         })
         .eq("matricula", eleitor.matricula);
 
@@ -180,20 +225,117 @@ export default function VotacaoCIPAA() {
     );
   }
 
-  // --- TELA 2: ELEIÇÃO BLOQUEADA PELO ADMINISTRADOR ---
+  // --- TELA 2: ELEIÇÃO BLOQUEADA PELO ADMINISTRADOR (COM CONTAGEM + CANDIDATOS) ---
   if (statusEleicao === "bloqueada_manual") {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center p-4">
-        <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center space-y-4">
+      <div className="min-h-[80vh] py-12 px-4 max-w-4xl mx-auto space-y-8">
+        
+        {/* Bloco Principal de Status + Contagem Regressiva */}
+        <div className="bg-white p-8 sm:p-10 rounded-[2.5rem] shadow-sm border border-gray-100 text-center space-y-6">
           <div className="w-16 h-16 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mx-auto">
             <Lock className="w-8 h-8" />
           </div>
-          <h2 className="text-2xl font-serif font-bold text-[#005a8d]">Votação Indisponível</h2>
-          <p className="text-gray-600 text-sm leading-relaxed">
-            A eleição da CIPAA encontra-se temporariamente <strong>pausada ou não iniciada</strong> pela Comissão Eleitoral.
-          </p>
-          <p className="text-xs text-gray-400">Aguarde a liberação oficial no painel para registrar o seu voto.</p>
+          
+          <div className="space-y-2 max-w-lg mx-auto">
+            <span className="text-xs font-bold uppercase tracking-widest bg-blue-50 text-[#005a8d] px-3.5 py-1 rounded-full">
+              Eleição CIPAA Gestão 2026/2027
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#005a8d] pt-1">
+              Votação Indisponível
+            </h2>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              A cabine de votação encontra-se temporariamente <strong>pausada ou aguardando abertura oficial</strong> pela Comissão Eleitoral.
+            </p>
+          </div>
+
+          {/* Contagem Regressiva */}
+          {!contagemAbertura.expirado ? (
+            <div className="max-w-md mx-auto bg-blue-50/60 border border-blue-100 rounded-3xl p-5 space-y-3">
+              <div className="flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#005a8d]">
+                <Clock className="w-4 h-4" />
+                Contagem Regressiva para Abertura
+              </div>
+              
+              <div className="grid grid-cols-4 gap-2.5">
+                <div className="bg-white rounded-2xl p-3 shadow-xs border border-blue-100/80">
+                  <span className="block text-2xl font-bold text-[#005a8d]">
+                    {String(contagemAbertura.dias).padStart(2, "0")}
+                  </span>
+                  <span className="text-[10px] uppercase font-bold text-gray-400">Dias</span>
+                </div>
+                <div className="bg-white rounded-2xl p-3 shadow-xs border border-blue-100/80">
+                  <span className="block text-2xl font-bold text-[#005a8d]">
+                    {String(contagemAbertura.horas).padStart(2, "0")}
+                  </span>
+                  <span className="text-[10px] uppercase font-bold text-gray-400">Horas</span>
+                </div>
+                <div className="bg-white rounded-2xl p-3 shadow-xs border border-blue-100/80">
+                  <span className="block text-2xl font-bold text-[#005a8d]">
+                    {String(contagemAbertura.minutos).padStart(2, "0")}
+                  </span>
+                  <span className="text-[10px] uppercase font-bold text-gray-400">Min</span>
+                </div>
+                <div className="bg-white rounded-2xl p-3 shadow-xs border border-blue-100/80">
+                  <span className="block text-2xl font-bold text-[#c5a059]">
+                    {String(contagemAbertura.segundos).padStart(2, "0")}
+                  </span>
+                  <span className="text-[10px] uppercase font-bold text-gray-400">Seg</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400">
+              Aguarde a liberação oficial no painel para registrar o seu voto. Esta tela será atualizada automaticamente.
+            </p>
+          )}
         </div>
+
+        {/* Seção: Conheça os Candidatos */}
+        {candidatos.length > 0 && (
+          <div className="bg-white p-8 sm:p-10 rounded-[2.5rem] shadow-sm border border-gray-100 space-y-6">
+            <div className="text-center space-y-1.5">
+              <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-[#c5a059]">
+                <Users className="w-4 h-4" />
+                Representantes Inscritos
+              </div>
+              <h3 className="text-2xl font-serif font-bold text-[#005a8d]">
+                Conheça os Candidatos
+              </h3>
+              <p className="text-gray-500 text-sm">
+                Confira os colaboradores que concorrem à CIPAA Gestão 2026/2027 antes da abertura da urna.
+              </p>
+            </div>
+
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+              {candidatos.map((cand) => (
+                <div
+                  key={cand.id}
+                  className="border border-gray-100 bg-gray-50/50 hover:bg-blue-50/30 hover:border-blue-100 rounded-2xl p-5 flex flex-col items-center text-center gap-3 transition-all"
+                >
+                  <img
+                    src={cand.foto_url || "https://via.placeholder.com/150"}
+                    alt={cand.nome}
+                    className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-sm"
+                  />
+                  <div className="space-y-1">
+                    <h4 className="font-bold text-[#005a8d] text-sm leading-snug">
+                      {cand.nome}
+                    </h4>
+                    <p className="text-xs text-gray-500">
+                      Matrícula: <span className="font-medium text-gray-700">{cand.matricula}</span>
+                    </p>
+                    {cand.setor && (
+                      <span className="inline-block text-[11px] bg-white border border-gray-200 text-gray-600 px-2.5 py-0.5 rounded-full mt-1">
+                        {cand.setor}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     );
   }
