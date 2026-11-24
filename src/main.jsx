@@ -1,7 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
-import './index.css' // Garante o carregamento do Tailwind CSS compilado localmente
 
 // Injeção de estilo global usando apenas a fonte Montserrat em todo o site
 const styleSheet = document.createElement("style");
