@@ -13,8 +13,7 @@ import {
   X,
   Lock,
   Clock,
-  Users,
-  Briefcase
+  Users
 } from "lucide-react";
 
 export default function VotacaoCIPAA() {
@@ -224,7 +223,7 @@ export default function VotacaoCIPAA() {
   // --- TELA 1: CARREGAMENTO INICIAL DO STATUS ---
   if (statusEleicao === "verificando") {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center p-4">
+      <div className="min-h-[70vh] pt-28 pb-12 flex items-center justify-center px-4">
         <Loader2 className="w-8 h-8 animate-spin text-[#005a8d]" />
       </div>
     );
@@ -233,7 +232,7 @@ export default function VotacaoCIPAA() {
   // --- TELA 2: ELEIÇÃO BLOQUEADA PELO ADMINISTRADOR (CONTAGEM + CANDIDATOS) ---
   if (statusEleicao === "bloqueada_manual") {
     return (
-      <div className="min-h-[80vh] py-12 px-4 max-w-4xl mx-auto space-y-8">
+      <div className="min-h-[80vh] pt-28 pb-12 px-4 max-w-4xl mx-auto space-y-8">
         
         {/* Bloco Principal de Status + Contagem Regressiva */}
         <div className="bg-white p-8 sm:p-10 rounded-[2.5rem] shadow-sm border border-gray-100 text-center space-y-6">
@@ -325,19 +324,18 @@ export default function VotacaoCIPAA() {
                       alt={cand.nome}
                       className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-sm"
                     />
-                    <div className="space-y-1.5 w-full">
+                    <div className="space-y-1 w-full">
                       <h4 className="font-bold text-[#005a8d] text-sm leading-snug">
                         {cand.nome}
                       </h4>
 
                       {funcaoCandidato && (
-                        <div className="inline-flex items-center justify-center gap-1.5 text-xs font-medium text-[#005a8d] bg-blue-50/90 border border-blue-100 px-3 py-1 rounded-full max-w-full">
-                          <Briefcase className="w-3.5 h-3.5 shrink-0 text-[#c5a059]" />
-                          <span className="truncate">{funcaoCandidato}</span>
-                        </div>
+                        <p className="text-xs text-gray-600">
+                          {funcaoCandidato}
+                        </p>
                       )}
 
-                      <p className="text-xs text-gray-500 pt-0.5">
+                      <p className="text-xs text-gray-500">
                         Matrícula: <span className="font-medium text-gray-700">{cand.matricula}</span>
                       </p>
                     </div>
@@ -355,7 +353,7 @@ export default function VotacaoCIPAA() {
   // --- TELA 3: FIM DA VOTAÇÃO E CONTAGEM REGRESSIVA ---
   if (votacaoConcluida) {
     return (
-      <div className="min-h-[70vh] flex items-center justify-center p-4">
+      <div className="min-h-[70vh] pt-28 pb-12 flex items-center justify-center px-4">
         <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-sm border border-gray-100 text-center space-y-6">
           <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle2 className="w-8 h-8" />
@@ -382,7 +380,7 @@ export default function VotacaoCIPAA() {
     : candidatos.find(c => c.id === candidatoSelecionado);
 
   return (
-    <div className="min-h-[80vh] py-12 px-4 max-w-4xl mx-auto">
+    <div className="min-h-[80vh] pt-28 pb-12 px-4 max-w-4xl mx-auto">
       <div className="bg-white rounded-[2.5rem] shadow-sm border border-gray-100 p-8 sm:p-12 space-y-8">
         
         {/* Cabeçalho */}
@@ -494,7 +492,7 @@ export default function VotacaoCIPAA() {
                     <div>
                       <h4 className="font-bold text-gray-800 text-sm">{cand.nome}</h4>
                       {funcaoCandidato && (
-                        <p className="text-xs font-medium text-[#005a8d]">{funcaoCandidato}</p>
+                        <p className="text-xs text-gray-600">{funcaoCandidato}</p>
                       )}
                       <p className="text-xs text-gray-500">Matrícula: {cand.matricula}</p>
                     </div>
@@ -541,7 +539,7 @@ export default function VotacaoCIPAA() {
               <p className="text-xs text-gray-400 uppercase tracking-wider">Opção Selecionada:</p>
               <p className="font-bold text-[#005a8d] text-lg">{infoCandidato?.nome}</p>
               {obterFuncaoCandidato(infoCandidato) && (
-                <p className="text-xs font-medium text-gray-600">{obterFuncaoCandidato(infoCandidato)}</p>
+                <p className="text-xs text-gray-600">{obterFuncaoCandidato(infoCandidato)}</p>
               )}
               {infoCandidato?.matricula !== "N/A" && (
                 <p className="text-xs text-gray-500">Matrícula: {infoCandidato?.matricula}</p>
