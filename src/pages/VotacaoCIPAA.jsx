@@ -13,7 +13,8 @@ import {
   X,
   Lock,
   Clock,
-  Users
+  Users,
+  Briefcase
 } from "lucide-react";
 
 export default function VotacaoCIPAA() {
@@ -31,9 +32,8 @@ export default function VotacaoCIPAA() {
   // Estados de Status da Eleição: 'verificando', 'aberta', 'bloqueada_manual'
   const [statusEleicao, setStatusEleicao] = useState("verificando");
 
-  // --- ESTADOS DA CONTAGEM REGRESSIVA DE ABERTURA ---
-  // Caso não venha do Supabase (campo data_inicio), usa a data fallback abaixo:
-  const [dataAbertura, setDataAbertura] = useState("2026-11-30T08:00:00");
+  // --- DATA OFICIAL DA ELEIÇÃO (CONFORME EDITAL ITEM 6.1: 10/12/2026 às 07h00) ---
+  const [dataAbertura, setDataAbertura] = useState("2026-12-10T07:00:00");
   const [contagemAbertura, setContagemAbertura] = useState({
     dias: 0,
     horas: 0,
@@ -74,7 +74,7 @@ export default function VotacaoCIPAA() {
     return () => clearInterval(interval);
   }, []);
 
-  // --- EFEITO: CALCULA A CONTAGEM REGRESSIVA PARA INÍCIO DA VOTAÇÃO ---
+  // --- EFEITO: CALCULA A CONTAGEM REGRESSIVA PARA O DIA 10/12/2026 ÀS 07H ---
   useEffect(() => {
     if (statusEleicao !== "bloqueada_manual") return;
 
@@ -216,6 +216,11 @@ export default function VotacaoCIPAA() {
     }
   };
 
+  // Helper para obter a função do candidato independentemente do nome da coluna no banco
+  const obterFuncaoCandidato = (cand) => {
+    return cand?.funcao || cand?.cargo || cand?.setor || null;
+  };
+
   // --- TELA 1: CARREGAMENTO INICIAL DO STATUS ---
   if (statusEleicao === "verificando") {
     return (
@@ -225,7 +230,7 @@ export default function VotacaoCIPAA() {
     );
   }
 
-  // --- TELA 2: ELEIÇÃO BLOQUEADA PELO ADMINISTRADOR (COM CONTAGEM + CANDIDATOS) ---
+  // --- TELA 2: ELEIÇÃO BLOQUEADA PELO ADMINISTRADOR (CONTAGEM + CANDIDATOS) ---
   if (statusEleicao === "bloqueada_manual") {
     return (
       <div className="min-h-[80vh] py-12 px-4 max-w-4xl mx-auto space-y-8">
@@ -238,13 +243,14 @@ export default function VotacaoCIPAA() {
           
           <div className="space-y-2 max-w-lg mx-auto">
             <span className="text-xs font-bold uppercase tracking-widest bg-blue-50 text-[#005a8d] px-3.5 py-1 rounded-full">
-              Eleição CIPAA Gestão 2026/2027
+              Eleição CIPAA Gestão 2026/2027 • ISMEP / HMSM
             </span>
             <h2 className="text-2xl sm:text-3xl font-serif font-bold text-[#005a8d] pt-1">
               Votação Indisponível
             </h2>
             <p className="text-gray-600 text-sm leading-relaxed">
-              A cabine de votação encontra-se temporariamente <strong>pausada ou aguardando abertura oficial</strong> pela Comissão Eleitoral.
+              Conforme o Edital de Convocação, a votação ocorrerá no dia{" "}
+              <strong>10 de dezembro de 2026, das 07h às 17h</strong>.
             </p>
           </div>
 
@@ -253,7 +259,7 @@ export default function VotacaoCIPAA() {
             <div className="max-w-md mx-auto bg-blue-50/60 border border-blue-100 rounded-3xl p-5 space-y-3">
               <div className="flex items-center justify-center gap-1.5 text-xs font-bold uppercase tracking-wider text-[#005a8d]">
                 <Clock className="w-4 h-4" />
-                Contagem Regressiva para Abertura
+                Faltam para o início da votação
               </div>
               
               <div className="grid grid-cols-4 gap-2.5">
@@ -285,7 +291,7 @@ export default function VotacaoCIPAA() {
             </div>
           ) : (
             <p className="text-xs text-gray-400">
-              Aguarde a liberação oficial no painel para registrar o seu voto. Esta tela será atualizada automaticamente.
+              Aguarde a liberação oficial da Comissão Eleitoral no painel para registrar o seu voto.
             </p>
           )}
         </div>
@@ -302,36 +308,42 @@ export default function VotacaoCIPAA() {
                 Conheça os Candidatos
               </h3>
               <p className="text-gray-500 text-sm">
-                Confira os colaboradores que concorrem à CIPAA Gestão 2026/2027 antes da abertura da urna.
+                Confira os colaboradores inscritos para a CIPAA Gestão 2026/2027 e suas respectivas funções.
               </p>
             </div>
 
             <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-              {candidatos.map((cand) => (
-                <div
-                  key={cand.id}
-                  className="border border-gray-100 bg-gray-50/50 hover:bg-blue-50/30 hover:border-blue-100 rounded-2xl p-5 flex flex-col items-center text-center gap-3 transition-all"
-                >
-                  <img
-                    src={cand.foto_url || "https://via.placeholder.com/150"}
-                    alt={cand.nome}
-                    className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-sm"
-                  />
-                  <div className="space-y-1">
-                    <h4 className="font-bold text-[#005a8d] text-sm leading-snug">
-                      {cand.nome}
-                    </h4>
-                    <p className="text-xs text-gray-500">
-                      Matrícula: <span className="font-medium text-gray-700">{cand.matricula}</span>
-                    </p>
-                    {cand.setor && (
-                      <span className="inline-block text-[11px] bg-white border border-gray-200 text-gray-600 px-2.5 py-0.5 rounded-full mt-1">
-                        {cand.setor}
-                      </span>
-                    )}
+              {candidatos.map((cand) => {
+                const funcaoCandidato = obterFuncaoCandidato(cand);
+                return (
+                  <div
+                    key={cand.id}
+                    className="border border-gray-100 bg-gray-50/50 hover:bg-blue-50/30 hover:border-blue-100 rounded-2xl p-5 flex flex-col items-center text-center gap-3 transition-all"
+                  >
+                    <img
+                      src={cand.foto_url || "https://via.placeholder.com/150"}
+                      alt={cand.nome}
+                      className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-sm"
+                    />
+                    <div className="space-y-1.5 w-full">
+                      <h4 className="font-bold text-[#005a8d] text-sm leading-snug">
+                        {cand.nome}
+                      </h4>
+
+                      {funcaoCandidato && (
+                        <div className="inline-flex items-center justify-center gap-1.5 text-xs font-medium text-[#005a8d] bg-blue-50/90 border border-blue-100 px-3 py-1 rounded-full max-w-full">
+                          <Briefcase className="w-3.5 h-3.5 shrink-0 text-[#c5a059]" />
+                          <span className="truncate">{funcaoCandidato}</span>
+                        </div>
+                      )}
+
+                      <p className="text-xs text-gray-500 pt-0.5">
+                        Matrícula: <span className="font-medium text-gray-700">{cand.matricula}</span>
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -462,27 +474,33 @@ export default function VotacaoCIPAA() {
                 </div>
               </div>
 
-              {candidatos.map((cand) => (
-                <div
-                  key={cand.id}
-                  onClick={() => setCandidatoSelecionado(cand.id)}
-                  className={`border-2 rounded-2xl p-4 flex items-center gap-4 cursor-pointer transition-all ${
-                    candidatoSelecionado === cand.id
-                      ? "border-[#005a8d] bg-blue-50/30 shadow-sm"
-                      : "border-gray-100 hover:border-gray-200 bg-white"
-                  }`}
-                >
-                  <img
-                    src={cand.foto_url || "https://via.placeholder.com/150"}
-                    alt={cand.nome}
-                    className="w-16 h-16 rounded-full object-cover border border-gray-200 shrink-0"
-                  />
-                  <div>
-                    <h4 className="font-bold text-gray-800 text-sm">{cand.nome}</h4>
-                    <p className="text-xs text-gray-500">Matrícula: {cand.matricula}</p>
+              {candidatos.map((cand) => {
+                const funcaoCandidato = obterFuncaoCandidato(cand);
+                return (
+                  <div
+                    key={cand.id}
+                    onClick={() => setCandidatoSelecionado(cand.id)}
+                    className={`border-2 rounded-2xl p-4 flex items-center gap-4 cursor-pointer transition-all ${
+                      candidatoSelecionado === cand.id
+                        ? "border-[#005a8d] bg-blue-50/30 shadow-sm"
+                        : "border-gray-100 hover:border-gray-200 bg-white"
+                    }`}
+                  >
+                    <img
+                      src={cand.foto_url || "https://via.placeholder.com/150"}
+                      alt={cand.nome}
+                      className="w-16 h-16 rounded-full object-cover border border-gray-200 shrink-0"
+                    />
+                    <div>
+                      <h4 className="font-bold text-gray-800 text-sm">{cand.nome}</h4>
+                      {funcaoCandidato && (
+                        <p className="text-xs font-medium text-[#005a8d]">{funcaoCandidato}</p>
+                      )}
+                      <p className="text-xs text-gray-500">Matrícula: {cand.matricula}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <button
@@ -522,6 +540,9 @@ export default function VotacaoCIPAA() {
             <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200 text-center space-y-1">
               <p className="text-xs text-gray-400 uppercase tracking-wider">Opção Selecionada:</p>
               <p className="font-bold text-[#005a8d] text-lg">{infoCandidato?.nome}</p>
+              {obterFuncaoCandidato(infoCandidato) && (
+                <p className="text-xs font-medium text-gray-600">{obterFuncaoCandidato(infoCandidato)}</p>
+              )}
               {infoCandidato?.matricula !== "N/A" && (
                 <p className="text-xs text-gray-500">Matrícula: {infoCandidato?.matricula}</p>
               )}
