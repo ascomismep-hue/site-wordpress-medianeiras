@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { 
   Shield, Lock, Calendar, Church, Heart, Loader2, Newspaper, 
-  Sparkles, Building2, ShieldCheck, Stethoscope 
+  Sparkles, Building2, ShieldCheck, Stethoscope, Users 
 } from "lucide-react";
 import AdminDashboard from "./AdminDashboard";
 import AdminAgenda from "./AdminAgenda";
@@ -12,6 +12,7 @@ import AdminVocacional from "./AdminVocacional";
 import AdminDoacoes from "./AdminDoacoes";
 import AdminCIPAA from "./AdminCIPAA";
 import AdminHospital from "./AdminHospital"; // Importa o painel administrativo do Hospital
+import AdminEncontro2026 from "./AdminEncontro2026";
 
 export default function LoginUnificado() {
   const [tipoPainel, setTipoPainel] = useState("institucional");
@@ -80,6 +81,8 @@ export default function LoginUnificado() {
       return <AdminCIPAA onLogout={handleLogout} />;
     } else if (logado.tipo === "hospital") {
       return <AdminHospital onLogout={handleLogout} />;
+    } else if (logado.tipo === "encontro2026") {
+      return <AdminEncontro2026 onLogout={handleLogout} />;
     }
   }
 
@@ -198,6 +201,19 @@ export default function LoginUnificado() {
                 }`}
               >
                 <Stethoscope className="w-4 h-4 text-[#e31e24]" /> Hospital Santa Maria
+              </button>
+
+              {/* Botão para o Painel do Encontro Institucional 2026 */}
+              <button
+                type="button"
+                onClick={() => { setTipoPainel("encontro2026"); setErro(false); }}
+                className={`py-3 px-2 rounded-xl font-bold text-[11px] flex flex-col items-center justify-center gap-1.5 border transition-all border-amber-200 ${
+                  tipoPainel === "encontro2026" 
+                    ? "bg-[#f38b1e] text-white border-[#f38b1e] shadow-sm" 
+                    : "bg-amber-50/60 text-[#9a4e00] border-amber-100 hover:bg-amber-100"
+                }`}
+              >
+                <Users className="w-4 h-4 text-[#f38b1e]" /> Encontro 2026
               </button>
             </div>
           </div>
