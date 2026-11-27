@@ -40,7 +40,9 @@ const DADOS_INICIAIS = {
       numero: "00",
       etapa: "Recepção",
       titulo: "Recepção e acolhimento",
-      horario: "8h",
+      horario: "08h00 – 09h00",
+      statusHorario: "Confirmado",
+      ordemHora: 800,
       descricao:
         "Chegada dos diretores, coordenadores e lideranças, acolhimento inicial e preparação para o início da programação às 9h.",
       itensTexto:
@@ -51,7 +53,9 @@ const DADOS_INICIAIS = {
       numero: "01",
       etapa: "Abertura",
       titulo: "Abertura institucional — Início da programação",
-      horario: "A partir das 9h",
+      horario: "09h00 – 09h30",
+      statusHorario: "Programação às 9h • Horário previsto",
+      ordemHora: 900,
       descricao:
         "Início oficial da programação às 9h com acolhimento, pronunciamento da Presidente e Madre – Ir. Maria Luísa Mota e pronunciamento da Superintendência – Ir. Fátima Alencar.",
       itensTexto:
@@ -62,7 +66,9 @@ const DADOS_INICIAIS = {
       numero: "02",
       etapa: "Resultados 2026",
       titulo: "Apresentação dos resultados das unidades – Exercício 2026",
-      horario: "15 min/unidade",
+      horario: "09h30 – 10h45",
+      statusHorario: "15 min/unidade (75 min total) • Horário previsto",
+      ordemHora: 930,
       descricao:
         "Cada diretor terá 15 minutos para apresentar os resultados de sua unidade, contemplando indicadores assistenciais, desempenho administrativo/financeiro, avanços de 2026 e desafios para 2027.",
       itensTexto:
@@ -74,6 +80,8 @@ const DADOS_INICIAIS = {
       etapa: "Palestra",
       titulo: "Palestra institucional",
       horario: "A definir",
+      statusHorario: "A confirmar",
+      ordemHora: 1045,
       descricao:
         "Tema, palestrante e duração para aprofundamento institucional durante o encontro.",
       itensTexto: "Tema: a definir\nPalestrante: a definir\nDuração: a definir",
@@ -84,6 +92,8 @@ const DADOS_INICIAIS = {
       etapa: "Estratégia 2027",
       titulo: "Alinhamento Estratégico Institucional para 2027",
       horario: "A definir",
+      statusHorario: "A confirmar",
+      ordemHora: 1130,
       descricao:
         "Construção coletiva das prioridades estratégicas do ISMEP para 2027, com identificação de ao menos um desafio institucional por diretoria/coordenação e transformação em propostas de intervenção, metas e compromissos integrados.",
       itensTexto:
@@ -95,6 +105,8 @@ const DADOS_INICIAIS = {
       etapa: "Tecnologia",
       titulo: "Debate e informação – Bruno – Coordenador de tecnologia da informação",
       horario: "A definir",
+      statusHorario: "A confirmar",
+      ordemHora: 1200,
       descricao:
         "Integração e confiabilidade das informações gerenciais e assistenciais.",
       itensTexto:
@@ -106,6 +118,8 @@ const DADOS_INICIAIS = {
       etapa: "Almoço",
       titulo: "Almoço de confraternização",
       horario: "A definir",
+      statusHorario: "A confirmar",
+      ordemHora: 1230,
       descricao:
         "Momento de pausa, alimentação e convivência fraterna entre diretores, coordenadores e lideranças presentes.",
       itensTexto:
@@ -117,6 +131,8 @@ const DADOS_INICIAIS = {
       etapa: "Encerramento",
       titulo: "Considerações finais e encerramento",
       horario: "A definir",
+      statusHorario: "A confirmar",
+      ordemHora: 1400,
       descricao:
         "Síntese dos principais pontos abordados durante o encontro, alinhamento dos compromissos institucionais para 2027 e pronunciamento de encerramento.",
       itensTexto:
@@ -127,7 +143,9 @@ const DADOS_INICIAIS = {
       numero: "08",
       etapa: "Cultural",
       titulo: "Apresentação cultural",
-      horario: "Encerramento",
+      horario: "Ao final",
+      statusHorario: "Encerramento do encontro",
+      ordemHora: 1500,
       descricao:
         "Momento cultural de celebração e encerramento do Encontro Institucional de Diretores e Coordenadores 2026.",
       itensTexto:
@@ -139,6 +157,14 @@ const DADOS_INICIAIS = {
 function extrairMinutos(duracaoTexto = "") {
   const match = String(duracaoTexto).match(/(\d+)/);
   return match ? parseInt(match[1], 10) : 0;
+}
+
+function extrairPesoHorario(horario = "", fallback = 9999) {
+  const match = String(horario).match(/(\d{1,2})[h:](\d{2})?/i);
+  if (!match) return fallback;
+  const horas = parseInt(match[1], 10);
+  const minutos = match[2] ? parseInt(match[2], 10) : 0;
+  return horas * 100 + minutos;
 }
 
 export default function AdminEncontro2026({ onLogout }) {
@@ -224,12 +250,22 @@ export default function AdminEncontro2026({ onLogout }) {
     setSalvando(true);
     setFeedback(null);
     try {
+      const programacaoPreparada = dados.programacao.map((item, idx) => ({
+        ...item,
+        ordemHora: extrairPesoHorario(item.horario, (idx + 1) * 100),
+      }));
+
+      const payload = {
+        ...dados,
+        programacao: programacaoPreparada,
+      };
+
       const { error } = await supabase
         .from("encontro_2026_config")
         .upsert(
           {
             id: "encontro_institucional_2026",
-            dados,
+            dados: payload,
             atualizado_em: new Date().toISOString(),
           },
           { onConflict: "id" }
@@ -237,9 +273,11 @@ export default function AdminEncontro2026({ onLogout }) {
 
       if (error) throw error;
 
+      setDados(payload);
       setFeedback({
         tipo: "sucesso",
-        mensagem: "Alterações do Encontro Institucional 2026 guardadas com sucesso.",
+        mensagem:
+          "Alterações do Encontro Institucional 2026 guardadas com sucesso.",
       });
     } catch (err) {
       console.error("Erro ao guardar:", err);
@@ -309,10 +347,44 @@ export default function AdminEncontro2026({ onLogout }) {
   function atualizarEtapa(id, campo, valor) {
     setDados((prev) => ({
       ...prev,
-      programacao: prev.programacao.map((item) =>
-        item.id === id ? { ...item, [campo]: valor } : item
-      ),
+      programacao: prev.programacao.map((item) => {
+        if (item.id !== id) return item;
+        const atualizado = { ...item, [campo]: valor };
+        if (campo === "horario") {
+          atualizado.ordemHora = extrairPesoHorario(
+            valor,
+            item.ordemHora || 9999
+          );
+          if (String(valor).toLowerCase().includes("definir")) {
+            atualizado.statusHorario = "A confirmar";
+          } else if (atualizado.statusHorario === "A confirmar") {
+            atualizado.statusHorario = "Horário definido";
+          }
+        }
+        return atualizado;
+      }),
     }));
+  }
+
+  function ordenarProgramacaoPorHorario() {
+    setDados((prev) => {
+      const ordenada = [...prev.programacao]
+        .map((item, idx) => ({
+          ...item,
+          ordemHora: extrairPesoHorario(item.horario, (idx + 1) * 100),
+        }))
+        .sort((a, b) => a.ordemHora - b.ordemHora)
+        .map((item, idx) => ({
+          ...item,
+          numero: String(idx).padStart(2, "0"),
+        }));
+      return { ...prev, programacao: ordenada };
+    });
+    setFeedback({
+      tipo: "sucesso",
+      mensagem:
+        "Programação reordenada pelos horários. Clica em 'Guardar alterações' para publicar.",
+    });
   }
 
   function adicionarEtapa() {
@@ -327,6 +399,8 @@ export default function AdminEncontro2026({ onLogout }) {
           etapa: "Nova Etapa",
           titulo: "Novo ponto da programação",
           horario: "A definir",
+          statusHorario: "A confirmar",
+          ordemHora: (prev.programacao.length + 1) * 100,
           descricao: "",
           itensTexto: "",
         },
@@ -663,19 +737,29 @@ export default function AdminEncontro2026({ onLogout }) {
           </section>
         ) : abaAtiva === "programacao" ? (
           <section className="space-y-4">
-            <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200">
+            <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200">
               <div className="flex items-center gap-2 text-sm font-bold text-[#003682]">
                 <ListChecks className="w-4 h-4 text-[#f38b1e]" />
-                Etapas da Programação
+                Etapas da Programação (Ordenação por Horário)
               </div>
-              <button
-                type="button"
-                onClick={adicionarEtapa}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#003682] hover:bg-[#0046a8] text-white text-xs font-bold transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Nova etapa
-              </button>
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={ordenarProgramacaoPorHorario}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors"
+                >
+                  <Clock className="w-3.5 h-3.5 text-[#f38b1e]" />
+                  Ordenar por horário
+                </button>
+                <button
+                  type="button"
+                  onClick={adicionarEtapa}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#003682] hover:bg-[#0046a8] text-white text-xs font-bold transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Nova etapa
+                </button>
+              </div>
             </div>
 
             {dados.programacao.map((item) => (
@@ -688,7 +772,7 @@ export default function AdminEncontro2026({ onLogout }) {
                     <span className="w-7 h-7 rounded-lg bg-[#003682] text-white flex items-center justify-center">
                       {item.numero}
                     </span>
-                    Etapa {item.numero}
+                    Etapa {item.numero} • {item.horario}
                   </span>
 
                   <button
@@ -702,6 +786,20 @@ export default function AdminEncontro2026({ onLogout }) {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
+                      Horário (ex.: 08h00 – 09h00 ou A definir)
+                    </label>
+                    <input
+                      type="text"
+                      value={item.horario}
+                      onChange={(e) =>
+                        atualizarEtapa(item.id, "horario", e.target.value)
+                      }
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-semibold"
+                    />
+                  </div>
+
                   <div>
                     <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
                       Tag / Categoria
@@ -718,20 +816,6 @@ export default function AdminEncontro2026({ onLogout }) {
 
                   <div>
                     <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
-                      Horário / Duração
-                    </label>
-                    <input
-                      type="text"
-                      value={item.horario}
-                      onChange={(e) =>
-                        atualizarEtapa(item.id, "horario", e.target.value)
-                      }
-                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
                       Título
                     </label>
                     <input
@@ -741,6 +825,23 @@ export default function AdminEncontro2026({ onLogout }) {
                         atualizarEtapa(item.id, "titulo", e.target.value)
                       }
                       className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm font-semibold"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-500 mb-1">
+                      Status do Horário
+                    </label>
+                    <input
+                      type="text"
+                      value={item.statusHorario || ""}
+                      onChange={(e) =>
+                        atualizarEtapa(item.id, "statusHorario", e.target.value)
+                      }
+                      placeholder="Ex.: Confirmado, Horário previsto, A confirmar"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 text-sm"
                     />
                   </div>
                 </div>
@@ -794,7 +895,9 @@ export default function AdminEncontro2026({ onLogout }) {
                 className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
               >
                 <RefreshCw
-                  className={`w-3.5 h-3.5 ${carregandoCheckins ? "animate-spin" : ""}`}
+                  className={`w-3.5 h-3.5 ${
+                    carregandoCheckins ? "animate-spin" : ""
+                  }`}
                 />
                 Atualizar
               </button>
@@ -812,7 +915,9 @@ export default function AdminEncontro2026({ onLogout }) {
                       <th className="py-3 px-4 font-bold">Nome</th>
                       <th className="py-3 px-4 font-bold">Unidade</th>
                       <th className="py-3 px-4 font-bold">Cargo / Função</th>
-                      <th className="py-3 px-4 font-bold text-right">Data/Hora</th>
+                      <th className="py-3 px-4 font-bold text-right">
+                        Data/Hora
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
