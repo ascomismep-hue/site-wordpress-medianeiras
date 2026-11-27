@@ -24,7 +24,7 @@ import {
 const TEMA_ENCONTRO =
   "Alinhar o presente construir 2027: propósito, resultados e ação integrada.";
 
-const IMAGEM_CAPA = "/ENCONTRO GERAL 2026.jpg";
+const IMAGEM_CAPA = "/Gemini_Generated_Image_9c2wn39c2wn39c2w.jpg";
 
 function AsteriscoGiratorio({
   className = "",
@@ -49,38 +49,6 @@ function AsteriscoGiratorio({
         <line x1="79.7" y1="20.3" x2="20.3" y2="79.7" />
       </g>
     </svg>
-  );
-}
-
-function EmblemaInstitucional({ titulo, subtitulo, sigla }) {
-  return (
-    <div className="flex items-center gap-2.5 text-white">
-      <svg
-        viewBox="0 0 48 48"
-        aria-hidden="true"
-        className="w-10 h-10 shrink-0 text-white"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.4"
-      >
-        <path d="M21 5h6v13h11v6H27v19h-6V24H10v-6h11V5z" />
-        <circle cx="24" cy="31" r="10" />
-        <path d="M15 26c4 3 14 3 18 0" />
-        <path d="M16 36c4-3 12-3 16 0" />
-        <path d="M24 21v20" />
-      </svg>
-      <div className="leading-tight">
-        <p className="text-[10px] text-blue-100/90 font-medium">{titulo}</p>
-        <p className="text-xs font-extrabold uppercase tracking-wide">
-          {subtitulo}
-        </p>
-        {sigla && (
-          <p className="text-[11px] font-bold tracking-wider text-blue-100">
-            {sigla}
-          </p>
-        )}
-      </div>
-    </div>
   );
 }
 
@@ -240,10 +208,10 @@ const MATERIAIS_DOWNLOAD = [
   {
     id: "jpeg",
     formato: "JPEG",
-    titulo: "Arte Oficial da Capa (JPEG)",
-    descricao: "Arte oficial do encontro em formato JPEG.",
+    titulo: "Capa / Divulgação (JPEG)",
+    descricao: "Imagem oficial da capa do encontro em formato JPEG.",
     href: IMAGEM_CAPA,
-    downloadName: "ENCONTRO GERAL 2026.jpg",
+    downloadName: "encontro-institucional-2026.jpg",
     badgeClass: "bg-amber-50 text-amber-800 border-amber-200",
     icon: ImageIcon,
   },
@@ -413,208 +381,186 @@ export default function EncontroInstitucional2026({
         }
       `}</style>
 
-      {/* Capa no Estilo da Arte Oficial */}
-      <header className="relative overflow-hidden bg-[#0046a8] text-white font-corpo">
-        {/* Foto superior em destaque com transição suave para o azul institucional */}
-        <div className="relative w-full h-64 sm:h-80 md:h-[420px] overflow-hidden">
-          <img
-            src={IMAGEM_CAPA}
-            alt="Encontro Institucional de Diretores e Coordenadores 2026 – ISMEP"
-            className="w-full h-full object-cover object-top block"
-          />
-          <div
-            aria-hidden="true"
-            className="absolute inset-0 bg-gradient-to-b from-[#0046a8]/15 via-[#0046a8]/45 to-[#0046a8]"
-          />
-          <AsteriscoGiratorio
-            duracao="26s"
-            className="hidden sm:block absolute -top-10 -right-8 w-40 h-40 md:w-52 md:h-52 text-[#f38b1e] z-10"
-          />
-        </div>
+      {/* Hero / Capa Principal */}
+      <header className="relative overflow-hidden bg-gradient-to-br from-[#0046a8] via-[#003682] to-[#002257] text-white font-corpo">
+        {/* Elementos de asterisco girando */}
+        <AsteriscoGiratorio
+          duracao="26s"
+          className="hidden sm:block absolute -top-10 -right-8 w-40 h-40 md:w-52 md:h-52 text-[#f5a623]/90"
+        />
+        <AsteriscoGiratorio
+          duracao="32s"
+          reverso
+          className="hidden md:block absolute bottom-4 left-6 w-28 h-28 text-[#f38b1e]/80"
+        />
 
-        {/* Conteúdo central da capa sobre o azul institucional */}
-        <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 sm:-mt-28 pb-12 sm:pb-16">
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           {onVoltar && (
             <button
               type="button"
               onClick={onVoltar}
-              className="anim-entrada mb-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/85 hover:text-white transition-colors"
+              className="anim-entrada mb-6 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/80 hover:text-white transition-colors"
             >
               ← Voltar ao portal
             </button>
           )}
 
-          <div className="max-w-4xl space-y-6">
-            <div
-              style={{ animationDelay: "60ms" }}
-              className="anim-entrada inline-flex items-center gap-2 bg-[#002e75]/80 border border-white/20 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide text-[#ffd166]"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              ISMEP • 18 DE DEZEMBRO A PARTIR DAS 8H
-            </div>
-
-            {/* Faixas Laranjas do Título como na Arte */}
-            <div className="space-y-2">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+            <div className="lg:col-span-7 space-y-6">
               <div
-                style={{ animationDelay: "120ms" }}
-                className="anim-faixa inline-block bg-[#f38b1e] text-white px-4 py-1.5 shadow-md transition-transform duration-300 hover:translate-x-1"
+                style={{ animationDelay: "60ms" }}
+                className="anim-entrada inline-flex items-center gap-2 bg-white/10 border border-white/20 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide text-[#ffd166]"
               >
-                <h1 className="font-naughty text-2xl sm:text-4xl md:text-5xl uppercase leading-none">
-                  ENCONTRO INSTITUCIONAL
-                </h1>
+                <Sparkles className="w-3.5 h-3.5" />
+                ENCONTRO INSTITUCIONAL • ISMEP 2026
               </div>
-              <br />
-              <div
-                style={{ animationDelay: "200ms" }}
-                className="anim-faixa inline-block bg-[#f38b1e] text-white px-4 py-1.5 shadow-md transition-transform duration-300 hover:translate-x-1"
-              >
-                <p className="font-naughty text-2xl sm:text-4xl md:text-5xl uppercase leading-none">
-                  DE DIRETORES E
-                </p>
-              </div>
-              <br />
-              <div
-                style={{ animationDelay: "280ms" }}
-                className="anim-faixa inline-flex items-center gap-3 bg-[#f38b1e] text-white px-4 py-1.5 shadow-md transition-transform duration-300 hover:translate-x-1"
-              >
-                <p className="font-naughty text-2xl sm:text-4xl md:text-5xl uppercase leading-none">
-                  COORDENADORES 2026
-                </p>
-                <AsteriscoGiratorio
-                  duracao="14s"
-                  className="w-7 h-7 sm:w-9 sm:h-9 text-[#ffd166] shrink-0"
-                />
-              </div>
-            </div>
 
-            {/* Tema */}
-            <div
-              style={{ animationDelay: "320ms" }}
-              className="anim-entrada max-w-2xl space-y-1"
-            >
-              <p className="text-base sm:text-xl font-medium text-white/95 leading-snug">
-                Alinhar o presente construir 2027:
-              </p>
-              <p className="text-lg sm:text-2xl font-extrabold text-white leading-snug">
-                propósito, resultados e ação integrada.
-              </p>
-            </div>
-
-            {/* Chamada central de Data, Horário e Local */}
-            <div
-              style={{ animationDelay: "360ms" }}
-              className="anim-entrada pt-2 max-w-2xl space-y-1"
-            >
-              <p className="text-sm sm:text-base text-white/95">
-                <strong className="font-extrabold">
-                  18 de Dezembro a partir das 8h
-                </strong>{" "}
-                no
-              </p>
-              <p className="text-base sm:text-xl font-bold text-white leading-snug">
-                Hospital e Maternidade Santa Maria em Araripina-PE
-              </p>
-            </div>
-
-            {/* Cards de Resumo */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
-              <div
-                style={{ animationDelay: "380ms" }}
-                className="anim-entrada flex items-center gap-3 bg-[#002e75]/75 backdrop-blur-xs border border-white/15 rounded-2xl px-3.5 py-3.5"
-              >
-                <Calendar className="w-5 h-5 text-[#f38b1e] shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[11px] uppercase tracking-wider text-blue-200 font-semibold">
-                    DATA
+              <div className="space-y-2">
+                <div
+                  style={{ animationDelay: "120ms" }}
+                  className="anim-faixa inline-block bg-[#f38b1e] text-white px-4 py-1.5 shadow-sm transition-transform duration-300 hover:translate-x-1"
+                >
+                  <h1 className="font-naughty text-2xl sm:text-4xl md:text-5xl uppercase leading-none">
+                    ENCONTRO INSTITUCIONAL
+                  </h1>
+                </div>
+                <br />
+                <div
+                  style={{ animationDelay: "200ms" }}
+                  className="anim-faixa inline-block bg-[#f38b1e] text-white px-4 py-1.5 shadow-sm transition-transform duration-300 hover:translate-x-1"
+                >
+                  <p className="font-naughty text-2xl sm:text-4xl md:text-5xl uppercase leading-none">
+                    DE DIRETORES E
                   </p>
-                  <p className="text-xs sm:text-sm font-bold text-white leading-snug">
+                </div>
+                <br />
+                <div
+                  style={{ animationDelay: "280ms" }}
+                  className="anim-faixa inline-flex items-center gap-3 bg-[#f38b1e] text-white px-4 py-1.5 shadow-sm transition-transform duration-300 hover:translate-x-1"
+                >
+                  <p className="font-naughty text-2xl sm:text-4xl md:text-5xl uppercase leading-none">
+                    COORDENADORES 2026
+                  </p>
+                  <AsteriscoGiratorio
+                    duracao="14s"
+                    className="w-7 h-7 sm:w-9 sm:h-9 text-[#ffd166] shrink-0"
+                  />
+                </div>
+              </div>
+
+              <div
+                style={{ animationDelay: "310ms" }}
+                className="anim-entrada bg-white/10 border-l-4 border-[#f5a623] rounded-r-2xl px-4 py-3 text-sm sm:text-base text-white"
+              >
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#ffd166] block mb-0.5">
+                  Tema
+                </span>
+                <p className="leading-snug">
+                  Alinhar o presente construir 2027:{" "}
+                  <strong>propósito, resultados e ação integrada.</strong>
+                </p>
+              </div>
+
+              {/* Cards Reorganizados (Data, Local, Horário) */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
+                <div
+                  style={{ animationDelay: "340ms" }}
+                  className="anim-entrada flex items-center gap-3 bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl px-3.5 py-3.5 transition-all duration-300 hover:bg-white/15 hover:-translate-y-0.5"
+                >
+                  <Calendar className="w-5 h-5 text-[#f5a623] shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase tracking-wider text-blue-200 font-semibold">
+                      DATA
+                    </p>
+                    <p className="text-xs sm:text-sm font-bold text-white leading-snug">
+                      18 de dezembro de 2026
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  style={{ animationDelay: "410ms" }}
+                  className="anim-entrada flex items-center gap-3 bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl px-3.5 py-3.5 transition-all duration-300 hover:bg-white/15 hover:-translate-y-0.5"
+                >
+                  <MapPin className="w-5 h-5 text-[#f5a623] shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase tracking-wider text-blue-200 font-semibold">
+                      LOCAL
+                    </p>
+                    <p className="text-xs sm:text-sm font-bold text-white leading-snug">
+                      Auditório do Hospital e Maternidade Santa Maria –
+                      Araripina/PE
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  style={{ animationDelay: "480ms" }}
+                  className="anim-entrada flex items-center gap-3 bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl px-3.5 py-3.5 transition-all duration-300 hover:bg-white/15 hover:-translate-y-0.5"
+                >
+                  <Clock className="w-5 h-5 text-[#f5a623] shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase tracking-wider text-blue-200 font-semibold">
+                      HORÁRIO
+                    </p>
+                    <p className="text-xs sm:text-sm font-bold text-white leading-snug">
+                      A partir das 8h
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Atalhos Rápidos */}
+              <div
+                style={{ animationDelay: "530ms" }}
+                className="anim-entrada flex flex-wrap gap-3 pt-1"
+              >
+                <button
+                  type="button"
+                  onClick={() => irParaSecao("checkin")}
+                  className="inline-flex items-center gap-2 bg-[#f38b1e] hover:bg-[#d97712] text-white text-xs font-extrabold uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm transition-colors cursor-pointer"
+                >
+                  <UserCheck className="w-4 h-4" />
+                  Fazer Check-in
+                </button>
+                <button
+                  type="button"
+                  onClick={() => irParaSecao("materiais")}
+                  className="inline-flex items-center gap-2 bg-white text-[#003682] hover:bg-blue-50 text-xs font-extrabold uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm transition-colors cursor-pointer"
+                >
+                  <Download className="w-4 h-4 text-[#f38b1e]" />
+                  Materiais para Download
+                </button>
+                <button
+                  type="button"
+                  onClick={() => irParaSecao("como-chegar")}
+                  className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+                >
+                  <Navigation className="w-4 h-4 text-[#ffd166]" />
+                  Como chegar ao hospital
+                </button>
+              </div>
+            </div>
+
+            {/* Imagem da Capa */}
+            <div
+              style={{ animationDelay: "220ms" }}
+              className="anim-entrada lg:col-span-5"
+            >
+              <div className="relative rounded-3xl overflow-hidden border-2 border-white/20 shadow-2xl bg-[#002257]">
+                <img
+                  src={IMAGEM_CAPA}
+                  alt="Encontro Institucional de Diretores e Coordenadores – ISMEP 2026"
+                  className="w-full h-72 sm:h-96 lg:h-[420px] object-cover object-center block"
+                />
+                <div className="bg-[#001d4a]/90 backdrop-blur-xs px-4 py-3 border-t border-white/15 flex items-center justify-between gap-2 text-xs">
+                  <span className="font-bold text-[#ffd166] uppercase tracking-wider">
                     18 de dezembro de 2026
-                  </p>
+                  </span>
+                  <span className="text-blue-100 font-semibold">
+                    A partir das 8h • Araripina/PE
+                  </span>
                 </div>
-              </div>
-
-              <div
-                style={{ animationDelay: "420ms" }}
-                className="anim-entrada flex items-center gap-3 bg-[#002e75]/75 backdrop-blur-xs border border-white/15 rounded-2xl px-3.5 py-3.5"
-              >
-                <MapPin className="w-5 h-5 text-[#f38b1e] shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[11px] uppercase tracking-wider text-blue-200 font-semibold">
-                    LOCAL
-                  </p>
-                  <p className="text-xs sm:text-sm font-bold text-white leading-snug">
-                    Auditório do Hospital e Maternidade Santa Maria –
-                    Araripina/PE
-                  </p>
-                </div>
-              </div>
-
-              <div
-                style={{ animationDelay: "460ms" }}
-                className="anim-entrada flex items-center gap-3 bg-[#002e75]/75 backdrop-blur-xs border border-white/15 rounded-2xl px-3.5 py-3.5"
-              >
-                <Clock className="w-5 h-5 text-[#f38b1e] shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[11px] uppercase tracking-wider text-blue-200 font-semibold">
-                    HORÁRIO
-                  </p>
-                  <p className="text-xs sm:text-sm font-bold text-white leading-snug">
-                    A partir das 8h
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Atalhos Rápidos */}
-            <div
-              style={{ animationDelay: "500ms" }}
-              className="anim-entrada flex flex-wrap gap-3 pt-1"
-            >
-              <button
-                type="button"
-                onClick={() => irParaSecao("checkin")}
-                className="inline-flex items-center gap-2 bg-[#f38b1e] hover:bg-[#d97712] text-white text-xs font-extrabold uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm transition-colors cursor-pointer"
-              >
-                <UserCheck className="w-4 h-4" />
-                Fazer Check-in
-              </button>
-              <button
-                type="button"
-                onClick={() => irParaSecao("materiais")}
-                className="inline-flex items-center gap-2 bg-white text-[#003682] hover:bg-blue-50 text-xs font-extrabold uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm transition-colors cursor-pointer"
-              >
-                <Download className="w-4 h-4 text-[#f38b1e]" />
-                Materiais para Download
-              </button>
-              <button
-                type="button"
-                onClick={() => irParaSecao("como-chegar")}
-                className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
-              >
-                <Navigation className="w-4 h-4 text-[#ffd166]" />
-                Como chegar ao hospital
-              </button>
-            </div>
-
-            {/* Faixa Inferior da Capa como na Arte */}
-            <div className="pt-6 border-t border-white/20 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-              <div className="flex flex-wrap items-center gap-6">
-                <EmblemaInstitucional
-                  titulo="Congregação Irmãs"
-                  subtitulo="MEDIANEIRAS DA PAZ"
-                />
-                <EmblemaInstitucional
-                  titulo="Instituto Social das"
-                  subtitulo="MEDIANEIRAS DA PAZ"
-                  sigla="ISMEP"
-                />
-              </div>
-
-              <div className="text-left sm:text-right">
-                <p className="text-xs text-blue-100">Saiba mais em:</p>
-                <p className="text-base sm:text-lg font-extrabold text-white tracking-tight">
-                  irimep.com.br
-                </p>
               </div>
             </div>
           </div>
