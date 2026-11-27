@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "@/api/supabaseClient";
 import {
   Calendar,
@@ -59,7 +59,7 @@ const UNIDADES_OPCOES = [
   "UPAE Ouricuri",
   "UPA Barra de Jangada",
   "UPA Olinda",
-  "Sede / Administração Central – ISMEP",
+  "Nucleo de Gestão Compartilhada - NGC",
   "Outra unidade",
 ];
 
@@ -68,7 +68,9 @@ const PROGRAMACAO_OFICIAL = [
     numero: "00",
     etapa: "Recepção",
     titulo: "Recepção e acolhimento",
-    horario: "8h",
+    horario: "08h00 – 09h00",
+    statusHorario: "Confirmado",
+    ordemHora: 800,
     descricao:
       "Chegada dos diretores, coordenadores e lideranças, acolhimento inicial e preparação para o início da programação às 9h.",
     detalhes: [
@@ -80,7 +82,9 @@ const PROGRAMACAO_OFICIAL = [
     numero: "01",
     etapa: "Abertura",
     titulo: "Abertura institucional — Início da programação",
-    horario: "A partir das 9h",
+    horario: "09h00 – 09h30",
+    statusHorario: "Programação às 9h • Horário previsto",
+    ordemHora: 900,
     descricao:
       "Início oficial da programação às 9h com acolhimento, pronunciamento da Presidente e Madre – Ir. Maria Luísa Mota e pronunciamento da Superintendência – Ir. Fátima Alencar.",
     detalhes: [
@@ -93,7 +97,9 @@ const PROGRAMACAO_OFICIAL = [
     numero: "02",
     etapa: "Resultados 2026",
     titulo: "Apresentação dos resultados das unidades – Exercício 2026",
-    horario: "15 min/unidade (75 min total)",
+    horario: "09h30 – 10h45",
+    statusHorario: "15 min/unidade (75 min total) • Horário previsto",
+    ordemHora: 930,
     descricao:
       "Cada diretor terá 15 minutos para apresentar os resultados de sua unidade, contemplando indicadores assistenciais, desempenho administrativo/financeiro, avanços de 2026 e desafios para 2027.",
     unidades: UNIDADES_RESULTADOS,
@@ -109,6 +115,8 @@ const PROGRAMACAO_OFICIAL = [
     etapa: "Palestra",
     titulo: "Palestra institucional",
     horario: "A definir",
+    statusHorario: "A confirmar",
+    ordemHora: 1045,
     descricao:
       "Tema, palestrante e duração a definir para aprofundamento institucional durante o encontro.",
     detalhes: [
@@ -122,6 +130,8 @@ const PROGRAMACAO_OFICIAL = [
     etapa: "Estratégia 2027",
     titulo: "Alinhamento Estratégico Institucional para 2027",
     horario: "A definir",
+    statusHorario: "A confirmar",
+    ordemHora: 1130,
     descricao:
       "Construção coletiva das prioridades estratégicas do ISMEP para 2027, com identificação de ao menos um desafio institucional por diretoria/coordenação e transformação em propostas de intervenção, metas e compromissos integrados.",
     detalhes: [
@@ -137,6 +147,8 @@ const PROGRAMACAO_OFICIAL = [
     etapa: "Tecnologia",
     titulo: "Debate e informação – Bruno – Coordenador de tecnologia da informação",
     horario: "A definir",
+    statusHorario: "A confirmar",
+    ordemHora: 1200,
     descricao:
       "Integração e confiabilidade das informações gerenciais e assistenciais.",
     detalhes: [
@@ -148,6 +160,8 @@ const PROGRAMACAO_OFICIAL = [
     etapa: "Almoço",
     titulo: "Almoço de confraternização",
     horario: "A definir",
+    statusHorario: "A confirmar",
+    ordemHora: 1230,
     descricao:
       "Momento de pausa, alimentação e convivência fraterna entre diretores, coordenadores e lideranças presentes.",
     detalhes: [
@@ -160,6 +174,8 @@ const PROGRAMACAO_OFICIAL = [
     etapa: "Encerramento",
     titulo: "Considerações finais e encerramento",
     horario: "A definir",
+    statusHorario: "A confirmar",
+    ordemHora: 1400,
     descricao:
       "Síntese dos principais pontos abordados durante o encontro, alinhamento dos compromissos institucionais para 2027 e pronunciamento de encerramento.",
     detalhes: [
@@ -172,7 +188,9 @@ const PROGRAMACAO_OFICIAL = [
     numero: "08",
     etapa: "Cultural",
     titulo: "Apresentação cultural",
-    horario: "Encerramento",
+    horario: "Ao final",
+    statusHorario: "Encerramento do encontro",
+    ordemHora: 1500,
     descricao:
       "Momento cultural de celebração e encerramento do Encontro Institucional de Diretores e Coordenadores 2026.",
     detalhes: [
@@ -182,10 +200,24 @@ const PROGRAMACAO_OFICIAL = [
   },
 ];
 
+function extrairPesoHorario(horario = "", fallback = 9999) {
+  const match = String(horario).match(/(\d{1,2})[h:](\d{2})?/i);
+  if (!match) return fallback;
+  const horas = parseInt(match[1], 10);
+  const minutos = match[2] ? parseInt(match[2], 10) : 0;
+  return horas * 100 + minutos;
+}
+
 export default function EncontroInstitucional2026({
   programacao = PROGRAMACAO_OFICIAL,
   onVoltar,
 }) {
+  const [listaProgramacao, setListaProgramacao] = useState(programacao);
+  const [infoEncontro, setInfoEncontro] = useState({
+    data: "18 de dezembro de 2026",
+    local: "Auditório do Hospital e Maternidade Santa Maria – Araripina/PE",
+    horarios: "Recepção às 8h • Programação às 9h",
+  });
   const [filtroEtapa, setFiltroEtapa] = useState("Todas");
 
   // Estado do Check-in do Participante
@@ -198,15 +230,112 @@ export default function EncontroInstitucional2026({
   const [checkinConfirmado, setCheckinConfirmado] = useState(null);
   const [erroCheckin, setErroCheckin] = useState("");
 
+  useEffect(() => {
+    async function carregarConfiguracaoRemota() {
+      try {
+        const { data, error } = await supabase
+          .from("encontro_2026_config")
+          .select("dados")
+          .eq("id", "encontro_institucional_2026")
+          .maybeSingle();
+
+        if (!error && data?.dados) {
+          setInfoEncontro({
+            data: data.dados.data || "18 de dezembro de 2026",
+            local:
+              data.dados.local ||
+              "Auditório do Hospital e Maternidade Santa Maria – Araripina/PE",
+            horarios:
+              data.dados.horarioInicio || "Recepção às 8h • Programação às 9h",
+          });
+
+          if (
+            Array.isArray(data.dados.programacao) &&
+            data.dados.programacao.length > 0
+          ) {
+            const convertida = data.dados.programacao.map((item, idx) => {
+              const detalhes =
+                item.detalhes ||
+                (item.itensTexto
+                  ? item.itensTexto
+                      .split("\n")
+                      .map((l) => l.trim())
+                      .filter(Boolean)
+                  : []);
+
+              const isResultados =
+                String(item.numero) === "02" ||
+                String(item.titulo || "")
+                  .toLowerCase()
+                  .includes("resultados das unidades");
+
+              return {
+                ...item,
+                statusHorario:
+                  item.statusHorario ||
+                  (String(item.horario || "")
+                    .toLowerCase()
+                    .includes("definir")
+                    ? "A confirmar"
+                    : "Programação"),
+                detalhes: isResultados ? undefined : detalhes,
+                unidades: isResultados
+                  ? Array.isArray(data.dados.unidades) &&
+                    data.dados.unidades.length > 0
+                    ? data.dados.unidades
+                    : UNIDADES_RESULTADOS
+                  : undefined,
+                topicosObrigatorios: isResultados
+                  ? detalhes.length > 0
+                    ? detalhes
+                    : PROGRAMACAO_OFICIAL[2].topicosObrigatorios
+                  : undefined,
+                ordemHora:
+                  typeof item.ordemHora === "number"
+                    ? item.ordemHora
+                    : extrairPesoHorario(item.horario, (idx + 1) * 100),
+              };
+            });
+            setListaProgramacao(convertida);
+          }
+        }
+      } catch (err) {
+        console.warn("Usando programação base local:", err);
+      }
+    }
+
+    carregarConfiguracaoRemota();
+  }, []);
+
+  const programacaoOrdenada = [...listaProgramacao].sort((a, b) => {
+    const pesoA =
+      typeof a.ordemHora === "number"
+        ? a.ordemHora
+        : extrairPesoHorario(a.horario, 9999);
+    const pesoB =
+      typeof b.ordemHora === "number"
+        ? b.ordemHora
+        : extrairPesoHorario(b.horario, 9999);
+    if (pesoA !== pesoB) return pesoA - pesoB;
+    return String(a.numero).localeCompare(String(b.numero));
+  });
+
   const etapas = [
     "Todas",
-    ...Array.from(new Set(programacao.map((item) => item.etapa))),
+    ...Array.from(new Set(programacaoOrdenada.map((item) => item.etapa))),
   ];
 
   const itensFiltrados =
     filtroEtapa === "Todas"
-      ? programacao
-      : programacao.filter((item) => item.etapa === filtroEtapa);
+      ? programacaoOrdenada
+      : programacaoOrdenada.filter((item) => item.etapa === filtroEtapa);
+
+  function irParaSecao(idSecao) {
+    const elemento = document.getElementById(idSecao);
+    if (elemento) {
+      elemento.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
 
   async function handleCheckinSubmit(e) {
     e.preventDefault();
@@ -231,7 +360,10 @@ export default function EncontroInstitucional2026({
         .insert([registro]);
 
       if (error) {
-        console.warn("Check-in salvo localmente (tabela pendente):", error.message);
+        console.warn(
+          "Check-in salvo localmente (tabela pendente):",
+          error.message
+        );
       }
 
       const historicoLocal = JSON.parse(
@@ -414,7 +546,7 @@ export default function EncontroInstitucional2026({
                     DATA
                   </p>
                   <p className="text-sm font-bold text-white leading-snug">
-                    18 de dezembro de 2026
+                    {infoEncontro.data}
                   </p>
                 </div>
               </div>
@@ -429,7 +561,7 @@ export default function EncontroInstitucional2026({
                     LOCAL
                   </p>
                   <p className="text-sm font-bold text-white leading-snug">
-                    Auditório do Hospital e Maternidade Santa Maria – Araripina/PE
+                    {infoEncontro.local}
                   </p>
                 </div>
               </div>
@@ -444,7 +576,7 @@ export default function EncontroInstitucional2026({
                     HORÁRIOS
                   </p>
                   <p className="text-sm font-bold text-white leading-snug">
-                    Recepção às 8h • Programação às 9h
+                    {infoEncontro.horarios}
                   </p>
                 </div>
               </div>
@@ -455,26 +587,28 @@ export default function EncontroInstitucional2026({
               style={{ animationDelay: "530ms" }}
               className="anim-entrada flex flex-wrap gap-3 pt-1"
             >
-              <a
-                href="#checkin"
-                className="inline-flex items-center gap-2 bg-[#f38b1e] hover:bg-[#d97712] text-white text-xs font-extrabold uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm transition-colors"
+              <button
+                type="button"
+                onClick={() => irParaSecao("checkin")}
+                className="inline-flex items-center gap-2 bg-[#f38b1e] hover:bg-[#d97712] text-white text-xs font-extrabold uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm transition-colors cursor-pointer"
               >
                 <UserCheck className="w-4 h-4" />
                 Fazer Check-in
-              </a>
-              <a
-                href="#como-chegar"
-                className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl transition-colors"
+              </button>
+              <button
+                type="button"
+                onClick={() => irParaSecao("como-chegar")}
+                className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
               >
                 <Navigation className="w-4 h-4 text-[#ffd166]" />
                 Como chegar ao hospital
-              </a>
+              </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Seção de Programação */}
+      {/* Seção de Programação Cronológica */}
       <main
         id="programacao"
         className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 font-corpo space-y-16"
@@ -487,14 +621,14 @@ export default function EncontroInstitucional2026({
                   duracao="12s"
                   className="w-3.5 h-3.5 text-[#f38b1e]"
                 />
-                Pauta Oficial
+                Cronograma por Horários
               </div>
               <h2 className="font-naughty text-3xl sm:text-4xl text-[#003682] uppercase">
                 Programação do Encontro
               </h2>
               <p className="text-slate-600 text-sm mt-1">
-                18 de dezembro de 2026 • Auditório do Hospital e Maternidade
-                Santa Maria – Araripina/PE • Recepção às 8h • Programação às 9h
+                {infoEncontro.data} • {infoEncontro.local} •{" "}
+                {infoEncontro.horarios}
               </p>
             </div>
 
@@ -520,7 +654,7 @@ export default function EncontroInstitucional2026({
             </div>
           </div>
 
-          {/* Lista de Itens da Programação */}
+          {/* Lista Cronológica de Itens da Programação */}
           <div className="space-y-5">
             {itensFiltrados.map((item, index) => (
               <article
@@ -530,13 +664,20 @@ export default function EncontroInstitucional2026({
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-4 border-b border-slate-100">
                   <div className="flex items-start gap-3.5">
-                    <span className="w-10 h-10 rounded-xl bg-[#003682] text-white font-extrabold text-sm flex items-center justify-center shrink-0">
-                      {item.numero}
+                    <span className="min-w-[4.5rem] px-2.5 h-10 rounded-xl bg-[#003682] text-white font-extrabold text-xs flex items-center justify-center shrink-0">
+                      {item.horario}
                     </span>
                     <div>
-                      <span className="inline-block text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-[#f38b1e]/12 text-[#b85d00] mb-1">
-                        {item.etapa}
-                      </span>
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <span className="inline-block text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-[#f38b1e]/12 text-[#b85d00]">
+                          Etapa {item.numero} • {item.etapa}
+                        </span>
+                        {item.statusHorario && (
+                          <span className="inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                            {item.statusHorario}
+                          </span>
+                        )}
+                      </div>
                       <h3 className="text-lg sm:text-xl font-bold text-slate-900">
                         {item.titulo}
                       </h3>
@@ -612,7 +753,7 @@ export default function EncontroInstitucional2026({
                 )}
 
                 {/* Lista de Itens / Diretrizes da Etapa */}
-                {item.detalhes && (
+                {item.detalhes && item.detalhes.length > 0 && (
                   <ul className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs sm:text-sm text-slate-700">
                     {item.detalhes.map((detalhe) => (
                       <li
@@ -641,11 +782,11 @@ export default function EncontroInstitucional2026({
         </section>
 
         {/* Check-in do Participante + Como Chegar no Hospital */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start scroll-mt-24">
           {/* Check-in do Participante */}
           <section
             id="checkin"
-            className="lg:col-span-6 bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-2xs"
+            className="scroll-mt-24 lg:col-span-6 bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-2xs"
           >
             <div className="inline-flex items-center gap-2 bg-[#f38b1e]/15 text-[#c96a08] text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full mb-3">
               <UserCheck className="w-3.5 h-3.5" />
@@ -758,7 +899,7 @@ export default function EncontroInstitucional2026({
           {/* Como Chegar no Hospital */}
           <section
             id="como-chegar"
-            className="lg:col-span-6 bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-2xs space-y-5"
+            className="scroll-mt-24 lg:col-span-6 bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-2xs space-y-5"
           >
             <div>
               <div className="inline-flex items-center gap-2 bg-[#003682]/10 text-[#003682] text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full mb-3">
@@ -769,7 +910,7 @@ export default function EncontroInstitucional2026({
                 Como Chegar no Hospital
               </h2>
               <p className="text-sm text-slate-600 mt-1">
-                Auditório do Hospital e Maternidade Santa Maria – Araripina/PE.
+                {infoEncontro.local}.
               </p>
             </div>
 
@@ -779,8 +920,7 @@ export default function EncontroInstitucional2026({
                 Hospital e Maternidade Santa Maria
               </p>
               <p className="text-slate-600 text-xs sm:text-sm leading-relaxed pl-6">
-                Araripina – Pernambuco • Recepção a partir das 8h e início da
-                programação às 9h.
+                Araripina – Pernambuco • {infoEncontro.horarios}.
               </p>
             </div>
 
@@ -793,7 +933,8 @@ export default function EncontroInstitucional2026({
                   <Clock className="w-4 h-4 text-[#f38b1e] shrink-0 mt-0.5" />
                   <span>
                     Chegue com antecedência a partir das <strong>8h</strong> para
-                    recepção, acolhimento e check-in antes das <strong>9h</strong>.
+                    recepção, acolhimento e check-in antes da programação às{" "}
+                    <strong>9h</strong>.
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5 bg-slate-50/80 p-3 rounded-xl border border-slate-200/60">
@@ -838,15 +979,13 @@ export default function EncontroInstitucional2026({
             <p className="font-bold text-sm text-white">
               Instituto Social das Medianeiras da Paz (ISMEP)
             </p>
-            <p className="text-blue-200">
-              Auditório do Hospital e Maternidade Santa Maria – Araripina/PE
-            </p>
+            <p className="text-blue-200">{infoEncontro.local}</p>
           </div>
 
           <div className="text-left md:text-right space-y-1">
             <p className="text-blue-200">Data e Horários:</p>
             <p className="text-sm font-bold text-[#ffd166]">
-              18 de dezembro de 2026 • Recepção às 8h • Programação às 9h
+              {infoEncontro.data} • {infoEncontro.horarios}
             </p>
           </div>
         </div>
