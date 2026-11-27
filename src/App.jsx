@@ -6,7 +6,6 @@ import PopupNovena from "./components/PopupNovena";
 import Home from "./pages/Home";
 import InstitucionalSubNav from "./components/InstitucionalSubNav";
 import LoginUnificado from "./admin/LoginUnificado";
-import AdminCorridinha from "./admin/AdminCorridinha";
 import AdminCIPAA from "./admin/AdminCIPAA";
 import AdminHospital from "./admin/AdminHospital"; // Importa o painel administrativo do Hospital
 import Agenda from "./pages/Agenda";
@@ -16,9 +15,9 @@ import Vocacional from "./pages/Vocacional";
 import Contato from "./pages/Contato";
 import Doacoes from "./pages/Doacoes";
 import Pastoral from "./pages/Pastoral";
-import InscricaoCorridinha from "./pages/InscricaoCorridinha";
 import VotacaoCIPAA from "./pages/VotacaoCIPAA";
 import DashboardHospital from "./pages/DashboardHospital"; // Importa a página pública dedicada ao Hospital
+import EncontroInstitucional2026 from "./pages/EncontroInstitucional2026";
 
 // Import das subpáginas institucionais
 import SobreNos from "./pages/institucional/SobreNos";
@@ -65,10 +64,6 @@ export default function App() {
             <Route path="/noticias" element={<Noticias />} />
             <Route path="/noticias/:id" element={<Noticias />} />
 
-            {/* Rotas para a Corridinha da Prematuridade */}
-            <Route path="/inscricao-corridinha" element={<InscricaoCorridinha />} />
-            <Route path="/admin/corridinha" element={<AdminCorridinha />} />
-
             {/* Rotas para a Eleição da CIPAA */}
             <Route path="/votacao-cipaa" element={<VotacaoCIPAA />} />
             <Route path="/admin/cipaa" element={<AdminCIPAA />} />
@@ -76,6 +71,9 @@ export default function App() {
             {/* Rotas dedicadas ao Hospital e Maternidade Santa Maria */}
             <Route path="/hospital" element={<DashboardHospital />} />
             <Route path="/admin/hospital" element={<AdminHospital />} />
+
+            {/* Rota do Encontro Institucional de Diretores e Coordenadores 2026 */}
+            <Route path="/encontro-2026" element={<EncontroInstitucional2026 />} />
 
             <Route path="/vocacional" element={<Vocacional />} />
             <Route path="/pastoral" element={<Pastoral />} />
