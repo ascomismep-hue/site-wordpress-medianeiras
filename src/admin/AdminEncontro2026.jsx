@@ -3,7 +3,6 @@ import { supabase } from "@/api/supabaseClient";
 import {
   Calendar,
   Clock,
-  MapPin,
   Plus,
   Trash2,
   Save,
@@ -15,11 +14,13 @@ import {
   AlertCircle,
   Loader2,
   Sparkles,
+  UserCheck,
+  RefreshCw,
 } from "lucide-react";
 
 const DADOS_INICIAIS = {
   data: "18 de dezembro de 2026",
-  horarioInicio: "A partir das 9h",
+  horarioInicio: "Recepção às 8h • Programação às 9h",
   local: "Auditório do Hospital e Maternidade Santa Maria – Araripina/PE",
   palestra: {
     tema: "A definir",
@@ -35,15 +36,26 @@ const DADOS_INICIAIS = {
   ],
   programacao: [
     {
+      id: "p0",
+      numero: "00",
+      etapa: "Recepção",
+      titulo: "Recepção e acolhimento",
+      horario: "8h",
+      descricao:
+        "Chegada dos diretores, coordenadores e lideranças, acolhimento inicial e preparação para o início da programação às 9h.",
+      itensTexto:
+        "Recepção e acolhimento a partir das 8h\nAcolhimento e integração inicial das lideranças",
+    },
+    {
       id: "p1",
       numero: "01",
       etapa: "Abertura",
-      titulo: "Abertura institucional",
+      titulo: "Abertura institucional — Início da programação",
       horario: "A partir das 9h",
       descricao:
-        "Recepção e acolhimento; pronunciamento da Presidente e Madre – Ir. Maria Luísa Mota; e pronunciamento da Superintendência – Ir. Fátima Alencar.",
+        "Início oficial da programação às 9h com acolhimento, pronunciamento da Presidente e Madre – Ir. Maria Luísa Mota e pronunciamento da Superintendência – Ir. Fátima Alencar.",
       itensTexto:
-        "Recepção e acolhimento\nPronunciamento da Presidente e Madre – Ir. Maria Luísa Mota\nPronunciamento da Superintendência – Ir. Fátima Alencar",
+        "Programação iniciando às 9h\nPronunciamento da Presidente e Madre – Ir. Maria Luísa Mota\nPronunciamento da Superintendência – Ir. Fátima Alencar",
     },
     {
       id: "p2",
@@ -91,6 +103,17 @@ const DADOS_INICIAIS = {
     {
       id: "p6",
       numero: "06",
+      etapa: "Almoço",
+      titulo: "Almoço de confraternização",
+      horario: "A definir",
+      descricao:
+        "Momento de pausa, alimentação e convivência fraterna entre diretores, coordenadores e lideranças presentes.",
+      itensTexto:
+        "Almoço e confraternização das lideranças\nTroca de experiências entre as unidades",
+    },
+    {
+      id: "p7",
+      numero: "07",
       etapa: "Encerramento",
       titulo: "Considerações finais e encerramento",
       horario: "A definir",
@@ -98,6 +121,17 @@ const DADOS_INICIAIS = {
         "Síntese dos principais pontos abordados durante o encontro, alinhamento dos compromissos institucionais para 2027 e pronunciamento de encerramento.",
       itensTexto:
         "Síntese dos principais pontos abordados durante o encontro\nAlinhamento dos compromissos institucionais para 2027\nPronunciamento de encerramento",
+    },
+    {
+      id: "p8",
+      numero: "08",
+      etapa: "Cultural",
+      titulo: "Apresentação cultural",
+      horario: "Encerramento",
+      descricao:
+        "Momento cultural de celebração e encerramento do Encontro Institucional de Diretores e Coordenadores 2026.",
+      itensTexto:
+        "Apresentação cultural ao final do encontro\nCelebração e encerramento institucional",
     },
   ],
 };
@@ -110,7 +144,9 @@ function extrairMinutos(duracaoTexto = "") {
 export default function AdminEncontro2026({ onLogout }) {
   const [abaAtiva, setAbaAtiva] = useState("geral");
   const [dados, setDados] = useState(DADOS_INICIAIS);
+  const [checkins, setCheckins] = useState([]);
   const [carregando, setCarregando] = useState(true);
+  const [carregandoCheckins, setCarregandoCheckins] = useState(false);
   const [salvando, setSalvando] = useState(false);
   const [feedback, setFeedback] = useState(null);
 
@@ -121,6 +157,7 @@ export default function AdminEncontro2026({ onLogout }) {
 
   useEffect(() => {
     carregarDados();
+    carregarCheckins();
   }, []);
 
   async function carregarDados() {
@@ -153,6 +190,33 @@ export default function AdminEncontro2026({ onLogout }) {
       console.error("Erro ao carregar dados do encontro:", err);
     } finally {
       setCarregando(false);
+    }
+  }
+
+  async function carregarCheckins() {
+    setCarregandoCheckins(true);
+    try {
+      const { data, error } = await supabase
+        .from("encontro_2026_checkins")
+        .select("*")
+        .order("confirmado_em", { ascending: false });
+
+      if (!error && Array.isArray(data)) {
+        setCheckins(data);
+      } else {
+        const locais = JSON.parse(
+          localStorage.getItem("irimep_encontro_2026_checkins") || "[]"
+        );
+        setCheckins(locais);
+      }
+    } catch (err) {
+      console.error("Erro ao carregar check-ins:", err);
+      const locais = JSON.parse(
+        localStorage.getItem("irimep_encontro_2026_checkins") || "[]"
+      );
+      setCheckins(locais);
+    } finally {
+      setCarregandoCheckins(false);
     }
   }
 
@@ -252,7 +316,7 @@ export default function AdminEncontro2026({ onLogout }) {
   }
 
   function adicionarEtapa() {
-    const proximoNumero = String(dados.programacao.length + 1).padStart(2, "0");
+    const proximoNumero = String(dados.programacao.length).padStart(2, "0");
     setDados((prev) => ({
       ...prev,
       programacao: [
@@ -275,7 +339,7 @@ export default function AdminEncontro2026({ onLogout }) {
       const filtrada = prev.programacao.filter((item) => item.id !== id);
       const renumerada = filtrada.map((item, idx) => ({
         ...item,
-        numero: String(idx + 1).padStart(2, "0"),
+        numero: String(idx).padStart(2, "0"),
       }));
       return { ...prev, programacao: renumerada };
     });
@@ -397,6 +461,21 @@ export default function AdminEncontro2026({ onLogout }) {
           >
             Programação ({dados.programacao.length} etapas)
           </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setAbaAtiva("checkins");
+              carregarCheckins();
+            }}
+            className={`px-4 py-2.5 rounded-xl text-xs font-bold uppercase tracking-wider border transition-all ${
+              abaAtiva === "checkins"
+                ? "bg-[#003682] text-white border-[#003682] shadow-xs"
+                : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50"
+            }`}
+          >
+            Check-ins ({checkins.length})
+          </button>
         </div>
 
         {carregando ? (
@@ -427,32 +506,28 @@ export default function AdminEncontro2026({ onLogout }) {
 
               <div>
                 <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
-                  Horário de Início
+                  Horários (Recepção / Programação)
                 </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={dados.horarioInicio}
-                    onChange={(e) =>
-                      atualizarCampoGeral("horarioInicio", e.target.value)
-                    }
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0046a8]"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={dados.horarioInicio}
+                  onChange={(e) =>
+                    atualizarCampoGeral("horarioInicio", e.target.value)
+                  }
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0046a8]"
+                />
               </div>
 
               <div>
                 <label className="block text-xs font-bold uppercase text-slate-600 mb-1.5">
                   Local
                 </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={dados.local}
-                    onChange={(e) => atualizarCampoGeral("local", e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0046a8]"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={dados.local}
+                  onChange={(e) => atualizarCampoGeral("local", e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-[#0046a8]"
+                />
               </div>
             </section>
 
@@ -512,7 +587,9 @@ export default function AdminEncontro2026({ onLogout }) {
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Tempo total calculado:{" "}
-                  <strong className="text-slate-800">{totalMinutosUnidades} minutos</strong>
+                  <strong className="text-slate-800">
+                    {totalMinutosUnidades} minutos
+                  </strong>
                 </p>
               </div>
             </div>
@@ -584,7 +661,7 @@ export default function AdminEncontro2026({ onLogout }) {
               ))}
             </div>
           </section>
-        ) : (
+        ) : abaAtiva === "programacao" ? (
           <section className="space-y-4">
             <div className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200">
               <div className="flex items-center gap-2 text-sm font-bold text-[#003682]">
@@ -697,6 +774,68 @@ export default function AdminEncontro2026({ onLogout }) {
                 </div>
               </div>
             ))}
+          </section>
+        ) : (
+          <section className="bg-white rounded-2xl p-6 border border-slate-200 shadow-2xs space-y-5">
+            <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-4">
+              <div>
+                <h2 className="text-base font-bold text-[#003682] flex items-center gap-2">
+                  <UserCheck className="w-4 h-4 text-[#f38b1e]" />
+                  Participantes com Check-in Confirmado ({checkins.length})
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Lista de confirmações enviadas pela página pública do encontro.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={carregarCheckins}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <RefreshCw
+                  className={`w-3.5 h-3.5 ${carregandoCheckins ? "animate-spin" : ""}`}
+                />
+                Atualizar
+              </button>
+            </div>
+
+            {checkins.length === 0 ? (
+              <p className="text-sm text-slate-500 py-6 text-center">
+                Nenhum check-in registrado até o momento.
+              </p>
+            ) : (
+              <div className="overflow-x-auto rounded-xl border border-slate-200">
+                <table className="w-full text-left border-collapse text-sm">
+                  <thead>
+                    <tr className="bg-[#003682] text-white text-xs uppercase tracking-wider">
+                      <th className="py-3 px-4 font-bold">Nome</th>
+                      <th className="py-3 px-4 font-bold">Unidade</th>
+                      <th className="py-3 px-4 font-bold">Cargo / Função</th>
+                      <th className="py-3 px-4 font-bold text-right">Data/Hora</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {checkins.map((c, idx) => (
+                      <tr key={c.id || idx} className="hover:bg-slate-50">
+                        <td className="py-3 px-4 font-semibold text-slate-900">
+                          {c.nome}
+                        </td>
+                        <td className="py-3 px-4 text-slate-700">{c.unidade}</td>
+                        <td className="py-3 px-4 text-slate-600">
+                          {c.cargo || "Participante"}
+                        </td>
+                        <td className="py-3 px-4 text-right text-xs text-slate-500">
+                          {c.confirmado_em
+                            ? new Date(c.confirmado_em).toLocaleString("pt-BR")
+                            : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </section>
         )}
       </div>
