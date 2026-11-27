@@ -2,7 +2,7 @@ import { useState } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { 
   Shield, Lock, Calendar, Church, Heart, Loader2, Newspaper, 
-  Sparkles, Building2, Baby, ShieldCheck, Stethoscope 
+  Sparkles, Building2, ShieldCheck, Stethoscope 
 } from "lucide-react";
 import AdminDashboard from "./AdminDashboard";
 import AdminAgenda from "./AdminAgenda";
@@ -10,7 +10,6 @@ import AdminObrasMissoes from "./AdminObrasMissoes";
 import AdminNoticias from "./AdminNoticias";
 import AdminVocacional from "./AdminVocacional";
 import AdminDoacoes from "./AdminDoacoes";
-import AdminCorridinha from "./AdminCorridinha";
 import AdminCIPAA from "./AdminCIPAA";
 import AdminHospital from "./AdminHospital"; // Importa o painel administrativo do Hospital
 
@@ -77,8 +76,6 @@ export default function LoginUnificado() {
       return <AdminVocacional onLogout={handleLogout} />;
     } else if (logado.tipo === "doacoes") {
       return <AdminDoacoes onLogout={handleLogout} />;
-    } else if (logado.tipo === "corridinha") {
-      return <AdminCorridinha onLogout={handleLogout} />;
     } else if (logado.tipo === "cipaa") {
       return <AdminCIPAA onLogout={handleLogout} />;
     } else if (logado.tipo === "hospital") {
@@ -176,18 +173,6 @@ export default function LoginUnificado() {
                 }`}
               >
                 <Building2 className="w-4 h-4" /> Obras & Missões
-              </button>
-
-              <button
-                type="button"
-                onClick={() => { setTipoPainel("corridinha"); setErro(false); }}
-                className={`py-3 px-2 rounded-xl font-bold text-[11px] flex flex-col items-center justify-center gap-1.5 border transition-all border-purple-200 ${
-                  tipoPainel === "corridinha" 
-                    ? "bg-purple-900 text-white border-purple-900 shadow-sm" 
-                    : "bg-purple-50/50 text-purple-900 border-purple-100 hover:bg-purple-100"
-                }`}
-              >
-                <Baby className="w-4 h-4 text-purple-600" /> Corridinha
               </button>
 
               <button
