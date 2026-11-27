@@ -381,20 +381,32 @@ export default function EncontroInstitucional2026({
         }
       `}</style>
 
-      {/* Hero / Campo Azul Principal */}
+      {/* Hero / Campo Azul com Imagem Transparente de Fundo */}
       <header className="relative overflow-hidden bg-gradient-to-br from-[#0046a8] via-[#003682] to-[#002257] text-white font-corpo">
+        {/* Imagem de fundo na proporção completa do campo azul */}
+        <img
+          src={IMAGEM_CAPA}
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none select-none absolute inset-0 w-full h-full object-cover object-center opacity-25 mix-blend-luminosity"
+        />
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#0046a8]/75 via-[#003682]/80 to-[#002257]/90"
+        />
+
         {/* Elementos de asterisco girando */}
         <AsteriscoGiratorio
           duracao="26s"
-          className="hidden sm:block absolute -top-10 -right-8 w-40 h-40 md:w-52 md:h-52 text-[#f5a623]/90"
+          className="hidden sm:block absolute -top-10 -right-8 w-40 h-40 md:w-52 md:h-52 text-[#f5a623]/90 z-10"
         />
         <AsteriscoGiratorio
           duracao="32s"
           reverso
-          className="hidden md:block absolute bottom-4 left-6 w-28 h-28 text-[#f38b1e]/80"
+          className="hidden md:block absolute bottom-4 left-6 w-28 h-28 text-[#f38b1e]/80 z-10"
         />
 
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-6">
+        <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 space-y-6">
           {onVoltar && (
             <button
               type="button"
@@ -407,7 +419,7 @@ export default function EncontroInstitucional2026({
 
           <div
             style={{ animationDelay: "60ms" }}
-            className="anim-entrada inline-flex items-center gap-2 bg-white/10 border border-white/20 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide text-[#ffd166]"
+            className="anim-entrada inline-flex items-center gap-2 bg-white/10 backdrop-blur-xs border border-white/20 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide text-[#ffd166]"
           >
             <Sparkles className="w-3.5 h-3.5" />
             ENCONTRO INSTITUCIONAL • ISMEP 2026
@@ -448,7 +460,7 @@ export default function EncontroInstitucional2026({
 
           <div
             style={{ animationDelay: "310ms" }}
-            className="anim-entrada bg-white/10 border-l-4 border-[#f5a623] rounded-r-2xl px-4 py-3 text-sm sm:text-base text-white max-w-3xl"
+            className="anim-entrada bg-white/10 backdrop-blur-xs border-l-4 border-[#f5a623] rounded-r-2xl px-4 py-3 text-sm sm:text-base text-white max-w-3xl"
           >
             <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#ffd166] block mb-0.5">
               Tema
@@ -536,29 +548,6 @@ export default function EncontroInstitucional2026({
               <Navigation className="w-4 h-4 text-[#ffd166]" />
               Como chegar ao hospital
             </button>
-          </div>
-
-          {/* Imagem dentro do campo azul */}
-          <div
-            style={{ animationDelay: "560ms" }}
-            className="anim-entrada pt-2"
-          >
-            <div className="relative rounded-3xl overflow-hidden border-2 border-white/20 shadow-2xl bg-[#002257]">
-              <img
-                src={IMAGEM_CAPA}
-                alt="Encontro Institucional de Diretores e Coordenadores – ISMEP 2026"
-                className="w-full h-64 sm:h-80 md:h-[380px] object-cover object-center block"
-              />
-              <div className="bg-[#001d4a]/90 backdrop-blur-xs px-4 py-3 border-t border-white/15 flex flex-wrap items-center justify-between gap-2 text-xs">
-                <span className="font-bold text-[#ffd166] uppercase tracking-wider">
-                  18 de dezembro de 2026
-                </span>
-                <span className="text-blue-100 font-semibold">
-                  A partir das 8h • Auditório do Hospital e Maternidade Santa
-                  Maria – Araripina/PE
-                </span>
-              </div>
-            </div>
           </div>
         </div>
       </header>
