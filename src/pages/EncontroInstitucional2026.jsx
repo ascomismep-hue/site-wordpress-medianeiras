@@ -11,6 +11,26 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
+function AsteriscoGiratorio({ className = "", duracao = "24s", reverso = false }) {
+  return (
+    <svg
+      viewBox="0 0 100 100"
+      aria-hidden="true"
+      style={{
+        animation: `${reverso ? "girar-anti-horario" : "girar-horario"} ${duracao} linear infinite`,
+      }}
+      className={`pointer-events-none select-none ${className}`}
+    >
+      <g stroke="currentColor" strokeWidth="7" strokeLinecap="round">
+        <line x1="50" y1="8" x2="50" y2="92" />
+        <line x1="8" y1="50" x2="92" y2="50" />
+        <line x1="20.3" y1="20.3" x2="79.7" y2="79.7" />
+        <line x1="79.7" y1="20.3" x2="20.3" y2="79.7" />
+      </g>
+    </svg>
+  );
+}
+
 const UNIDADES_RESULTADOS = [
   { unidade: "Hospital Regional Fernando Bezerra", duracao: "15 minutos" },
   { unidade: "Hospital Dom Malan", duracao: "15 minutos" },
@@ -21,14 +41,26 @@ const UNIDADES_RESULTADOS = [
 
 const PROGRAMACAO_OFICIAL = [
   {
+    numero: "00",
+    etapa: "Recepção",
+    titulo: "Recepção e acolhimento",
+    horario: "8h",
+    descricao:
+      "Chegada dos diretores, coordenadores e lideranças, credenciamento e acolhimento inicial antes do início da programação oficial às 9h.",
+    detalhes: [
+      "Recepção e acolhimento a partir das 8h",
+      "Credenciamento e integração inicial das lideranças",
+    ],
+  },
+  {
     numero: "01",
     etapa: "Abertura",
-    titulo: "Abertura institucional",
+    titulo: "Abertura institucional — Início da programação",
     horario: "A partir das 9h",
     descricao:
-      "Recepção e acolhimento; pronunciamento da Presidente e Madre – Ir. Maria Luísa Mota; e pronunciamento da Superintendência – Ir. Fátima Alencar.",
+      "Início oficial da programação às 9h com acolhimento, pronunciamento da Presidente e Madre – Ir. Maria Luísa Mota e pronunciamento da Superintendência – Ir. Fátima Alencar.",
     detalhes: [
-      "Recepção e acolhimento",
+      "Início da programação às 9h",
       "Pronunciamento da Presidente e Madre – Ir. Maria Luísa Mota",
       "Pronunciamento da Superintendência – Ir. Fátima Alencar",
     ],
@@ -119,7 +151,7 @@ export default function EncontroInstitucional2026({
       : programacao.filter((item) => item.etapa === filtroEtapa);
 
   return (
-    <div className="min-h-screen bg-[#f4f7fb] text-slate-800">
+    <div className="min-h-screen bg-[#f4f7fb] text-slate-800 overflow-x-clip">
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap');
 
@@ -139,66 +171,135 @@ export default function EncontroInstitucional2026({
         .font-corpo {
           font-family: 'Montserrat', sans-serif;
         }
+
+        @keyframes girar-horario {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        @keyframes girar-anti-horario {
+          from {
+            transform: rotate(360deg);
+          }
+          to {
+            transform: rotate(0deg);
+          }
+        }
+
+        @keyframes entrar-subindo {
+          0% {
+            opacity: 0;
+            transform: translateY(24px) scale(0.985);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
+        }
+
+        @keyframes entrar-faixa {
+          0% {
+            opacity: 0;
+            transform: translateX(-22px) rotate(-1deg);
+          }
+          100% {
+            opacity: 1;
+            transform: translateX(0) rotate(0deg);
+          }
+        }
+
+        .anim-entrada {
+          animation: entrar-subindo 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        .anim-faixa {
+          animation: entrar-faixa 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .anim-entrada,
+          .anim-faixa {
+            animation: none !important;
+          }
+        }
       `}</style>
 
       {/* Hero Principal */}
       <header className="relative overflow-hidden bg-gradient-to-br from-[#0046a8] via-[#003682] to-[#002257] text-white font-corpo">
-        <span
-          aria-hidden="true"
-          className="pointer-events-none select-none hidden sm:block absolute -top-6 right-10 text-[150px] leading-none font-light text-[#f5a623]/90"
-        >
-          ✳
-        </span>
-        <span
-          aria-hidden="true"
-          className="pointer-events-none select-none hidden md:block absolute bottom-6 left-8 text-[110px] leading-none font-light text-[#f38b1e]/80"
-        >
-          ✳
-        </span>
+        {/* Elementos de asterisco girando */}
+        <AsteriscoGiratorio
+          duracao="26s"
+          className="hidden sm:block absolute -top-10 -right-8 w-40 h-40 md:w-52 md:h-52 text-[#f5a623]/90"
+        />
+        <AsteriscoGiratorio
+          duracao="32s"
+          reverso
+          className="hidden md:block absolute bottom-4 left-6 w-28 h-28 text-[#f38b1e]/80"
+        />
 
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           {onVoltar && (
             <button
               type="button"
               onClick={onVoltar}
-              className="mb-6 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/80 hover:text-white transition-colors"
+              className="anim-entrada mb-6 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-white/80 hover:text-white transition-colors"
             >
               ← Voltar ao portal
             </button>
           )}
 
           <div className="max-w-4xl space-y-5">
-            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide text-[#ffd166]">
+            <div
+              style={{ animationDelay: "60ms" }}
+              className="anim-entrada inline-flex items-center gap-2 bg-white/10 border border-white/20 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide text-[#ffd166]"
+            >
               <Sparkles className="w-3.5 h-3.5" />
               ENCONTRO INSTITUCIONAL • ISMEP 2026
             </div>
 
             <div className="space-y-2">
-              <div className="inline-block bg-[#f38b1e] text-white px-4 py-1.5 shadow-sm">
+              <div
+                style={{ animationDelay: "120ms" }}
+                className="anim-faixa inline-block bg-[#f38b1e] text-white px-4 py-1.5 shadow-sm transition-transform duration-300 hover:translate-x-1"
+              >
                 <h1 className="font-naughty text-3xl sm:text-5xl md:text-6xl uppercase leading-none">
                   ENCONTRO INSTITUCIONAL
                 </h1>
               </div>
               <br />
-              <div className="inline-block bg-[#f38b1e] text-white px-4 py-1.5 shadow-sm">
+              <div
+                style={{ animationDelay: "200ms" }}
+                className="anim-faixa inline-block bg-[#f38b1e] text-white px-4 py-1.5 shadow-sm transition-transform duration-300 hover:translate-x-1"
+              >
                 <p className="font-naughty text-2xl sm:text-4xl md:text-5xl uppercase leading-none">
                   DE DIRETORES E
                 </p>
               </div>
               <br />
-              <div className="inline-flex items-center gap-3 bg-[#f38b1e] text-white px-4 py-1.5 shadow-sm">
+              <div
+                style={{ animationDelay: "280ms" }}
+                className="anim-faixa inline-flex items-center gap-3 bg-[#f38b1e] text-white px-4 py-1.5 shadow-sm transition-transform duration-300 hover:translate-x-1"
+              >
                 <p className="font-naughty text-2xl sm:text-4xl md:text-5xl uppercase leading-none">
                   COORDENADORES 2026
                 </p>
-                <span className="text-[#ffd166] text-2xl sm:text-3xl leading-none">
-                  ✳
-                </span>
+                <AsteriscoGiratorio
+                  duracao="14s"
+                  className="w-7 h-7 sm:w-9 sm:h-9 text-[#ffd166] shrink-0"
+                />
               </div>
             </div>
 
             {/* Informações Oficiais */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-              <div className="flex items-start gap-3 bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3.5">
+              <div
+                style={{ animationDelay: "340ms" }}
+                className="anim-entrada flex items-start gap-3 bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3.5 transition-all duration-300 hover:bg-white/15 hover:-translate-y-0.5"
+              >
                 <Calendar className="w-5 h-5 text-[#f5a623] shrink-0 mt-0.5" />
                 <div>
                   <p className="text-[11px] uppercase tracking-wider text-blue-200 font-semibold">
@@ -210,7 +311,10 @@ export default function EncontroInstitucional2026({
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3.5">
+              <div
+                style={{ animationDelay: "410ms" }}
+                className="anim-entrada flex items-start gap-3 bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3.5 transition-all duration-300 hover:bg-white/15 hover:-translate-y-0.5"
+              >
                 <MapPin className="w-5 h-5 text-[#f5a623] shrink-0 mt-0.5" />
                 <div>
                   <p className="text-[11px] uppercase tracking-wider text-blue-200 font-semibold">
@@ -222,13 +326,18 @@ export default function EncontroInstitucional2026({
                 </div>
               </div>
 
-              <div className="flex items-start gap-3 bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3.5">
+              <div
+                style={{ animationDelay: "480ms" }}
+                className="anim-entrada flex items-start gap-3 bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl p-3.5 transition-all duration-300 hover:bg-white/15 hover:-translate-y-0.5"
+              >
                 <Clock className="w-5 h-5 text-[#f5a623] shrink-0 mt-0.5" />
                 <div>
                   <p className="text-[11px] uppercase tracking-wider text-blue-200 font-semibold">
-                    Horário
+                    Horários
                   </p>
-                  <p className="text-sm font-bold text-white">A partir das 9h</p>
+                  <p className="text-sm font-bold text-white">
+                    Recepção 8h • Programação 9h
+                  </p>
                 </div>
               </div>
             </div>
@@ -241,17 +350,18 @@ export default function EncontroInstitucional2026({
         id="programacao"
         className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 font-corpo"
       >
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+        <div className="anim-entrada flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
           <div>
-            <span className="inline-block bg-[#f38b1e]/15 text-[#c96a08] text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full mb-2">
+            <div className="inline-flex items-center gap-2 bg-[#f38b1e]/15 text-[#c96a08] text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full mb-2">
+              <AsteriscoGiratorio duracao="12s" className="w-3.5 h-3.5 text-[#f38b1e]" />
               Pauta Oficial
-            </span>
+            </div>
             <h2 className="font-naughty text-3xl sm:text-4xl text-[#003682] uppercase">
               Programação do Encontro
             </h2>
             <p className="text-slate-600 text-sm mt-1">
               18 de dezembro de 2026 • Auditório do Hospital e Maternidade Santa
-              Maria – Araripina/PE • A partir das 9h
+              Maria – Araripina/PE • Recepção às 8h • Programação às 9h
             </p>
           </div>
 
@@ -264,7 +374,7 @@ export default function EncontroInstitucional2026({
                   key={etapa}
                   type="button"
                   onClick={() => setFiltroEtapa(etapa)}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                  className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-all duration-200 border active:scale-95 ${
                     ativa
                       ? "bg-[#003682] text-white border-[#003682] shadow-xs"
                       : "bg-white text-slate-600 border-slate-200 hover:border-[#003682]/40 hover:text-[#003682]"
@@ -279,10 +389,11 @@ export default function EncontroInstitucional2026({
 
         {/* Lista de Itens da Programação */}
         <div className="space-y-5">
-          {itensFiltrados.map((item) => (
+          {itensFiltrados.map((item, index) => (
             <article
-              key={item.numero}
-              className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-7 shadow-2xs hover:border-[#0046a8]/30 hover:shadow-md transition-all"
+              key={`${item.numero}-${filtroEtapa}`}
+              style={{ animationDelay: `${Math.min(index * 80, 480)}ms` }}
+              className="anim-entrada bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-7 shadow-2xs hover:border-[#0046a8]/30 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300"
             >
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-4 border-b border-slate-100">
                 <div className="flex items-start gap-3.5">
@@ -405,9 +516,9 @@ export default function EncontroInstitucional2026({
           </div>
 
           <div className="text-left md:text-right space-y-1">
-            <p className="text-blue-200">Data e Horário:</p>
+            <p className="text-blue-200">Data e Horários:</p>
             <p className="text-sm font-bold text-[#ffd166]">
-              18 de dezembro de 2026 • A partir das 9h
+              18 de dezembro de 2026 • Recepção às 8h • Programação às 9h
             </p>
           </div>
         </div>
