@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { supabase } from "@/api/supabaseClient";
 import {
   Calendar,
@@ -10,12 +10,15 @@ import {
   Mic,
   Cpu,
   CheckCircle2,
-  Utensils,
-  Music,
   Navigation,
   UserCheck,
   Loader2,
   ExternalLink,
+  Download,
+  FileText,
+  Presentation,
+  FileType2,
+  Image as ImageIcon,
 } from "lucide-react";
 
 function AsteriscoGiratorio({
@@ -46,6 +49,7 @@ function AsteriscoGiratorio({
 
 const UNIDADES_RESULTADOS = [
   { unidade: "Hospital Regional Fernando Bezerra", duracao: "15 minutos" },
+  { unidade: "Hospital e Maternidade Santa Maria", duracao: "15 minutos" },
   { unidade: "Hospital Dom Malan", duracao: "15 minutos" },
   { unidade: "UPAE Ouricuri", duracao: "15 minutos" },
   { unidade: "UPA Barra de Jangada", duracao: "15 minutos" },
@@ -53,9 +57,9 @@ const UNIDADES_RESULTADOS = [
 ];
 
 const UNIDADES_OPCOES = [
-  "Hospital e Maternidade Santa Maria (HMSM)",
-  "Hospital Regional Fernando Bezerra (HRFB)",
-  "Hospital Dom Malan (HDM)",
+  "Hospital e Maternidade Santa Maria",
+  "Hospital Regional Fernando Bezerra",
+  "Hospital Dom Malan",
   "UPAE Ouricuri",
   "UPA Barra de Jangada",
   "UPA Olinda",
@@ -65,75 +69,59 @@ const UNIDADES_OPCOES = [
 
 const PROGRAMACAO_OFICIAL = [
   {
-    numero: "00",
-    etapa: "Recepção",
-    titulo: "Recepção e acolhimento",
-    horario: "08h00 – 09h00",
-    statusHorario: "Confirmado",
-    ordemHora: 800,
-    descricao:
-      "Chegada dos diretores, coordenadores e lideranças, acolhimento inicial e preparação para o início da programação às 9h.",
-    detalhes: [
-      "Recepção e acolhimento a partir das 8h",
-      "Acolhimento e integração inicial das lideranças",
-    ],
-  },
-  {
     numero: "01",
     etapa: "Abertura",
-    titulo: "Abertura institucional — Início da programação",
-    horario: "09h00 – 09h30",
-    statusHorario: "Programação às 9h • Horário previsto",
-    ordemHora: 900,
+    titulo: "Abertura institucional às 8h",
+    horario: "8h",
+    statusHorario: "A partir das 8h • 8h30 / 8h40",
     descricao:
-      "Início oficial da programação às 9h com acolhimento, pronunciamento da Presidente e Madre – Ir. Maria Luísa Mota e pronunciamento da Superintendência – Ir. Fátima Alencar.",
+      "Recepção e acolhimento a partir das 8h, com pronunciamento da Presidente e Madre – Ir. Maria Luísa Mota às 8h30 e pronunciamento da Superintendência – Ir. Fátima Alencar às 8h40.",
     detalhes: [
-      "Programação iniciando às 9h",
-      "Pronunciamento da Presidente e Madre – Ir. Maria Luísa Mota",
-      "Pronunciamento da Superintendência – Ir. Fátima Alencar",
+      "Recepção e acolhimento",
+      "Às 8h30 Pronunciamento da Presidente e Madre – Ir. Maria Luísa Mota",
+      "Às 8h40 Pronunciamento da Superintendência – Ir. Fátima Alencar",
     ],
   },
   {
     numero: "02",
     etapa: "Resultados 2026",
-    titulo: "Apresentação dos resultados das unidades – Exercício 2026",
-    horario: "09h30 – 10h45",
-    statusHorario: "15 min/unidade (75 min total) • Horário previsto",
-    ordemHora: 930,
+    titulo: "Apresentação dos resultados das unidades – Exercício 2026 às 9h",
+    horario: "9h",
+    statusHorario: "15 min/unidade • Tempo total: 90 minutos",
     descricao:
-      "Cada diretor terá 15 minutos para apresentar os resultados de sua unidade, contemplando indicadores assistenciais, desempenho administrativo/financeiro, avanços de 2026 e desafios para 2027.",
+      "Cada diretor terá 15 minutos para apresentação dos resultados de sua unidade.",
     unidades: UNIDADES_RESULTADOS,
+    tempoTotal: "90 minutos",
     topicosObrigatorios: [
       "Resultados assistenciais e indicadores de desempenho",
       "Resultados administrativos e financeiros",
       "Principais avanços e melhorias implementadas em 2026",
-      "Desafios enfrentados / perspectivas para 2027",
+      "Desafios enfrentados 2027",
     ],
   },
   {
     numero: "03",
     etapa: "Palestra",
-    titulo: "Palestra institucional",
-    horario: "A definir",
-    statusHorario: "A confirmar",
-    ordemHora: 1045,
+    titulo: "Palestra institucional às 10h30",
+    horario: "10h30",
+    statusHorario: "Pe. Tassicio Leal • Duração a definir",
     descricao:
-      "Tema, palestrante e duração a definir para aprofundamento institucional durante o encontro.",
+      "Palestra institucional com Pe. Tassicio Leal abordando o tema 'Sua energia define o ritmo da equipe'.",
     detalhes: [
-      "Tema: a definir",
-      "Palestrante: a definir",
+      "Tema: Sua energia define o ritmo da equipe",
+      "Palestrante: Pe. Tassicio Leal",
       "Duração: a definir",
     ],
   },
   {
     numero: "04",
     etapa: "Estratégia 2027",
-    titulo: "Alinhamento Estratégico Institucional para 2027",
-    horario: "A definir",
-    statusHorario: "A confirmar",
-    ordemHora: 1130,
+    titulo: "Alinhamento Estratégico Institucional para 2027 às 11h20",
+    horario: "11h20",
+    statusHorario: "Planejamento estratégico integrado",
     descricao:
-      "Construção coletiva das prioridades estratégicas do ISMEP para 2027, com identificação de ao menos um desafio institucional por diretoria/coordenação e transformação em propostas de intervenção, metas e compromissos integrados.",
+      "Cada diretoria e/ou coordenação, considerando sua área de atuação, contribua com a identificação de pelo menos um desafio institucional que necessite de intervenção ou aprimoramento. A iniciativa tem como finalidade promover a construção coletiva das prioridades estratégicas do ISMEP para 2027, transformando os desafios identificados em propostas de soluções e compromissos institucionais. As contribuições deverão ser previamente discutidas e consolidadas, visando à construção de um planejamento estratégico integrado, com foco na sustentabilidade institucional, na eficiência administrativa e financeira e na qualidade dos serviços prestados.",
+    topicosTitulo: "Cada diretoria e coordenação deverá apresentar:",
     detalhes: [
       "Tema estratégico a ser trabalhado em 2027",
       "Problema ou desafio institucional identificado",
@@ -145,10 +133,10 @@ const PROGRAMACAO_OFICIAL = [
   {
     numero: "05",
     etapa: "Tecnologia",
-    titulo: "Debate e informação – Bruno – Coordenador de tecnologia da informação",
-    horario: "A definir",
-    statusHorario: "A confirmar",
-    ordemHora: 1200,
+    titulo:
+      "Debate e informação – Bruno – Coordenador de tecnologia da informação às 11h30",
+    horario: "11h30",
+    statusHorario: "Informações gerenciais e assistenciais",
     descricao:
       "Integração e confiabilidade das informações gerenciais e assistenciais.",
     detalhes: [
@@ -157,25 +145,10 @@ const PROGRAMACAO_OFICIAL = [
   },
   {
     numero: "06",
-    etapa: "Almoço",
-    titulo: "Almoço de confraternização",
-    horario: "A definir",
-    statusHorario: "A confirmar",
-    ordemHora: 1230,
-    descricao:
-      "Momento de pausa, alimentação e convivência fraterna entre diretores, coordenadores e lideranças presentes.",
-    detalhes: [
-      "Almoço e confraternização das lideranças",
-      "Troca de experiências entre as unidades",
-    ],
-  },
-  {
-    numero: "07",
     etapa: "Encerramento",
-    titulo: "Considerações finais e encerramento",
-    horario: "A definir",
-    statusHorario: "A confirmar",
-    ordemHora: 1400,
+    titulo: "Considerações finais e encerramento às 12h",
+    horario: "12h",
+    statusHorario: "Síntese e compromissos para 2027",
     descricao:
       "Síntese dos principais pontos abordados durante o encontro, alinhamento dos compromissos institucionais para 2027 e pronunciamento de encerramento.",
     detalhes: [
@@ -184,40 +157,65 @@ const PROGRAMACAO_OFICIAL = [
       "Pronunciamento de encerramento",
     ],
   },
-  {
-    numero: "08",
-    etapa: "Cultural",
-    titulo: "Apresentação cultural",
-    horario: "Ao final",
-    statusHorario: "Encerramento do encontro",
-    ordemHora: 1500,
-    descricao:
-      "Momento cultural de celebração e encerramento do Encontro Institucional de Diretores e Coordenadores 2026.",
-    detalhes: [
-      "Apresentação cultural ao final do encontro",
-      "Celebração e encerramento institucional",
-    ],
-  },
 ];
 
-function extrairPesoHorario(horario = "", fallback = 9999) {
-  const match = String(horario).match(/(\d{1,2})[h:](\d{2})?/i);
-  if (!match) return fallback;
-  const horas = parseInt(match[1], 10);
-  const minutos = match[2] ? parseInt(match[2], 10) : 0;
-  return horas * 100 + minutos;
-}
+const MATERIAIS_DOWNLOAD = [
+  {
+    id: "pdf",
+    formato: "PDF",
+    titulo: "Programação Oficial em PDF",
+    descricao: "Documento completo da pauta e diretrizes do encontro.",
+    href: "/materiais-encontro-2026/programacao-encontro-2026.pdf",
+    downloadName: "programacao-encontro-2026.pdf",
+    badgeClass: "bg-red-50 text-red-700 border-red-200",
+    icon: FileText,
+  },
+  {
+    id: "pptx",
+    formato: "PowerPoint",
+    titulo: "Slide de Apresentação (PPTX)",
+    descricao: "Modelo de slides para apresentação das unidades e alinhamento.",
+    href: "/materiais-encontro-2026/apresentacao-encontro-2026.pptx",
+    downloadName: "apresentacao-encontro-2026.pptx",
+    badgeClass: "bg-orange-50 text-orange-700 border-orange-200",
+    icon: Presentation,
+  },
+  {
+    id: "docx",
+    formato: "Word",
+    titulo: "Documento Editável (DOCX)",
+    descricao: "Pauta em formato Word para consulta e registro de contribuições.",
+    href: "/materiais-encontro-2026/roteiro-diretores-2026.docx",
+    downloadName: "roteiro-diretores-2026.docx",
+    badgeClass: "bg-blue-50 text-blue-700 border-blue-200",
+    icon: FileType2,
+  },
+  {
+    id: "png",
+    formato: "PNG",
+    titulo: "Arte em Alta Resolução (PNG)",
+    descricao: "Imagem em PNG sem perda para compartilhamento e avisos.",
+    href: "/materiais-encontro-2026/card-encontro-2026.png",
+    downloadName: "card-encontro-2026.png",
+    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    icon: ImageIcon,
+  },
+  {
+    id: "jpeg",
+    formato: "JPEG",
+    titulo: "Capa / Divulgação (JPEG)",
+    descricao: "Imagem oficial da capa do encontro em formato JPEG.",
+    href: "/Gemini_Generated_Image_9c2wn39c2wn39c2w.jpg",
+    downloadName: "encontro-institucional-2026.jpg",
+    badgeClass: "bg-amber-50 text-amber-800 border-amber-200",
+    icon: ImageIcon,
+  },
+];
 
 export default function EncontroInstitucional2026({
   programacao = PROGRAMACAO_OFICIAL,
   onVoltar,
 }) {
-  const [listaProgramacao, setListaProgramacao] = useState(programacao);
-  const [infoEncontro, setInfoEncontro] = useState({
-    data: "18 de dezembro de 2026",
-    local: "Auditório do Hospital e Maternidade Santa Maria – Araripina/PE",
-    horarios: "Recepção às 8h • Programação às 9h",
-  });
   const [filtroEtapa, setFiltroEtapa] = useState("Todas");
 
   // Estado do Check-in do Participante
@@ -230,105 +228,15 @@ export default function EncontroInstitucional2026({
   const [checkinConfirmado, setCheckinConfirmado] = useState(null);
   const [erroCheckin, setErroCheckin] = useState("");
 
-  useEffect(() => {
-    async function carregarConfiguracaoRemota() {
-      try {
-        const { data, error } = await supabase
-          .from("encontro_2026_config")
-          .select("dados")
-          .eq("id", "encontro_institucional_2026")
-          .maybeSingle();
-
-        if (!error && data?.dados) {
-          setInfoEncontro({
-            data: data.dados.data || "18 de dezembro de 2026",
-            local:
-              data.dados.local ||
-              "Auditório do Hospital e Maternidade Santa Maria – Araripina/PE",
-            horarios:
-              data.dados.horarioInicio || "Recepção às 8h • Programação às 9h",
-          });
-
-          if (
-            Array.isArray(data.dados.programacao) &&
-            data.dados.programacao.length > 0
-          ) {
-            const convertida = data.dados.programacao.map((item, idx) => {
-              const detalhes =
-                item.detalhes ||
-                (item.itensTexto
-                  ? item.itensTexto
-                      .split("\n")
-                      .map((l) => l.trim())
-                      .filter(Boolean)
-                  : []);
-
-              const isResultados =
-                String(item.numero) === "02" ||
-                String(item.titulo || "")
-                  .toLowerCase()
-                  .includes("resultados das unidades");
-
-              return {
-                ...item,
-                statusHorario:
-                  item.statusHorario ||
-                  (String(item.horario || "")
-                    .toLowerCase()
-                    .includes("definir")
-                    ? "A confirmar"
-                    : "Programação"),
-                detalhes: isResultados ? undefined : detalhes,
-                unidades: isResultados
-                  ? Array.isArray(data.dados.unidades) &&
-                    data.dados.unidades.length > 0
-                    ? data.dados.unidades
-                    : UNIDADES_RESULTADOS
-                  : undefined,
-                topicosObrigatorios: isResultados
-                  ? detalhes.length > 0
-                    ? detalhes
-                    : PROGRAMACAO_OFICIAL[2].topicosObrigatorios
-                  : undefined,
-                ordemHora:
-                  typeof item.ordemHora === "number"
-                    ? item.ordemHora
-                    : extrairPesoHorario(item.horario, (idx + 1) * 100),
-              };
-            });
-            setListaProgramacao(convertida);
-          }
-        }
-      } catch (err) {
-        console.warn("Usando programação base local:", err);
-      }
-    }
-
-    carregarConfiguracaoRemota();
-  }, []);
-
-  const programacaoOrdenada = [...listaProgramacao].sort((a, b) => {
-    const pesoA =
-      typeof a.ordemHora === "number"
-        ? a.ordemHora
-        : extrairPesoHorario(a.horario, 9999);
-    const pesoB =
-      typeof b.ordemHora === "number"
-        ? b.ordemHora
-        : extrairPesoHorario(b.horario, 9999);
-    if (pesoA !== pesoB) return pesoA - pesoB;
-    return String(a.numero).localeCompare(String(b.numero));
-  });
-
   const etapas = [
     "Todas",
-    ...Array.from(new Set(programacaoOrdenada.map((item) => item.etapa))),
+    ...Array.from(new Set(programacao.map((item) => item.etapa))),
   ];
 
   const itensFiltrados =
     filtroEtapa === "Todas"
-      ? programacaoOrdenada
-      : programacaoOrdenada.filter((item) => item.etapa === filtroEtapa);
+      ? programacao
+      : programacao.filter((item) => item.etapa === filtroEtapa);
 
   function irParaSecao(idSecao) {
     const elemento = document.getElementById(idSecao);
@@ -468,7 +376,7 @@ export default function EncontroInstitucional2026({
         }
       `}</style>
 
-      {/* Hero Principal */}
+      {/* Hero / Capa Principal */}
       <header className="relative overflow-hidden bg-gradient-to-br from-[#0046a8] via-[#003682] to-[#002257] text-white font-corpo">
         {/* Elementos de asterisco girando */}
         <AsteriscoGiratorio
@@ -492,127 +400,171 @@ export default function EncontroInstitucional2026({
             </button>
           )}
 
-          <div className="max-w-5xl space-y-6">
-            <div
-              style={{ animationDelay: "60ms" }}
-              className="anim-entrada inline-flex items-center gap-2 bg-white/10 border border-white/20 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide text-[#ffd166]"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              ENCONTRO INSTITUCIONAL • ISMEP 2026
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+            <div className="lg:col-span-7 space-y-6">
+              <div
+                style={{ animationDelay: "60ms" }}
+                className="anim-entrada inline-flex items-center gap-2 bg-white/10 border border-white/20 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-wide text-[#ffd166]"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                ENCONTRO INSTITUCIONAL • ISMEP 2026
+              </div>
+
+              <div className="space-y-2">
+                <div
+                  style={{ animationDelay: "120ms" }}
+                  className="anim-faixa inline-block bg-[#f38b1e] text-white px-4 py-1.5 shadow-sm transition-transform duration-300 hover:translate-x-1"
+                >
+                  <h1 className="font-naughty text-2xl sm:text-4xl md:text-5xl uppercase leading-none">
+                    ENCONTRO INSTITUCIONAL
+                  </h1>
+                </div>
+                <br />
+                <div
+                  style={{ animationDelay: "200ms" }}
+                  className="anim-faixa inline-block bg-[#f38b1e] text-white px-4 py-1.5 shadow-sm transition-transform duration-300 hover:translate-x-1"
+                >
+                  <p className="font-naughty text-2xl sm:text-4xl md:text-5xl uppercase leading-none">
+                    DE DIRETORES E
+                  </p>
+                </div>
+                <br />
+                <div
+                  style={{ animationDelay: "280ms" }}
+                  className="anim-faixa inline-flex items-center gap-3 bg-[#f38b1e] text-white px-4 py-1.5 shadow-sm transition-transform duration-300 hover:translate-x-1"
+                >
+                  <p className="font-naughty text-2xl sm:text-4xl md:text-5xl uppercase leading-none">
+                    COORDENADORES 2026
+                  </p>
+                  <AsteriscoGiratorio
+                    duracao="14s"
+                    className="w-7 h-7 sm:w-9 sm:h-9 text-[#ffd166] shrink-0"
+                  />
+                </div>
+              </div>
+
+              <div
+                style={{ animationDelay: "310ms" }}
+                className="anim-entrada bg-white/10 border-l-4 border-[#f5a623] rounded-r-2xl px-4 py-3 text-sm sm:text-base text-white"
+              >
+                <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#ffd166] block mb-0.5">
+                  Tema
+                </span>
+                <strong>Resultados, desafios e perspectivas para 2027</strong>
+              </div>
+
+              {/* Cards Reorganizados (Data, Local, Horário) */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-1">
+                <div
+                  style={{ animationDelay: "340ms" }}
+                  className="anim-entrada flex items-center gap-3 bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl px-3.5 py-3.5 transition-all duration-300 hover:bg-white/15 hover:-translate-y-0.5"
+                >
+                  <Calendar className="w-5 h-5 text-[#f5a623] shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase tracking-wider text-blue-200 font-semibold">
+                      DATA
+                    </p>
+                    <p className="text-xs sm:text-sm font-bold text-white leading-snug">
+                      18 de dezembro de 2026
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  style={{ animationDelay: "410ms" }}
+                  className="anim-entrada flex items-center gap-3 bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl px-3.5 py-3.5 transition-all duration-300 hover:bg-white/15 hover:-translate-y-0.5"
+                >
+                  <MapPin className="w-5 h-5 text-[#f5a623] shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase tracking-wider text-blue-200 font-semibold">
+                      LOCAL
+                    </p>
+                    <p className="text-xs sm:text-sm font-bold text-white leading-snug">
+                      Auditório do Hospital e Maternidade Santa Maria –
+                      Araripina/PE
+                    </p>
+                  </div>
+                </div>
+
+                <div
+                  style={{ animationDelay: "480ms" }}
+                  className="anim-entrada flex items-center gap-3 bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl px-3.5 py-3.5 transition-all duration-300 hover:bg-white/15 hover:-translate-y-0.5"
+                >
+                  <Clock className="w-5 h-5 text-[#f5a623] shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[11px] uppercase tracking-wider text-blue-200 font-semibold">
+                      HORÁRIO
+                    </p>
+                    <p className="text-xs sm:text-sm font-bold text-white leading-snug">
+                      A partir das 8h
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Atalhos Rápidos */}
+              <div
+                style={{ animationDelay: "530ms" }}
+                className="anim-entrada flex flex-wrap gap-3 pt-1"
+              >
+                <button
+                  type="button"
+                  onClick={() => irParaSecao("checkin")}
+                  className="inline-flex items-center gap-2 bg-[#f38b1e] hover:bg-[#d97712] text-white text-xs font-extrabold uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm transition-colors cursor-pointer"
+                >
+                  <UserCheck className="w-4 h-4" />
+                  Fazer Check-in
+                </button>
+                <button
+                  type="button"
+                  onClick={() => irParaSecao("materiais")}
+                  className="inline-flex items-center gap-2 bg-white text-[#003682] hover:bg-blue-50 text-xs font-extrabold uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm transition-colors cursor-pointer"
+                >
+                  <Download className="w-4 h-4 text-[#f38b1e]" />
+                  Materiais para Download
+                </button>
+                <button
+                  type="button"
+                  onClick={() => irParaSecao("como-chegar")}
+                  className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
+                >
+                  <Navigation className="w-4 h-4 text-[#ffd166]" />
+                  Como chegar ao hospital
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-2">
-              <div
-                style={{ animationDelay: "120ms" }}
-                className="anim-faixa inline-block bg-[#f38b1e] text-white px-4 py-1.5 shadow-sm transition-transform duration-300 hover:translate-x-1"
-              >
-                <h1 className="font-naughty text-2xl sm:text-4xl md:text-5xl uppercase leading-none">
-                  ENCONTRO INSTITUCIONAL
-                </h1>
-              </div>
-              <br />
-              <div
-                style={{ animationDelay: "200ms" }}
-                className="anim-faixa inline-block bg-[#f38b1e] text-white px-4 py-1.5 shadow-sm transition-transform duration-300 hover:translate-x-1"
-              >
-                <p className="font-naughty text-2xl sm:text-4xl md:text-5xl uppercase leading-none">
-                  DE DIRETORES E
-                </p>
-              </div>
-              <br />
-              <div
-                style={{ animationDelay: "280ms" }}
-                className="anim-faixa inline-flex items-center gap-3 bg-[#f38b1e] text-white px-4 py-1.5 shadow-sm transition-transform duration-300 hover:translate-x-1"
-              >
-                <p className="font-naughty text-2xl sm:text-4xl md:text-5xl uppercase leading-none">
-                  COORDENADORES 2026
-                </p>
-                <AsteriscoGiratorio
-                  duracao="14s"
-                  className="w-7 h-7 sm:w-9 sm:h-9 text-[#ffd166] shrink-0"
+            {/* Imagem da Capa */}
+            <div
+              style={{ animationDelay: "220ms" }}
+              className="anim-entrada lg:col-span-5"
+            >
+              <div className="relative rounded-3xl overflow-hidden border-2 border-white/20 shadow-2xl bg-[#002257]">
+                <img
+                  src="/Gemini_Generated_Image_9c2wn39c2wn39c2w.jpg"
+                  alt="Encontro Institucional de Diretores e Coordenadores – ISMEP 2026"
+                  className="w-full h-72 sm:h-96 lg:h-[420px] object-cover object-center block"
                 />
-              </div>
-            </div>
-
-            {/* Cards Reorganizados (Data, Local, Horários) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-              <div
-                style={{ animationDelay: "340ms" }}
-                className="anim-entrada flex items-center gap-3.5 bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl px-4 py-4 transition-all duration-300 hover:bg-white/15 hover:-translate-y-0.5"
-              >
-                <Calendar className="w-5 h-5 text-[#f5a623] shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[11px] uppercase tracking-wider text-blue-200 font-semibold">
-                    DATA
-                  </p>
-                  <p className="text-sm font-bold text-white leading-snug">
-                    {infoEncontro.data}
-                  </p>
+                <div className="bg-[#001d4a]/90 backdrop-blur-xs px-4 py-3 border-t border-white/15 flex items-center justify-between gap-2 text-xs">
+                  <span className="font-bold text-[#ffd166] uppercase tracking-wider">
+                    18 de dezembro de 2026
+                  </span>
+                  <span className="text-blue-100 font-semibold">
+                    A partir das 8h • Araripina/PE
+                  </span>
                 </div>
               </div>
-
-              <div
-                style={{ animationDelay: "410ms" }}
-                className="anim-entrada flex items-center gap-3.5 bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl px-4 py-4 transition-all duration-300 hover:bg-white/15 hover:-translate-y-0.5"
-              >
-                <MapPin className="w-5 h-5 text-[#f5a623] shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[11px] uppercase tracking-wider text-blue-200 font-semibold">
-                    LOCAL
-                  </p>
-                  <p className="text-sm font-bold text-white leading-snug">
-                    {infoEncontro.local}
-                  </p>
-                </div>
-              </div>
-
-              <div
-                style={{ animationDelay: "480ms" }}
-                className="anim-entrada flex items-center gap-3.5 bg-white/10 backdrop-blur-xs border border-white/15 rounded-2xl px-4 py-4 transition-all duration-300 hover:bg-white/15 hover:-translate-y-0.5"
-              >
-                <Clock className="w-5 h-5 text-[#f5a623] shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[11px] uppercase tracking-wider text-blue-200 font-semibold">
-                    HORÁRIOS
-                  </p>
-                  <p className="text-sm font-bold text-white leading-snug">
-                    {infoEncontro.horarios}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Atalhos Rápidos */}
-            <div
-              style={{ animationDelay: "530ms" }}
-              className="anim-entrada flex flex-wrap gap-3 pt-1"
-            >
-              <button
-                type="button"
-                onClick={() => irParaSecao("checkin")}
-                className="inline-flex items-center gap-2 bg-[#f38b1e] hover:bg-[#d97712] text-white text-xs font-extrabold uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-sm transition-colors cursor-pointer"
-              >
-                <UserCheck className="w-4 h-4" />
-                Fazer Check-in
-              </button>
-              <button
-                type="button"
-                onClick={() => irParaSecao("como-chegar")}
-                className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white border border-white/20 text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl transition-colors cursor-pointer"
-              >
-                <Navigation className="w-4 h-4 text-[#ffd166]" />
-                Como chegar ao hospital
-              </button>
             </div>
           </div>
         </div>
       </header>
 
-      {/* Seção de Programação Cronológica */}
+      {/* Conteúdo Principal */}
       <main
         id="programacao"
         className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 font-corpo space-y-16"
       >
+        {/* Programação */}
         <section>
           <div className="anim-entrada flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
             <div>
@@ -621,14 +573,14 @@ export default function EncontroInstitucional2026({
                   duracao="12s"
                   className="w-3.5 h-3.5 text-[#f38b1e]"
                 />
-                Cronograma por Horários
+                Pauta Oficial • Tema: Resultados, desafios e perspectivas para 2027
               </div>
               <h2 className="font-naughty text-3xl sm:text-4xl text-[#003682] uppercase">
                 Programação do Encontro
               </h2>
               <p className="text-slate-600 text-sm mt-1">
-                {infoEncontro.data} • {infoEncontro.local} •{" "}
-                {infoEncontro.horarios}
+                18 de dezembro de 2026 • Auditório do Hospital e Maternidade
+                Santa Maria – Araripina/PE • A partir das 8h
               </p>
             </div>
 
@@ -654,7 +606,7 @@ export default function EncontroInstitucional2026({
             </div>
           </div>
 
-          {/* Lista Cronológica de Itens da Programação */}
+          {/* Lista de Itens da Programação */}
           <div className="space-y-5">
             {itensFiltrados.map((item, index) => (
               <article
@@ -664,13 +616,13 @@ export default function EncontroInstitucional2026({
               >
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 pb-4 border-b border-slate-100">
                   <div className="flex items-start gap-3.5">
-                    <span className="min-w-[4.5rem] px-2.5 h-10 rounded-xl bg-[#003682] text-white font-extrabold text-xs flex items-center justify-center shrink-0">
-                      {item.horario}
+                    <span className="w-10 h-10 rounded-xl bg-[#003682] text-white font-extrabold text-sm flex items-center justify-center shrink-0">
+                      {item.numero}
                     </span>
                     <div>
                       <div className="flex flex-wrap items-center gap-2 mb-1">
                         <span className="inline-block text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-[#f38b1e]/12 text-[#b85d00]">
-                          Etapa {item.numero} • {item.etapa}
+                          {item.etapa}
                         </span>
                         {item.statusHorario && (
                           <span className="inline-block text-[11px] font-semibold px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-600">
@@ -727,7 +679,7 @@ export default function EncontroInstitucional2026({
                           <tr className="bg-amber-50/70 font-extrabold text-slate-900 border-t border-slate-200">
                             <td className="py-3 px-4">Tempo total</td>
                             <td className="py-3 px-4 text-right text-[#b85d00]">
-                              75 minutos
+                              {item.tempoTotal || "90 minutos"}
                             </td>
                           </tr>
                         </tfoot>
@@ -754,30 +706,96 @@ export default function EncontroInstitucional2026({
 
                 {/* Lista de Itens / Diretrizes da Etapa */}
                 {item.detalhes && item.detalhes.length > 0 && (
-                  <ul className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs sm:text-sm text-slate-700">
-                    {item.detalhes.map((detalhe) => (
-                      <li
-                        key={detalhe}
-                        className="flex items-start gap-2 bg-slate-50/90 rounded-xl p-3 border border-slate-200/60"
-                      >
-                        {item.numero === "03" ? (
-                          <Mic className="w-4 h-4 text-[#f38b1e] shrink-0 mt-0.5" />
-                        ) : item.numero === "05" ? (
-                          <Cpu className="w-4 h-4 text-[#0046a8] shrink-0 mt-0.5" />
-                        ) : item.numero === "06" ? (
-                          <Utensils className="w-4 h-4 text-[#f38b1e] shrink-0 mt-0.5" />
-                        ) : item.numero === "08" ? (
-                          <Music className="w-4 h-4 text-[#f38b1e] shrink-0 mt-0.5" />
-                        ) : (
-                          <Users className="w-4 h-4 text-[#0046a8] shrink-0 mt-0.5" />
-                        )}
-                        <span>{detalhe}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <div className="mt-4 space-y-2.5">
+                    {item.topicosTitulo && (
+                      <p className="text-xs font-bold uppercase tracking-wider text-[#003682]">
+                        {item.topicosTitulo}
+                      </p>
+                    )}
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-2.5 text-xs sm:text-sm text-slate-700">
+                      {item.detalhes.map((detalhe) => (
+                        <li
+                          key={detalhe}
+                          className="flex items-start gap-2 bg-slate-50/90 rounded-xl p-3 border border-slate-200/60"
+                        >
+                          {item.numero === "03" ? (
+                            <Mic className="w-4 h-4 text-[#f38b1e] shrink-0 mt-0.5" />
+                          ) : item.numero === "05" ? (
+                            <Cpu className="w-4 h-4 text-[#0046a8] shrink-0 mt-0.5" />
+                          ) : (
+                            <Users className="w-4 h-4 text-[#0046a8] shrink-0 mt-0.5" />
+                          )}
+                          <span>{detalhe}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 )}
               </article>
             ))}
+          </div>
+        </section>
+
+        {/* Área de Material para Download */}
+        <section
+          id="materiais"
+          className="scroll-mt-24 bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-2xs space-y-6"
+        >
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-100 pb-5">
+            <div>
+              <div className="inline-flex items-center gap-2 bg-[#f38b1e]/15 text-[#c96a08] text-xs font-extrabold uppercase tracking-wider px-3 py-1 rounded-full mb-2">
+                <Download className="w-3.5 h-3.5" />
+                Arquivos do Encontro
+              </div>
+              <h2 className="font-naughty text-2xl sm:text-3xl text-[#003682] uppercase">
+                Material para Download
+              </h2>
+              <p className="text-sm text-slate-600 mt-1">
+                Baixe os materiais disponíveis em PDF, PowerPoint, Word, PNG e
+                JPEG.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {MATERIAIS_DOWNLOAD.map((mat) => {
+              const Icone = mat.icon;
+              return (
+                <a
+                  key={mat.id}
+                  href={mat.href}
+                  download={mat.downloadName}
+                  className="group flex flex-col justify-between p-5 rounded-2xl border border-slate-200/90 bg-slate-50/60 hover:bg-white hover:border-[#0046a8]/40 hover:shadow-md transition-all"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="w-10 h-10 rounded-xl bg-[#003682]/10 text-[#003682] flex items-center justify-center">
+                        <Icone className="w-5 h-5" />
+                      </span>
+                      <span
+                        className={`text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full border ${mat.badgeClass}`}
+                      >
+                        {mat.formato}
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#003682] transition-colors">
+                        {mat.titulo}
+                      </h3>
+                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                        {mat.descricao}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-3 border-t border-slate-200/70 flex items-center justify-between text-xs font-bold text-[#003682]">
+                    <span>Baixar {mat.formato}</span>
+                    <Download className="w-4 h-4 text-[#f38b1e] group-hover:translate-y-0.5 transition-transform" />
+                  </div>
+                </a>
+              );
+            })}
           </div>
         </section>
 
@@ -796,8 +814,8 @@ export default function EncontroInstitucional2026({
               Check-in do Participante
             </h2>
             <p className="text-sm text-slate-600 mt-1 mb-6">
-              Confirme sua participação no Encontro Institucional 2026 (recepção a
-              partir das 8h).
+              Confirme sua participação no Encontro Institucional 2026 (a partir
+              das 8h).
             </p>
 
             {checkinConfirmado && (
@@ -910,7 +928,7 @@ export default function EncontroInstitucional2026({
                 Como Chegar no Hospital
               </h2>
               <p className="text-sm text-slate-600 mt-1">
-                {infoEncontro.local}.
+                Auditório do Hospital e Maternidade Santa Maria – Araripina/PE.
               </p>
             </div>
 
@@ -920,7 +938,7 @@ export default function EncontroInstitucional2026({
                 Hospital e Maternidade Santa Maria
               </p>
               <p className="text-slate-600 text-xs sm:text-sm leading-relaxed pl-6">
-                Araripina – Pernambuco • {infoEncontro.horarios}.
+                Araripina – Pernambuco • A partir das 8h.
               </p>
             </div>
 
@@ -932,9 +950,9 @@ export default function EncontroInstitucional2026({
                 <li className="flex items-start gap-2.5 bg-slate-50/80 p-3 rounded-xl border border-slate-200/60">
                   <Clock className="w-4 h-4 text-[#f38b1e] shrink-0 mt-0.5" />
                   <span>
-                    Chegue com antecedência a partir das <strong>8h</strong> para
-                    recepção, acolhimento e check-in antes da programação às{" "}
-                    <strong>9h</strong>.
+                    Abertura institucional a partir das <strong>8h</strong>, com
+                    recepção e acolhimento e pronunciamentos às{" "}
+                    <strong>8h30</strong> e <strong>8h40</strong>.
                   </span>
                 </li>
                 <li className="flex items-start gap-2.5 bg-slate-50/80 p-3 rounded-xl border border-slate-200/60">
@@ -979,13 +997,15 @@ export default function EncontroInstitucional2026({
             <p className="font-bold text-sm text-white">
               Instituto Social das Medianeiras da Paz (ISMEP)
             </p>
-            <p className="text-blue-200">{infoEncontro.local}</p>
+            <p className="text-blue-200">
+              Auditório do Hospital e Maternidade Santa Maria – Araripina/PE
+            </p>
           </div>
 
           <div className="text-left md:text-right space-y-1">
-            <p className="text-blue-200">Data e Horários:</p>
+            <p className="text-blue-200">Data e Horário:</p>
             <p className="text-sm font-bold text-[#ffd166]">
-              {infoEncontro.data} • {infoEncontro.horarios}
+              18 de dezembro de 2026 • A partir das 8h
             </p>
           </div>
         </div>
