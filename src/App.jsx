@@ -8,6 +8,7 @@ import InstitucionalSubNav from "./components/InstitucionalSubNav";
 import LoginUnificado from "./admin/LoginUnificado";
 import AdminCIPAA from "./admin/AdminCIPAA";
 import AdminHospital from "./admin/AdminHospital"; // Importa o painel administrativo do Hospital
+import AdminEncontro2026 from "./admin/AdminEncontro2026";
 import Agenda from "./pages/Agenda";
 import ObrasMissoes from "./pages/ObrasMissoes";
 import Noticias from "./pages/Noticias";
@@ -72,8 +73,9 @@ export default function App() {
             <Route path="/hospital" element={<DashboardHospital />} />
             <Route path="/admin/hospital" element={<AdminHospital />} />
 
-            {/* Rota do Encontro Institucional de Diretores e Coordenadores 2026 */}
+            {/* Rotas do Encontro Institucional de Diretores e Coordenadores 2026 */}
             <Route path="/encontro-2026" element={<EncontroInstitucional2026 />} />
+            <Route path="/admin/encontro-2026" element={<AdminEncontro2026 />} />
 
             <Route path="/vocacional" element={<Vocacional />} />
             <Route path="/pastoral" element={<Pastoral />} />
